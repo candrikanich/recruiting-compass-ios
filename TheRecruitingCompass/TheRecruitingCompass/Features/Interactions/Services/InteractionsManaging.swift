@@ -8,6 +8,8 @@ protocol InteractionsManaging: Sendable {
   // List operations
   /// Returns all interactions belonging to the family unit, across all coaches.
   func fetchInteractions(familyUnitId: String) async throws -> [Interaction]
+  /// Returns only `school_id` and `type` for every interaction in the family unit.
+  func fetchSchoolContactSignals(familyUnitId: String) async throws -> [SchoolContactSignal]
   /// Returns interactions logged by a specific user.
   func fetchInteractionsForUser(userId: String) async throws -> [Interaction]
 

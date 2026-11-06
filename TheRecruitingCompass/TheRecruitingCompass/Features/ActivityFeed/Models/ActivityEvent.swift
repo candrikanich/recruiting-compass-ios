@@ -12,4 +12,6 @@ struct ActivityEvent: Identifiable, Sendable, Codable {
   let entityName: String?
   let isClickable: Bool
   let clickUrl: String?
+  /// Who did it; the view model resolves this to "You" / a member name.
+  var actorUserId: String?
 }

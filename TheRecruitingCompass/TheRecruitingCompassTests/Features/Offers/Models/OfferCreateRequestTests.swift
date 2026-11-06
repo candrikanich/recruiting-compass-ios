@@ -162,7 +162,7 @@ final class OfferCreateRequestTests: XCTestCase {
 
     let request = OfferCreateRequest(userId: "user-1", form: form)
     let data = try JSONEncoder().encode(request)
-    let json = try JSONSerialization.jsonObject(with: data) as! [String: Any]
+    let json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
 
     XCTAssertNotNil(json["user_id"])
     XCTAssertNotNil(json["school_id"])
@@ -170,5 +170,13 @@ final class OfferCreateRequestTests: XCTestCase {
     XCTAssertNotNil(json["scholarship_amount"])
     XCTAssertNotNil(json["scholarship_percentage"])
     XCTAssertNotNil(json["offer_date"])
+  }
+
+  func testEncode_includesFamilyUnitIdWhenProvided() throws {
+    let form = NewOfferFormState()
+    let request = OfferCreateRequest(userId: "athlete-1", familyUnitId: "family-7", form: form)
+    let json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(request)) as? [String: Any]
+
+    XCTAssertEqual(json?["family_unit_id"] as? String, "family-7")
   }
 }

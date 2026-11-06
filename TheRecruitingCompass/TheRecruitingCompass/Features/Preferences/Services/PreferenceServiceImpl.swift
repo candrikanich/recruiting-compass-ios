@@ -141,7 +141,7 @@ final class PreferenceServiceImpl: PreferenceManaging, Sendable {
     logger.debug("Fetching preferences for category: \(category.rawValue)")
 
     do {
-      let userId = try await resolveUserId(requestedUserId)
+      let userId = try await resolveUserIdForRead(requestedUserId)
 
       let rows: [PreferenceResponse] = try await supabaseManager.client
         .from("user_preferences")
@@ -283,6 +283,17 @@ final class PreferenceServiceImpl: PreferenceManaging, Sendable {
   private func resolveUserId(_ requestedUserId: String?) async throws -> String {
     if let requestedUserId { return requestedUserId }
     return try await getCurrentUserId()
+  }
+
+  /// Reads need only the id, so they take it from the local auth session. Writes keep going through
+  /// `getCurrentUserId()`, whose profile read also creates a missing `users` row that
+  /// `user_preferences` references.
+  private func resolveUserIdForRead(_ requestedUserId: String?) async throws -> String {
+    if let requestedUserId { return requestedUserId }
+    guard let userId = try await supabaseManager.currentAuthUserId() else {
+      throw PreferenceError.notAuthenticated
+    }
+    return userId
   }
 
   private func getCurrentUserId() async throws -> String {

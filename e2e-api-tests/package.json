@@ -12,11 +12,12 @@
     "test:report": "npx playwright show-report"
   },
   "devDependencies": {
-    "@playwright/test": "^1.52.0",
-    "@supabase/supabase-js": "^2.49.0",
-    "typescript": "^5.8.0"
+    "@playwright/test": "^1.64.0",
+    "@supabase/supabase-js": "^2.117.3",
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2"
   },
   "dependencies": {
-    "dotenv": "^17.2.4"
+    "dotenv": "^18.0.6"
   }
 }

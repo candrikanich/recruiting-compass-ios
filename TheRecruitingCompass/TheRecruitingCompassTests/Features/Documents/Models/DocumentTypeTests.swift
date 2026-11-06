@@ -14,14 +14,14 @@ final class DocumentTypeTests: XCTestCase {
   }
 
   func testTypeEmoji_allCases_haveEmoji() {
-    XCTAssertEqual(DocumentType.highlightVideo.typeEmoji, "🎥")
-    XCTAssertEqual(DocumentType.transcript.typeEmoji, "📄")
-    XCTAssertEqual(DocumentType.resume.typeEmoji, "📋")
-    XCTAssertEqual(DocumentType.recLetter.typeEmoji, "💌")
-    XCTAssertEqual(DocumentType.questionnaire.typeEmoji, "📝")
-    XCTAssertEqual(DocumentType.statsSheet.typeEmoji, "📊")
-    XCTAssertEqual(DocumentType.coachAttachment.typeEmoji, "📎")
-    XCTAssertEqual(DocumentType.other.typeEmoji, "📁")
+    XCTAssertEqual(DocumentType.highlightVideo.systemImage, "video")
+    XCTAssertEqual(DocumentType.transcript.systemImage, "doc.text")
+    XCTAssertEqual(DocumentType.resume.systemImage, "list.clipboard")
+    XCTAssertEqual(DocumentType.recLetter.systemImage, "envelope")
+    XCTAssertEqual(DocumentType.questionnaire.systemImage, "square.and.pencil")
+    XCTAssertEqual(DocumentType.statsSheet.systemImage, "chart.bar")
+    XCTAssertEqual(DocumentType.coachAttachment.systemImage, "paperclip")
+    XCTAssertEqual(DocumentType.other.systemImage, "paperclip")
   }
 
   func testAllowedExtensions_highlightVideo_includesVideoFormats() {

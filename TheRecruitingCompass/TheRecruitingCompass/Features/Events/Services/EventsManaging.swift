@@ -10,6 +10,11 @@ struct SchoolSummary: Codable, Identifiable, Sendable {
   let location: String?
 }
 
+struct SchoolNameRow: Codable, Sendable {
+  let id: String
+  let name: String
+}
+
 /// Service contract for recruiting event CRUD operations, performance metrics, and related entity lookups.
 protocol EventsManaging: Sendable {
   /// Creates a new event record and returns the fully populated entity.
@@ -18,6 +23,8 @@ protocol EventsManaging: Sendable {
   func fetchEvent(id: String, userId: String) async throws -> FullEvent
   /// Returns all events belonging to the given user.
   func fetchEvents(userId: String) async throws -> [FullEvent]
+  /// Returns the user's official and unofficial visit events, past and future, as `school_id` + `start_date`.
+  func fetchVisitEvents(userId: String) async throws -> [SchoolVisitEvent]
   /// Applies updates to an existing event and returns the updated entity.
   func updateEvent(id: String, request: EventUpdateRequest) async throws -> FullEvent
   /// Permanently deletes an event and all associated performance metrics.
@@ -28,8 +35,15 @@ protocol EventsManaging: Sendable {
   func fetchSchools(familyUnitId: String) async throws -> [SchoolSummary]
   /// Creates a minimal school record inline from the event form. Writes both
   /// `user_id` and `family_unit_id` so the new school shows up in the
-  /// family-scoped Schools list and this picker.
-  func createSchool(name: String, location: String?, userId: String, familyUnitId: String) async throws -> SchoolSummary
+  /// family-scoped Schools list and this picker. Throws `FamilyUnitID.MissingError` when there is no family.
+  func createSchool(
+    name: String,
+    location: String?,
+    userId: String,
+    familyUnitId: String?
+  ) async throws -> SchoolSummary
+  /// Returns the display name of a single school, or nil when the school can't be found.
+  func fetchSchoolName(schoolId: String) async throws -> String?
   /// Returns coaches associated with a specific school, scoped to the user.
   func fetchCoaches(schoolId: String, userId: String) async throws -> [Coach]
   /// Returns all performance metrics logged for a specific event.

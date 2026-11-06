@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ActivityFeedView: View {
   @State private var viewModel = ActivityFeedViewModel()
+  @Environment(FamilyManager.self) private var familyManager
 
   var body: some View {
     Group {
@@ -17,8 +18,8 @@ struct ActivityFeedView: View {
     }
     .navigationTitle(navigationTitleText)
     .searchable(text: $viewModel.searchQuery, prompt: "Search activities...")
-    .refreshable { await viewModel.loadActivities() }
-    .task { await viewModel.loadActivities() }
+    .refreshable { await viewModel.refresh() }
+    .task(id: familyManager.familyUnitId) { await viewModel.loadActivities() }
   }
 
   // MARK: - Accessibility
@@ -48,13 +49,13 @@ struct ActivityFeedView: View {
           ForEach(viewModel.paginatedActivities) { event in
             if event.isClickable {
               NavigationLink(value: ActivityDestination(event: event)) {
-                ActivityEventItem(event: event)
+                ActivityEventItem(event: event, actorLabel: viewModel.actorLabel(for: event))
               }
               .buttonStyle(.plain)
               .padding(.horizontal, 16)
               .padding(.vertical, 4)
             } else {
-              ActivityEventItem(event: event)
+              ActivityEventItem(event: event, actorLabel: viewModel.actorLabel(for: event))
                 .padding(.horizontal, 16)
                 .padding(.vertical, 4)
             }
@@ -105,7 +106,7 @@ struct ActivityFeedView: View {
         viewModel.previousPage()
       } label: {
         Label("Previous", systemImage: "chevron.left")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
       }
       .disabled(!viewModel.hasPreviousPage)
       .frame(minWidth: 44, minHeight: 44)
@@ -114,7 +115,7 @@ struct ActivityFeedView: View {
       Spacer()
 
       Text(pageIndicatorAccessibilityLabel(currentPage: viewModel.currentPage, totalPages: viewModel.totalPages))
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .accessibilityLabel(pageIndicatorAccessibilityLabel(
           currentPage: viewModel.currentPage, totalPages: viewModel.totalPages))
@@ -126,7 +127,7 @@ struct ActivityFeedView: View {
         viewModel.nextPage()
       } label: {
         Label("Next", systemImage: "chevron.right")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .labelStyle(.trailingIcon)
       }
       .disabled(!viewModel.hasNextPage)
@@ -145,18 +146,18 @@ struct ActivityFeedView: View {
   private var emptyState: some View {
     VStack(spacing: 16) {
       Image(systemName: "sparkles")
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .imageScale(.large)
         .foregroundStyle(Color.iconGray)
         .accessibilityHidden(true)
 
       Text("No activities found")
-        .font(.title3)
+        .font(.brand(.title3))
         .fontWeight(.medium)
         .foregroundStyle(.primary)
 
       Text("Your recruiting activity will appear here")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
     }
@@ -170,16 +171,16 @@ struct ActivityFeedView: View {
   private var filteredEmptyState: some View {
     VStack(spacing: 16) {
       Image(systemName: "line.3.horizontal.decrease.circle")
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .foregroundStyle(Color.iconGray)
         .accessibilityHidden(true)
 
       Text("No activities found")
-        .font(.title3)
+        .font(.brand(.title3))
         .fontWeight(.medium)
 
       Text("Try adjusting your filters or search query")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
 
       Button("Clear Filters") {
@@ -195,18 +196,18 @@ struct ActivityFeedView: View {
   private func errorState(_ message: String) -> some View {
     VStack(spacing: 16) {
       Image(systemName: "exclamationmark.triangle")
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .imageScale(.large)
         .foregroundStyle(Color.errorRed)
         .accessibilityHidden(true)
 
       Text(message)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
 
       Button("Try Again") {
-        Task { await viewModel.loadActivities() }
+        Task { await viewModel.refresh() }
       }
       .buttonStyle(.borderedProminent)
       .frame(minWidth: 44, minHeight: 44)
@@ -237,4 +238,5 @@ extension LabelStyle where Self == TrailingIconLabelStyle {
   NavigationStack {
     ActivityFeedView()
   }
+  .environment(FamilyManager.shared)
 }

@@ -8,17 +8,17 @@ struct ProItem: View {
     HStack(spacing: 8) {
       Image(systemName: "checkmark.circle.fill")
         .foregroundStyle(.green)
-        .font(.caption)
+        .font(.brand(.caption))
         .accessibilityHidden(true)
 
       Text(text)
-        .font(.body)
+        .font(.brand(.body))
         .frame(maxWidth: .infinity, alignment: .leading)
 
       Button(action: onRemove) {
         Image(systemName: "xmark.circle.fill")
           .foregroundStyle(.secondary)
-          .font(.caption)
+          .font(.brand(.caption))
       }
       .frame(minWidth: 44, minHeight: 44)
       .accessibilityLabel(String(localized: "Remove \(text)"))

@@ -6,11 +6,11 @@ struct AttachmentIndicator: View {
   var body: some View {
     HStack(spacing: 4) {
       Image(systemName: "paperclip")
-        .font(.caption)
+        .font(.brand(.caption))
         .accessibilityHidden(true)
 
       Text("\(count)")
-        .font(.caption)
+        .font(.brand(.caption))
         .fontWeight(.medium)
     }
     .foregroundStyle(.secondary)

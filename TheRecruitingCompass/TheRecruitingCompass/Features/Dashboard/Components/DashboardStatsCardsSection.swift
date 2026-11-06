@@ -17,10 +17,7 @@ struct DashboardStatsCardsSection: View {
           StatCard(
             title: String(localized: "Coaches"),
             count: stats.coachCount,
-            subtitle: nil,
-            description: String(localized: "View all coaches"),
             icon: "person.2",
-            gradientColors: [Color.Brand.blue600, Color.Brand.blue700],
             isEnabled: true,
             destination: .coaches
           )
@@ -37,10 +34,7 @@ struct DashboardStatsCardsSection: View {
           StatCard(
             title: String(localized: "Schools"),
             count: stats.schoolCount,
-            subtitle: nil,
-            description: String(localized: "Manage schools"),
             icon: "building.2",
-            gradientColors: [Color.Brand.purple600, Color.Brand.purple700],
             isEnabled: true,
             destination: .schools
           )
@@ -57,10 +51,7 @@ struct DashboardStatsCardsSection: View {
           StatCard(
             title: String(localized: "Interactions"),
             count: stats.interactionCount,
-            subtitle: nil,
-            description: String(localized: "Track interactions"),
             icon: "bubble.left.and.bubble.right",
-            gradientColors: [Color.Brand.emerald700, Color.Brand.emerald800],
             isEnabled: true,
             destination: .interactions
           )
@@ -77,10 +68,7 @@ struct DashboardStatsCardsSection: View {
           StatCard(
             title: String(localized: "Events"),
             count: stats.upcomingEventCount,
-            subtitle: nil,
-            description: String(localized: "View upcoming events"),
             icon: "calendar",
-            gradientColors: [Color.Brand.orange700, Color.Brand.orange800],
             isEnabled: true,
             destination: nil
           )

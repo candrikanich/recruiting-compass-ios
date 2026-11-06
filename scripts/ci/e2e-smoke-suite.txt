@@ -1,0 +1,6 @@
+# UI test classes the scheduled E2E job runs, one per line.
+# A class belongs here only if its failure would block a release; everything
+# else runs on demand (workflow_dispatch with e2e_suite=full, or locally).
+SignupFlowE2ETests
+AddSchoolE2ETests
+AddInteractionE2ETests

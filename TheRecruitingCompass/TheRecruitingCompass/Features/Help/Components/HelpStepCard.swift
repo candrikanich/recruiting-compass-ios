@@ -16,22 +16,22 @@ struct HelpStepCard: View {
   var body: some View {
     HStack(alignment: .top, spacing: 12) {
       Text("\(step)")
-        .font(.title2)
+        .font(.brand(.title2))
         .bold()
-        .foregroundStyle(Color.accentBlue)
+        .foregroundStyle(Color.accentPrimary)
         .frame(width: 32, height: 32)
-        .background(Color.accentBlue.opacity(0.12))
+        .background(Color.accentPrimary.opacity(0.12))
         .clipShape(Circle())
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 4) {
         Text(title)
-          .font(.body)
+          .font(.brand(.body))
           .fontWeight(.semibold)
           .foregroundStyle(.primary)
 
         Text(bodyText)
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
           .fixedSize(horizontal: false, vertical: true)
       }
@@ -42,7 +42,7 @@ struct HelpStepCard: View {
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .overlay {
       RoundedRectangle(cornerRadius: 12)
-        .stroke(Color.accentBlue.opacity(0.3), lineWidth: isLast ? 0 : 1)
+        .stroke(Color.accentPrimary.opacity(0.3), lineWidth: isLast ? 0 : 1)
     }
     .accessibilityElement(children: .combine)
     .accessibilityLabel(String(localized: "Step \(step): \(title). \(bodyText)"))

@@ -16,11 +16,11 @@ struct CollegeScorecardDataDisplay: View {
       // Section Header
       HStack {
         Image(systemName: "chart.bar.fill")
-          .foregroundStyle(.blue)
+          .foregroundStyle(Color.accentPrimary)
           .accessibilityHidden(true)
 
         Text("College Scorecard Data")
-          .font(.headline)
+          .font(.brand(.headline))
           .foregroundStyle(.primary)
       }
 
@@ -124,7 +124,7 @@ struct CollegeScorecardDataDisplay: View {
       }
     }
     .padding()
-    .background(Color.blue.opacity(0.05))
+    .background(Color.accentPrimary.opacity(0.05))
     .clipShape(.rect(cornerRadius: 8))
     .accessibilityElement(children: .contain)
     .accessibilityLabel(String(localized: "College Scorecard academic data"))
@@ -136,17 +136,17 @@ struct CollegeScorecardDataDisplay: View {
     VStack(alignment: .leading, spacing: 4) {
       HStack(spacing: 4) {
         Image(systemName: icon)
-          .font(.caption)
-          .foregroundStyle(.blue)
+          .font(.brand(.caption))
+          .foregroundStyle(Color.accentPrimary)
           .accessibilityHidden(true)
 
         Text(label)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
 
       Text(value)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .fontWeight(.medium)
         .foregroundStyle(.primary)
     }

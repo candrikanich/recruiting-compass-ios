@@ -5,4 +5,5 @@ enum MorePath: Hashable {
   case eventDetail(eventId: String)
   case offerDetail(offerId: String)
   case helpSection(slug: String)
+  case familyManagement
 }

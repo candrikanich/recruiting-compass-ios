@@ -3,15 +3,21 @@ import UserNotifications
 
 struct NotificationPreferencesView: View {
   @State private var viewModel: NotificationPreferencesViewModel
+  @State private var marketingViewModel: MarketingConsentViewModel
   @Environment(\.openURL) private var openURL
   @Environment(AuthManager.self) private var authManager
   @State private var pushAuthStatus: UNAuthorizationStatus = .notDetermined
 
-  init(preferenceService: any PreferenceManaging, pushPreferencesService: (any PushPreferencesManaging)? = nil) {
+  init(
+    preferenceService: any PreferenceManaging,
+    pushPreferencesService: (any PushPreferencesManaging)? = nil,
+    marketingConsentService: (any MarketingConsentManaging)? = nil
+  ) {
     _viewModel = State(initialValue: NotificationPreferencesViewModel(
       preferenceService: preferenceService,
       pushPreferencesService: pushPreferencesService
     ))
+    _marketingViewModel = State(initialValue: MarketingConsentViewModel(service: marketingConsentService))
   }
 
   var body: some View {
@@ -78,11 +84,15 @@ struct NotificationPreferencesView: View {
         Text("Email Notifications")
       }
 
+      if marketingViewModel.isEligible {
+        MarketingEmailsSection(viewModel: marketingViewModel)
+      }
+
       // Push Notifications Section
       Section {
         if let pushSetupError = viewModel.pushSetupError {
           Label(pushSetupError, systemImage: "exclamationmark.triangle.fill")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(Color.errorRed)
         }
         if pushAuthStatus == .denied {
@@ -90,7 +100,7 @@ struct NotificationPreferencesView: View {
             Image(systemName: "bell.slash")
               .foregroundStyle(.secondary)
             Text("Push notifications are disabled in iOS Settings.")
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .foregroundStyle(.secondary)
             Spacer()
             Button("Open Settings") {
@@ -98,11 +108,11 @@ struct NotificationPreferencesView: View {
                 openURL(url)
               }
             }
-            .font(.subheadline)
+            .font(.brand(.subheadline))
           }
           .accessibilityElement(children: .contain)
         } else {
-          ForEach(NotificationType.allCases.filter { $0 != .unknown }, id: \.self) { type in
+          ForEach(NotificationType.allCases.filter(\.hasPushPreference), id: \.self) { type in
             Toggle(type.label, isOn: Binding(
               get: { viewModel.pushPreferences[type] ?? true },
               set: { enabled in
@@ -118,10 +128,10 @@ struct NotificationPreferencesView: View {
       } footer: {
         if pushAuthStatus == .notDetermined {
           Text("Push notifications have not been enabled yet. You'll be prompted when you next use the app.")
-            .font(.caption)
+            .font(.brand(.caption))
         } else if pushAuthStatus == .authorized || pushAuthStatus == .provisional {
           Text("Controls which notification types trigger a push alert on your device.")
-            .font(.caption)
+            .font(.brand(.caption))
         }
       }
 
@@ -165,6 +175,37 @@ struct NotificationPreferencesView: View {
       if let userId = authManager.user?.id {
         await viewModel.loadPushPreferences(userId: userId)
       }
+    }
+    .task { await marketingViewModel.load() }
+  }
+}
+
+/// Marketing consent (web #1066) saves through its own endpoint, independent of the
+/// auto-saved notification settings above, and is shown only to marketing-eligible adults.
+private struct MarketingEmailsSection: View {
+  let viewModel: MarketingConsentViewModel
+
+  var body: some View {
+    Section {
+      if let errorMessage = viewModel.errorMessage {
+        Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
+          .font(.brand(.subheadline))
+          .foregroundStyle(Color.errorRed)
+      }
+      Toggle("Marketing Emails", isOn: Binding(
+        get: { viewModel.optIn },
+        set: { newValue in Task { await viewModel.setOptIn(newValue) } }
+      ))
+      .disabled(viewModel.isSaving)
+      .accessibilityLabel(String(localized: "Receive marketing emails"))
+      .accessibilityIdentifier("marketingEmailsToggle")
+    } header: {
+      Text("Marketing Emails")
+    } footer: {
+      Text(
+        "Recruiting tips, product updates and offers from The Recruiting Compass. You can unsubscribe anytime."
+      )
+      .font(.brand(.caption))
     }
   }
 }

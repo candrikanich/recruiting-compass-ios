@@ -134,7 +134,7 @@ final class AnalyticsChartDataTests: XCTestCase {
   func testScatterDataPoint_DefaultColor() {
     let point = ScatterDataPoint(x: 85.0, y: 340.0, label: "Player A")
 
-    XCTAssertEqual(point.color, .accentBlue)
+    XCTAssertEqual(point.color, .accentPrimary)
   }
 
   func testScatterDataPoint_DefaultIdIsUnique() {

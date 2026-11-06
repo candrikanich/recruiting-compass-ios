@@ -5,7 +5,7 @@ struct SuccessToast: View {
 
   var body: some View {
     Text(message)
-      .font(.subheadline)
+      .font(.brand(.subheadline))
       .fontWeight(.medium)
       .foregroundStyle(.white)
       .padding(.horizontal, 16)

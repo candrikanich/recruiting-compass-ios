@@ -52,11 +52,11 @@ struct SchoolMapView: View {
           HStack(spacing: 6) {
             Image(systemName: "mappin.and.ellipse")
               .foregroundStyle(.secondary)
-              .font(.caption)
+              .font(.brand(.caption))
               .accessibilityHidden(true)
 
             Text("Distance from Home: \(label)")
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .foregroundStyle(.secondary)
           }
           .padding(.top, 4)
@@ -67,10 +67,10 @@ struct SchoolMapView: View {
           Button(action: onSetHomeLocation) {
             HStack(spacing: 6) {
               Image(systemName: "mappin.and.ellipse")
-                .font(.caption)
+                .font(.brand(.caption))
                 .accessibilityHidden(true)
               Text("Set your home location to see distance")
-                .font(.subheadline)
+                .font(.brand(.subheadline))
             }
             .frame(minHeight: 44)
           }
@@ -86,16 +86,16 @@ struct SchoolMapView: View {
       } else {
         VStack(spacing: 8) {
           Image(systemName: "map")
-            .font(.largeTitle)
+            .font(.brand(.largeTitle))
             .foregroundStyle(.secondary)
             .accessibilityHidden(true)
 
           Text("Location data not available")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
 
           Text("Use 'Lookup College Data' to fetch location")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.tertiary)
         }
         .frame(height: 200)

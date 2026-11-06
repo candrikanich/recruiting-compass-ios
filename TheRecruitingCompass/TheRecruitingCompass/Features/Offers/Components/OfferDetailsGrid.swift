@@ -9,7 +9,7 @@ struct OfferDetailsGrid: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
       Text("Offer Details")
-        .font(.headline)
+        .font(.brand(.headline))
         .accessibilityAddTraits(.isHeader)
 
       LazyVGrid(columns: [
@@ -37,11 +37,11 @@ struct OfferDetailsGrid: View {
   private func detailItem(label: String, value: String) -> some View {
     VStack(alignment: .leading, spacing: 4) {
       Text(label)
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
 
       Text(value)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .fontWeight(.semibold)
     }
     .accessibilityElement(children: .combine)

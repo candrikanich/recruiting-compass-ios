@@ -12,7 +12,7 @@ struct SchoolFitSection: View {
   var body: some View {
     if personalFit != nil || academicFit != nil {
       VStack(alignment: .leading, spacing: 16) {
-        Text("School Fit").font(.title3).fontWeight(.semibold)
+        Text("School Fit").font(.brand(.title3)).fontWeight(.semibold)
           .accessibilityAddTraits(.isHeader)
 
         if let personalFit {
@@ -23,7 +23,7 @@ struct SchoolFitSection: View {
                           enrichError: enrichError, onLookup: onLookup)
         }
         Text("Academic data from the U.S. College Scorecard.")
-          .font(.caption2).foregroundStyle(.secondary)
+          .font(.brand(.caption2)).foregroundStyle(.secondary)
       }
       .padding(.horizontal)
     }

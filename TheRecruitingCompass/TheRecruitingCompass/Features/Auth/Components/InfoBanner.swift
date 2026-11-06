@@ -18,9 +18,9 @@ struct InfoBanner: View {
             .accessibilityHidden(true)
           VStack(alignment: .leading, spacing: 4) {
             Text(title)
-              .font(.footnote.weight(.semibold))
+              .font(.brand(.footnote, weight: .semibold))
             Text(subtitle)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(Color.secondaryText)
           }
           Spacer()
@@ -53,7 +53,7 @@ struct InfoBanner: View {
         .foregroundStyle(Color.amberGold)
     case .checking:
       ProgressView()
-        .tint(Color.accentBlue)
+        .tint(Color.accentPrimary)
         .accessibilityLabel(String(localized: "Checking verification"))
     case .verified:
       Image(systemName: "checkmark.circle.fill")
@@ -98,7 +98,7 @@ struct InfoBanner: View {
     case .pending:
       return Color.amberGold.opacity(0.1)
     case .checking:
-      return Color.accentBlue.opacity(0.1)
+      return Color.accentPrimary.opacity(0.1)
     case .verified:
       return Color.successGreen.opacity(0.1)
     case .error:

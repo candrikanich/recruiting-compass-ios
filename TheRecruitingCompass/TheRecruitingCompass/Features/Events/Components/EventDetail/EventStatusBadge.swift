@@ -16,7 +16,7 @@ struct EventStatusBadge: View {
 
   private var color: Color {
     if attended { return .green }
-    if registered { return .blue }
+    if registered { return Color.accentPrimary }
     return .gray
   }
 }

@@ -22,7 +22,7 @@ struct DocumentFilterBar: View {
             Text(sortBy.label)
               .lineLimit(1)
             Image(systemName: "chevron.down")
-              .font(.caption)
+              .font(.brand(.caption))
           }
           .padding(.horizontal, 12)
           .padding(.vertical, 8)
@@ -47,7 +47,7 @@ struct DocumentFilterBar: View {
                 .foregroundStyle(.secondary)
             }
           }
-          .font(.subheadline)
+          .font(.brand(.subheadline))
         }
         .accessibilityLabel(String(localized: activeFilterCount > 0 ? "Filter documents. \(activeFilterCount) filters active." : "Filter documents"))
 
@@ -60,7 +60,7 @@ struct DocumentFilterBar: View {
             Image(systemName: "square.grid.2x2")
               .frame(width: 44, height: 44)
               .foregroundStyle(viewMode == .grid ? .white : .secondary)
-              .background(viewMode == .grid ? Color.blue : Color(.systemGray5))
+              .background(viewMode == .grid ? Color.accentFill : Color(.systemGray5))
               .clipShape(.rect(cornerRadius: 8))
           }
           .accessibilityLabel(String(localized: "Grid view"))
@@ -72,7 +72,7 @@ struct DocumentFilterBar: View {
             Image(systemName: "list.bullet")
               .frame(width: 44, height: 44)
               .foregroundStyle(viewMode == .list ? .white : .secondary)
-              .background(viewMode == .list ? Color.blue : Color(.systemGray5))
+              .background(viewMode == .list ? Color.accentFill : Color(.systemGray5))
               .clipShape(.rect(cornerRadius: 8))
           }
           .accessibilityLabel(String(localized: "List view"))
@@ -84,7 +84,7 @@ struct DocumentFilterBar: View {
         Button("Clear filters", role: .destructive) {
           onClearFilters()
         }
-        .font(.caption)
+        .font(.brand(.caption))
       }
     }
     .padding()

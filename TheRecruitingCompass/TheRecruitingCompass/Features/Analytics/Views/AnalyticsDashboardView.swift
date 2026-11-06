@@ -188,7 +188,7 @@ struct AnalyticsDashboardView: View {
   private var headerSection: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Comprehensive recruiting metrics and performance insights")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(Color.secondaryText)
         .accessibilityAddTraits(.isHeader)
     }

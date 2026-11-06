@@ -17,6 +17,7 @@ final class EventDetailViewModel {
 
   var event: FullEvent?
   var schoolCoaches: [Coach] = []
+  var schoolName: String?
   var metrics: [PerformanceMetric] = []
   var isLoading = false
   var errorMessage: String?
@@ -203,8 +204,9 @@ final class EventDetailViewModel {
 
     async let coachesTask: () = loadCoaches(event: event, userId: userId)
     async let metricsTask: () = loadMetrics(userId: userId)
+    async let schoolNameTask: () = loadSchoolName(event: event)
 
-    _ = await (coachesTask, metricsTask)
+    _ = await (coachesTask, metricsTask, schoolNameTask)
   }
 
   private func loadCoaches(event: FullEvent, userId: String) async {
@@ -216,6 +218,18 @@ final class EventDetailViewModel {
       // intentionally silent: the event itself loaded fine; an empty
       // coaches-present list here just means the check-in picker is empty.
       logger.error("Failed to load coaches: \(error.localizedDescription)")
+    }
+  }
+
+  /// One lookup per screen (not per coach card) so Quick Communication templates can render `{{schoolName}}`.
+  private func loadSchoolName(event: FullEvent) async {
+    guard let schoolId = event.schoolId, !schoolId.isEmpty else { return }
+    do {
+      schoolName = try await eventsService.fetchSchoolName(schoolId: schoolId)
+    } catch {
+      // intentionally silent: Quick Communication still opens without a school name,
+      // same as other entry points when the name is unknown.
+      logger.error("Failed to load school name: \(error.localizedDescription)")
     }
   }
 
@@ -308,15 +322,21 @@ final class EventDetailViewModel {
 
   func logInteraction() async {
     guard let userId else { return }
+    guard let familyUnitId = familyManager.resolvedFamilyUnitId else {
+      errorMessage = FamilyUnitID.MissingError.missing.errorDescription
+      return
+    }
     await ViewModelHelpers.withLoading(set: { self.isLoggingInteraction = $0 }) {
       do {
+        assert(interactionData.type != .unknown, "InteractionType.unknown is decode-only")
         let request = CreateInteractionRequest(
           userId: userId,
+          familyUnitId: familyUnitId,
           eventId: eventId,
           coachId: interactionData.coachId,
-          type: interactionData.type.rawValue,
-          direction: interactionData.direction.rawValue,
-          sentiment: interactionData.sentiment.rawValue,
+          type: interactionData.type.serverValue,
+          direction: interactionData.direction.serverValue,
+          sentiment: interactionData.sentiment.serverValue,
           notes: interactionData.notes.isEmpty ? nil : interactionData.notes
         )
         try await eventsService.createInteraction(request)
@@ -401,10 +421,15 @@ final class EventDetailViewModel {
 
   func addMetric() async {
     guard let userId, let value = newMetricData.parsedValue else { return }
+    guard let familyUnitId = familyManager.resolvedFamilyUnitId else {
+      errorMessage = FamilyUnitID.MissingError.missing.errorDescription
+      return
+    }
     await ViewModelHelpers.withLoading(set: { self.isSavingMetric = $0 }) {
       do {
         let request = CreateMetricRequest(
           userId: userId,
+          familyUnitId: familyUnitId,
           metricType: newMetricData.metricType.rawValue,
           value: value,
           unit: newMetricData.unit.isEmpty ? newMetricData.metricType.defaultUnit : newMetricData.unit,

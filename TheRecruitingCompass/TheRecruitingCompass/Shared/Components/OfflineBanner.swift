@@ -5,11 +5,11 @@ struct OfflineBanner: View {
   var body: some View {
     HStack(spacing: 8) {
       Image(systemName: "wifi.slash")
-        .font(.subheadline.weight(.medium))
+        .font(.brand(.subheadline, weight: .medium))
         .foregroundStyle(.white)
         .accessibilityHidden(true)
       Text("No internet connection")
-        .font(.subheadline.weight(.medium))
+        .font(.brand(.subheadline, weight: .medium))
         .foregroundStyle(.white)
     }
     .frame(maxWidth: .infinity)

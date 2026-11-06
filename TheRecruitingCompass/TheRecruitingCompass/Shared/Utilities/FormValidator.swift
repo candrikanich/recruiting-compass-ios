@@ -33,7 +33,9 @@ enum FormValidator {
   }
 
   // MARK: - Name
-  private static let nameRegex = /^[a-zA-Z\s\-']+$/
+  // Any script's letters (plus combining marks), and both apostrophes: the iOS
+  // keyboard's smart punctuation types ’ rather than '.
+  private static let nameRegex = /^[\p{L}\p{M}\s\-'’]+$/
 
   static func validateName(_ name: String) -> String? {
     let trimmed = name.trimmingCharacters(in: .whitespaces)
@@ -53,7 +55,7 @@ enum FormValidator {
     let trimmed = code.trimmingCharacters(in: .whitespaces)
     guard !trimmed.isEmpty else { return nil }
     guard trimmed.wholeMatch(of: familyCodeRegex) != nil else {
-      return "Family code must be in format FAM-XXXXXX"
+      return "Family Code must be in format FAM-XXXXXX"
     }
     return nil
   }

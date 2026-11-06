@@ -196,13 +196,16 @@ extension PushNotificationManager: UNUserNotificationCenterDelegate {
     ) {
         let userInfo = response.notification.request.content.userInfo
         Task { @MainActor in
-            if let destination = NotificationDestinationParser.destination(fromPayload: userInfo) {
-                NotificationCenter.default.post(
-                    name: .pushNotificationTapped,
-                    object: nil,
-                    userInfo: ["destination": destination]
-                )
-            }
+            let service = NotificationsServiceImpl(supabaseManager: .shared)
+            let destination = await NotificationDestinationParser.resolveDestination(
+                fromPayload: userInfo,
+                fetchNotification: { await service.fetchNotification(id: $0) }
+            )
+            NotificationCenter.default.post(
+                name: .pushNotificationTapped,
+                object: nil,
+                userInfo: ["destination": destination]
+            )
         }
         completionHandler()
     }

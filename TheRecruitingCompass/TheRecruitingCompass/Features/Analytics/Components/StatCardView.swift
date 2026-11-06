@@ -7,7 +7,7 @@ struct StatCardView: View {
     VStack(alignment: .leading, spacing: 8) {
       HStack {
         Image(systemName: card.iconName)
-          .font(.title3)
+          .font(.brand(.title3))
           .foregroundStyle(card.color)
           .accessibilityHidden(true)
 
@@ -19,11 +19,11 @@ struct StatCardView: View {
       }
 
       Text("\(card.value)")
-        .font(.title.bold())
+        .font(.brand(.title, weight: .bold))
         .foregroundStyle(Color.darkSlate)
 
       Text(card.title)
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(Color.secondaryText)
     }
     .padding()
@@ -57,13 +57,13 @@ struct StatCardView: View {
     HStack(spacing: 2) {
       if isPositive {
         Image(systemName: "arrow.up.right")
-          .font(.caption)
+          .font(.brand(.caption))
       } else if isNegative {
         Image(systemName: "arrow.down.right")
-          .font(.caption)
+          .font(.brand(.caption))
       }
       Text(trend)
-        .font(.caption)
+        .font(.brand(.caption))
     }
     .foregroundStyle(isPositive ? Color.successGreen : isNegative ? Color.errorRed : Color.secondaryText)
   }

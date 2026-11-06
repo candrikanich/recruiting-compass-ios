@@ -18,8 +18,8 @@ struct LegalEmailLink: View {
         } label: {
           Text(email)
         }
-        .font(.body.weight(.medium))
-        .foregroundStyle(Color.accentBlue)
+        .font(.brand(.body, weight: .medium))
+        .foregroundStyle(Color.accentPrimary)
         .frame(minWidth: 44, minHeight: 44)
         .contentShape(Rectangle())
         .accessibilityLabel(String(localized: "Email \(email.replacing("@", with: " at ").replacing(".", with: " dot "))"))
@@ -28,8 +28,8 @@ struct LegalEmailLink: View {
         }
       } else {
         Text(email)
-          .font(.body)
-          .foregroundStyle(Color.accentBlue)
+          .font(.brand(.body))
+          .foregroundStyle(Color.accentPrimary)
       }
     }
   }

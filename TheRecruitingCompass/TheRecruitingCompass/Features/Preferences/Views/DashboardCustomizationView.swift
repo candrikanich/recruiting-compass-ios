@@ -81,12 +81,12 @@ struct DashboardCustomizationView: View {
           Button(viewModel.allStatsCardsEnabled ? "Deselect All" : "Select All") {
             viewModel.toggleAllStatsCards(!viewModel.allStatsCardsEnabled)
           }
-          .font(.caption)
+          .font(.brand(.caption))
           .accessibilityLabel(viewModel.allStatsCardsEnabled ? String(localized: "Deselect all stats cards") : String(localized: "Select all stats cards"))
         }
       } footer: {
         Text("Choose which summary statistics appear on your dashboard.")
-          .font(.caption)
+          .font(.brand(.caption))
       }
 
       // Dashboard Widgets Section — reorderable live widgets (drag to arrange, toggle to show/hide)
@@ -112,43 +112,12 @@ struct DashboardCustomizationView: View {
           Button(viewModel.allWidgetsEnabled ? "Deselect All" : "Select All") {
             viewModel.toggleAllWidgets(!viewModel.allWidgetsEnabled)
           }
-          .font(.caption)
+          .font(.brand(.caption))
           .accessibilityLabel(viewModel.allWidgetsEnabled ? String(localized: "Deselect all widgets") : String(localized: "Select all widgets"))
         }
       } footer: {
         Text("Tap Edit to drag widgets into your preferred order. Toggle to show or hide each on your dashboard.")
-          .font(.caption)
-      }
-
-      // Coming Soon — widgets not yet available
-      Section {
-        LazyVGrid(columns: columns, spacing: 12) {
-          ToggleCard(icon: "bell.badge.fill", label: String(localized: "Notifications"),
-                     isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "link", label: String(localized: "Linked Accounts"),
-                     isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "doc.badge.ellipsis", label: String(localized: "Offer Status"),
-                     isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "chart.pie.fill", label: String(localized: "School Interest"),
-                     isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "map.fill", label: String(localized: "School Map"),
-                     isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "doc.richtext", label: String(localized: "Recent Docs"),
-                     isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "chart.bar.xaxis", label: String(localized: "Interaction Stats"),
-                     isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "building.columns.fill", label: String(localized: "School Status"),
-                     isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "clock.badge.checkmark", label: String(localized: "Coach Response"),
-                     isOn: .constant(false), onChange: {}, isComingSoon: true)
-          ToggleCard(icon: "exclamationmark.triangle.fill", label: String(localized: "Deadlines"),
-                     isOn: .constant(false), onChange: {}, isComingSoon: true)
-        }
-      } header: {
-        Text("Coming Soon")
-      } footer: {
-        Text("These widgets aren't available yet.")
-          .font(.caption)
+          .font(.brand(.caption))
       }
 
       // Reset Section

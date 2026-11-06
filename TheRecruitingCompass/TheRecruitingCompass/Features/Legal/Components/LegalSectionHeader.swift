@@ -5,7 +5,7 @@ struct LegalSectionHeader: View {
 
   var body: some View {
     Text(text)
-      .font(.headline)
+      .font(.brand(.headline))
       .foregroundStyle(Color.darkSlate)
       .accessibilityAddTraits(.isHeader)
   }

@@ -1,10 +1,10 @@
 import SwiftUI
 
 // Brand-tinted shadow modifiers.
-// The shadow hue (30, 50, 100) carries the blue brand temperature into depth,
+// The shadow hue (41, 37, 36) carries the warm stone temperature into depth,
 // replacing pure-black shadows that make surfaces feel disconnected from the brand.
 
-private let brandShadowColor = Color(red: 30 / 255, green: 50 / 255, blue: 100 / 255)
+private let brandShadowColor = Color(red: 41 / 255, green: 37 / 255, blue: 36 / 255)
 
 extension View {
   /// Subtle card resting shadow — matches CSS `--shadow-card`.

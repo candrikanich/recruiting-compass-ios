@@ -8,7 +8,7 @@ struct ShareLinkRow: View {
         HStack {
             if let url {
                 Text(url.absoluteString)
-                    .font(.caption)
+                    .font(.brand(.caption))
                     .lineLimit(1)
                     .truncationMode(.middle)
                 Spacer()
@@ -20,7 +20,7 @@ struct ShareLinkRow: View {
                 Text(
                     String(localized: "Publish your profile to get a shareable link.")
                 )
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
             }
         }

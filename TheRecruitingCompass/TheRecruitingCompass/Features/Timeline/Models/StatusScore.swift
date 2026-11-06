@@ -17,6 +17,7 @@ struct StatusScore: Sendable {
     case .onTrack: return .successGreen
     case .slightlyBehind: return Color(hex: "F59E0B")
     case .atRisk: return .errorRed
+    case .unknown: return .secondary
     }
   }
 }

@@ -15,7 +15,7 @@ enum CoachRole: String, Codable, CaseIterable, Sendable {
 
   var badgeColor: Color {
     switch self {
-    case .head: return .accentBlue
+    case .head: return .accentPrimary
     case .assistant: return .successGreen
     case .recruiting: return .amberGold
     }

@@ -37,8 +37,8 @@ struct Document: Codable, Identifiable, Equatable, Sendable {
     !sharedWithSchools.isEmpty
   }
 
-  var typeEmoji: String {
-    type.typeEmoji
+  var typeSystemImage: String {
+    type.systemImage
   }
 
   var displayDate: String {

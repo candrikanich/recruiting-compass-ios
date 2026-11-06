@@ -2,12 +2,15 @@ import SwiftUI
 
 struct FamilyManagementParentView: View {
   @Bindable var viewModel: FamilyManagementViewModel
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
 
   var body: some View {
     ScrollView {
       VStack(spacing: FamilyConstants.Spacing.large) {
         joinFamilyCard
-        inviteByEmailCard
+        if featureFlags.isEnabled(.familyInvites) {
+          inviteByEmailCard
+        }
         pendingInvitationsSection
         myFamiliesSection
         forwardCoachEmailsSection
@@ -22,11 +25,11 @@ struct FamilyManagementParentView: View {
   private var joinFamilyCard: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
       Text("Join a Family")
-        .font(.headline)
+        .font(.brand(.headline))
         .frame(maxWidth: .infinity, alignment: .leading)
 
-      Text("Enter a family code shared by a player")
-        .font(.subheadline)
+      Text("Enter a Family Code shared by a player")
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -39,7 +42,7 @@ struct FamilyManagementParentView: View {
           .onChange(of: viewModel.codeInput) { _, _ in
             viewModel.formatCodeInput()
           }
-          .accessibilityLabel(String(localized: "Enter family code"))
+          .accessibilityLabel(String(localized: "Enter Family Code"))
           .accessibilityHint("Enter a code like FAM-XXXXXX")
 
         Button(action: { Task { await viewModel.joinFamily() } }) {
@@ -53,12 +56,14 @@ struct FamilyManagementParentView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, FamilyConstants.Spacing.small)
-        .background(viewModel.isCodeInputValid && !viewModel.isLoading ? Color.blue : Color.gray)
+        .background(viewModel.isCodeInputValid && !viewModel.isLoading ? Color.accentFill : Color.gray)
         .foregroundStyle(.white)
         .clipShape(.rect(cornerRadius: 8))
         .disabled(!viewModel.isCodeInputValid || viewModel.isLoading)
         .accessibilityLabel(String(localized: "Join family button"))
-        .accessibilityHint(viewModel.isCodeInputValid ? "Join the family using the entered code" : "Enter a valid family code to enable")
+        .accessibilityHint(
+          viewModel.isCodeInputValid ? "Join the family using the entered code" : "Enter a valid Family Code to enable"
+        )
       }
     }
     .padding(FamilyConstants.Spacing.medium)
@@ -71,27 +76,49 @@ struct FamilyManagementParentView: View {
   @ViewBuilder
   private var inviteByEmailCard: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
-      Text("Invite Player by Email")
-        .font(.headline)
+      Text(viewModel.inviteCardTitle)
+        .font(.brand(.headline))
         .frame(maxWidth: .infinity, alignment: .leading)
 
-        Text("They'll receive a link to join your family.")
-        .font(.subheadline)
+      Text(viewModel.parentFamilyHasPlayer
+        ? "Parents, step-parents, grandparents, and other relatives get a link to follow the recruiting journey."
+        : "They'll receive a link to join your family.")
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
 
       Text("Invites expire after 30 days.")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
 
+      if viewModel.offersInviteRoleChoice {
+        HStack {
+          Text("Role")
+            .font(.brand(.subheadline))
+            .accessibilityHidden(true)
+          Spacer()
+          Picker("Role", selection: $viewModel.inviteRole) {
+            ForEach(FamilyManagementViewModel.InviteRole.allCases) { role in
+              Text(role.label).tag(role)
+            }
+          }
+          .pickerStyle(.menu)
+          .accessibilityLabel(String(localized: "Invite role"))
+        }
+        .frame(minHeight: 44)
+      }
+
       HStack(spacing: FamilyConstants.Spacing.small) {
-        TextField("player@example.com", text: $viewModel.inviteEmail)
+        TextField(
+          "name@example.com",
+          text: $viewModel.inviteEmail
+        )
           .textFieldStyle(.roundedBorder)
           .keyboardType(.emailAddress)
           .textContentType(.emailAddress)
           .autocapitalization(.none)
-          .accessibilityLabel(String(localized: "Player email address"))
+          .accessibilityLabel(String(localized: "Family member email address"))
 
         Button {
           Task { await viewModel.sendEmailInvite() }
@@ -126,10 +153,10 @@ struct FamilyManagementParentView: View {
       VStack(spacing: FamilyConstants.Spacing.medium) {
         HStack {
           Text("Pending Invitations")
-            .font(.headline)
+            .font(.brand(.headline))
           Spacer()
           Text("\(viewModel.pendingInvitations.count)")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
         }
 
@@ -137,23 +164,23 @@ struct FamilyManagementParentView: View {
           HStack {
             VStack(alignment: .leading, spacing: 4) {
               Text(invite.invitedEmail)
-                .font(.subheadline.weight(.medium))
+                .font(.brand(.subheadline, weight: .medium))
               Text("Expires \(formattedExpiry(invite.expiresAt ?? ""))")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
             }
             Spacer()
             Button("Resend") {
               Task { await viewModel.resendInvitation(invite) }
             }
-            .font(.caption)
+            .font(.brand(.caption))
             .buttonStyle(.bordered)
             .accessibilityLabel(String(localized: "Resend invite to \(invite.invitedEmail)"))
 
             Button("Revoke") {
               Task { await viewModel.revokeInvitation(invite) }
             }
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.red)
             .buttonStyle(.bordered)
             .tint(.red)
@@ -182,10 +209,10 @@ struct FamilyManagementParentView: View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
       HStack {
         Text("My Families")
-          .font(.headline)
+          .font(.brand(.headline))
         Spacer()
         Text("\(viewModel.parentFamilies.count)")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
       }
 
@@ -210,13 +237,13 @@ struct FamilyManagementParentView: View {
   private var emptyFamiliesState: some View {
     VStack(spacing: FamilyConstants.Spacing.small) {
       Image(systemName: "person.2.slash")
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .foregroundStyle(.secondary)
         .accessibilityHidden(true)
       Text("No families joined yet")
-        .font(.headline)
-      Text("Ask a player to share their family code")
-        .font(.subheadline)
+        .font(.brand(.headline))
+      Text("Ask a player to share their Family Code")
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
     }
@@ -228,7 +255,12 @@ struct FamilyManagementParentView: View {
   private var familiesList: some View {
     VStack(spacing: FamilyConstants.Spacing.small) {
       ForEach(viewModel.parentFamilies) { family in
-        ParentFamilyCard(family: family)
+        ParentFamilyCard(
+          family: family,
+          label: viewModel.displayLabel(for: family),
+          onRemoveMember: { viewModel.confirmRemoveMember($0) },
+          onLeave: { viewModel.confirmLeave(family) }
+        )
       }
     }
   }
@@ -239,7 +271,7 @@ struct FamilyManagementParentView: View {
     ForEach(viewModel.inboundAddresses) { entry in
       ForwardCoachEmailsCard(
         address: entry.address,
-        familyName: viewModel.inboundAddresses.count > 1 ? entry.familyName : nil,
+        familyName: viewModel.inboundAddresses.count > 1 ? entry.displayLabel : nil,
         onCopy: { viewModel.copyInboundAddressToClipboard(entry.address) }
       )
     }

@@ -53,6 +53,19 @@ final class DocumentDetailViewModelTests: XCTestCase {
     super.tearDown()
   }
 
+  func testUploadNewVersion_stampsActiveFamilyUnitId() async {
+    mockDocuments.stubbedDocument = .mock(id: "doc-1", title: "Test Doc", type: .highlightVideo)
+    await sut.loadDocument()
+    let file = FileManager.default.temporaryDirectory.appendingPathComponent("v2-\(UUID().uuidString).mp4")
+    try? Data(count: 1).write(to: file)
+    defer { try? FileManager.default.removeItem(at: file) }
+
+    await sut.uploadNewVersion(file: file)
+
+    XCTAssertEqual(mockDocuments.uploadDocumentCallCount, 1)
+    XCTAssertEqual(mockDocuments.lastUploadDocumentFamilyUnitId, "family-1")
+  }
+
   // MARK: - loadDocument
 
   func testLoadDocument_onSuccess_populatesDocumentAndVersions() async {

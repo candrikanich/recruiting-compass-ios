@@ -15,12 +15,12 @@ struct FieldError: View {
     if let error {
       HStack(spacing: 6) {
         Image(systemName: "exclamationmark.circle.fill")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.red)
           .accessibilityHidden(true)
 
         Text(error)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.red)
           .fixedSize(horizontal: false, vertical: true)
       }

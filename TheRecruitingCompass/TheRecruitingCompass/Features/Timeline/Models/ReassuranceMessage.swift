@@ -8,7 +8,8 @@ struct ReassuranceMessage: Identifiable {
     let title: String
     let message: String
     let phases: [TimelinePhase]
-    let icon: String
+    /// SF Symbol, mirroring the heroicon in web `utils/parentReassurance.ts`.
+    let systemImage: String
 
     // swiftlint:disable line_length
     static let all: [ReassuranceMessage] = [
@@ -17,56 +18,56 @@ struct ReassuranceMessage: Identifiable {
             title: String(localized: "Freshman Year is About Foundation"),
             message: String(localized: "Your athlete doesn't need scholarship offers in 9th grade. This is the time to develop skills, build confidence, and enjoy the game. Recruiting will catch up naturally."),
             phases: [.freshman],
-            icon: "🏗️"
+            systemImage: "building.2"
         ),
         ReassuranceMessage(
             id: "sophomore-normal-timeline",
             title: String(localized: "Normal Recruiting Timing"),
             message: String(localized: "Most athletes see serious recruiting activity start in junior year. If your athlete hasn't heard from coaches yet, they're right on schedule. This is completely normal."),
             phases: [.sophomore],
-            icon: "📅"
+            systemImage: "calendar"
         ),
         ReassuranceMessage(
             id: "junior-late-bloomers",
             title: String(localized: "Late Bloomers Are Very Common"),
             message: String(localized: "Athletes develop at different rates. Many elite players weren't heavily recruited until late junior or even senior year. Your athlete still has plenty of time."),
             phases: [.junior],
-            icon: "🌱"
+            systemImage: "chart.line.uptrend.xyaxis"
         ),
         ReassuranceMessage(
             id: "junior-silence-ok",
             title: String(localized: "Silence From Coaches is Normal"),
             message: String(localized: "Coaches evaluate during specific periods and manage many recruits. A quiet month doesn't mean lack of interest. Stay engaged and keep communicating."),
             phases: [.junior],
-            icon: "🤐"
+            systemImage: "lock"
         ),
         ReassuranceMessage(
             id: "senior-late-offers",
             title: String(localized: "Many Offers Come Senior Year"),
             message: String(localized: "Senior year offers are common. Some programs actively recruit into the spring. If your athlete hasn't committed yet, opportunities still exist at all levels."),
             phases: [.senior],
-            icon: "✉️"
+            systemImage: "envelope.open"
         ),
         ReassuranceMessage(
             id: "senior-walkon-path",
             title: String(localized: "Walk-On is a Legitimate Path"),
             message: String(localized: "Walk-ons become key contributors and future pros. It's a valid way to play in college, even at top programs. Don't view it as a fallback."),
             phases: [.senior],
-            icon: "🚪"
+            systemImage: "rectangle.portrait.and.arrow.right"
         ),
         ReassuranceMessage(
             id: "all-social-media-lie",
             title: String(localized: "Social Media Isn't the Full Picture"),
             message: String(localized: "Recruiting highlight reels show the exceptions, not the norm. Most athletes have quiet recruiting processes. Your athlete's journey is unique and valid."),
             phases: [.freshman, .sophomore, .junior, .senior],
-            icon: "📱"
+            systemImage: "iphone"
         ),
         ReassuranceMessage(
             id: "all-divisions-excellent",
             title: String(localized: "All Divisions Are Excellent Options"),
             message: String(localized: "D1, D2, D3, NAIA, and JUCO all offer great opportunities. Fit matters more than prestige. A smaller program with better academics might be perfect for your athlete."),
             phases: [.freshman, .sophomore, .junior, .senior],
-            icon: "🎓"
+            systemImage: "graduationcap"
         )
     ]
     // swiftlint:enable line_length

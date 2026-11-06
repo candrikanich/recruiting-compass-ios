@@ -175,6 +175,9 @@ final class NotificationsListViewModel {
       applyNotifications(fresh)
       errorMessage = nil
       logger.info("Loaded \(fresh.count) notifications")
+    } catch let error where ViewModelHelpers.isCancellation(error) {
+      // Tapping a notification pushes a view and cancels this .task; that isn't a failed load.
+      logger.debug("Notifications fetch cancelled")
     } catch {
       if notifications.isEmpty {
         errorMessage = "Failed to load notifications. Please try again."
@@ -263,12 +266,14 @@ final class NotificationsListViewModel {
     selectedTypeFilter = nil
   }
 
-  func handleNotificationTap(_ notification: AppNotification) async {
+  /// A destination whose feature is switched off is dropped here, before it is ever assigned, so the
+  /// navigation destination never presents (and never starts loading) a killed screen.
+  func handleNotificationTap(_ notification: AppNotification, flags: FeatureFlagStore?) async {
     if !notification.isRead {
       await markAsRead(id: notification.id)
     }
 
-    selectedDestination = parseDestination(from: notification)
+    selectedDestination = parseDestination(from: notification)?.gated(by: flags)
   }
 
   // MARK: - Navigation Parsing

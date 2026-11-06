@@ -8,7 +8,7 @@ struct InviteJoinView: View {
   var body: some View {
     NavigationStack {
       ZStack {
-        LinearGradient.primaryBackground
+        Color.Brand.forest600
           .ignoresSafeArea()
 
         InviteJoinStateContent(viewModel: viewModel, presentedLegal: $presentedLegal, dismiss: dismiss)
@@ -104,11 +104,11 @@ private struct InviteJoinErrorView: View {
         .accessibilityHidden(true)
 
       Text(titleForError(error))
-        .font(.title3.weight(.semibold))
+        .font(.brand(.title3, weight: .semibold))
         .multilineTextAlignment(.center)
 
       Text(error.errorDescription ?? "")
-        .font(.body)
+        .font(.brand(.body))
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
         .padding(.horizontal, 24)
@@ -135,11 +135,11 @@ private struct InviteJoinDeclinedView: View {
         .accessibilityHidden(true)
 
       Text("Invitation declined")
-        .font(.title3.weight(.semibold))
+        .font(.brand(.title3, weight: .semibold))
         .multilineTextAlignment(.center)
 
       Text("You've declined this invitation. No action is needed.")
-        .font(.body)
+        .font(.brand(.body))
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
         .padding(.horizontal, 24)
@@ -183,21 +183,32 @@ private struct InviteJoinInviteContent: View {
   @Bindable var viewModel: InviteJoinViewModel
   @Binding var presentedLegal: LegalDocument?
 
+  @ViewBuilder
+  private var inviteHeading: some View {
+    if let label = invite.serverLabel {
+      Text("You're invited to join \(label) on The Recruiting Compass")
+        .font(.brand(.title2, weight: .bold))
+        .multilineTextAlignment(.center)
+    } else {
+      Text("You're invited to join")
+        .font(.brand(.subheadline))
+        .foregroundStyle(.secondary)
+      Text("\(invite.familyName)'s recruiting journey")
+        .font(.brand(.title2, weight: .bold))
+        .multilineTextAlignment(.center)
+    }
+  }
+
   var body: some View {
     ScrollView {
       VStack(spacing: 24) {
         VStack(spacing: 8) {
-          Text("You're invited to join")
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-          Text("\(invite.familyName)'s recruiting journey")
-            .font(.title2.weight(.bold))
-            .multilineTextAlignment(.center)
+          inviteHeading
           Text(
             invite.inviterName.map { "\($0) invited you as a \(invite.role)." }
               ?? "You've been invited to join as a \(invite.role)."
           )
-          .font(.body)
+          .font(.brand(.body))
           .foregroundStyle(.secondary)
         }
         .padding(.top, 16)
@@ -227,7 +238,7 @@ private struct InviteJoinInviteContent: View {
 
 private func switchAuthModeButton(title: String, action: @escaping () -> Void) -> some View {
   Button(title, action: action)
-    .font(.subheadline)
+    .font(.brand(.subheadline))
     .buttonStyle(.plain)
     .foregroundStyle(Color.accentColor)
 }
@@ -239,7 +250,7 @@ private struct InviteJoinAuthenticatedConnectSection: View {
   var body: some View {
     VStack(spacing: 12) {
       AsyncButton(
-        title: String(localized: "Connect to \(invite.familyName)"),
+        title: String(localized: "Connect to \(invite.displayLabel)"),
         loadingTitle: String(localized: "Please wait..."),
         isLoading: viewModel.isAccepting
       ) {
@@ -261,7 +272,7 @@ private struct InviteJoinLoginSection: View {
   var body: some View {
     VStack(spacing: 16) {
       Text("Log in to connect your account.")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
 
       VStack(spacing: 12) {
@@ -322,7 +333,7 @@ private struct InviteJoinSignupSection: View {
   var body: some View {
     VStack(spacing: 16) {
       Text("Create an account to connect.")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
 
       if let err = viewModel.signupError {
@@ -419,6 +430,10 @@ private struct InviteJoinSignupSection: View {
           onTermsPressed: { presentedLegal = .termsOfService },
           onPrivacyPressed: { presentedLegal = .privacyPolicy }
         )
+
+        if viewModel.isMarketingOptInVisible {
+          MarketingOptInCheckbox(isChecked: $viewModel.signupMarketingOptIn)
+        }
       }
 
       AsyncButton(
@@ -447,7 +462,7 @@ private struct InviteJoinDateOfBirthField: View {
           .foregroundStyle(Color.darkSlate)
           .accessibilityHidden(true)
         Text("Date of Birth")
-          .font(.subheadline.weight(.medium))
+          .font(.brand(.subheadline, weight: .medium))
           .foregroundStyle(Color.darkSlate)
       }
 
@@ -461,7 +476,7 @@ private struct InviteJoinDateOfBirthField: View {
       .labelsHidden()
 
       Text("Recruiting Compass is for ages 13 and up. By entering a date of birth, you confirm you are 13 or older.")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(Color.secondary)
     }
   }

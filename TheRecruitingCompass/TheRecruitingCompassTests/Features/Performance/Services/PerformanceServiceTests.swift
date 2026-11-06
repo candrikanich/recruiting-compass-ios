@@ -83,7 +83,7 @@ final class PerformanceServiceTests: XCTestCase {
     )
 
     // When
-    let result = try await mockService.createMetric(userId: "user-1", request: request)
+    let result = try await mockService.createMetric(userId: "user-1", familyUnitId: nil, request: request)
 
     // Then
     XCTAssertNotNil(result)
@@ -114,7 +114,7 @@ final class PerformanceServiceTests: XCTestCase {
     )
 
     // When
-    let result = try await mockService.createMetric(userId: "user-1", request: request)
+    let result = try await mockService.createMetric(userId: "user-1", familyUnitId: nil, request: request)
 
     // Then
     XCTAssertEqual(result.id, "custom-id")
@@ -136,7 +136,7 @@ final class PerformanceServiceTests: XCTestCase {
 
     // When/Then
     do {
-      _ = try await mockService.createMetric(userId: "user-1", request: request)
+      _ = try await mockService.createMetric(userId: "user-1", familyUnitId: nil, request: request)
       XCTFail("Expected error to be thrown")
     } catch {
       XCTAssertNotNil(error)
@@ -156,7 +156,7 @@ final class PerformanceServiceTests: XCTestCase {
     )
 
     // When
-    let result = try await mockService.createMetric(userId: "user-1", request: request)
+    let result = try await mockService.createMetric(userId: "user-1", familyUnitId: nil, request: request)
 
     // Then
     XCTAssertNotNil(result)
@@ -352,6 +352,7 @@ final class PerformanceServiceTests: XCTestCase {
     _ = try await mockService.fetchMetrics(userId: "user-1")
     _ = try await mockService.createMetric(
       userId: "user-1",
+      familyUnitId: nil,
       request: MetricCreateRequest(
         metricType: "velocity",
         value: 90.0,

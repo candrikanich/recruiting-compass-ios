@@ -92,6 +92,15 @@ final class SchoolsRepositoryImpl: SchoolsRepository, Sendable {
     }
   }
 
+  /// `previous_status` is omitted for a decode-only `.unknown` so the insert cannot violate the CHECK constraint.
+  static func statusHistoryRow(
+    schoolId: String, previous: SchoolStatus, new: SchoolStatus, userId: String, changedAt: String
+  ) -> [String: String] {
+    var row = ["school_id": schoolId, "new_status": new.rawValue, "changed_by": userId, "changed_at": changedAt]
+    if let previousValue = previous.serverValue { row["previous_status"] = previousValue }
+    return row
+  }
+
   func updateStatus(
     id: String,
     newStatus: SchoolStatus,
@@ -121,13 +130,10 @@ final class SchoolsRepositoryImpl: SchoolsRepository, Sendable {
     // 2. Create history entry
     try await supabaseManager.client
       .from("school_status_history")
-      .insert([
-        "school_id": id,
-        "previous_status": previousStatus.rawValue,
-        "new_status": newStatus.rawValue,
-        "changed_by": userId,
-        "changed_at": iso8601Formatter.string(from: now)
-      ])
+      .insert(Self.statusHistoryRow(
+        schoolId: id, previous: previousStatus, new: newStatus,
+        userId: userId, changedAt: iso8601Formatter.string(from: now)
+      ))
       .execute()
 
     logger.info("School status updated and history created for: \(id)")

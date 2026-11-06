@@ -136,11 +136,11 @@ struct DocumentDetailView: View {
   private func errorState(message: String) -> some View {
     VStack(spacing: Layout.errorSpacing) {
       Image(systemName: "exclamationmark.triangle")
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .foregroundStyle(.secondary)
         .accessibilityHidden(true)
       Text(message)
-        .font(.body)
+        .font(.brand(.body))
         .multilineTextAlignment(.center)
       Button("Retry") { Task { await viewModel.loadDocument() } }
         .buttonStyle(.bordered)

@@ -16,7 +16,7 @@ struct AddCoachView: View {
 
   init(
     coachesService: CoachesManaging,
-    familyUnitId: String,
+    familyUnitId: String?,
     userId: String,
     navigationPath: Binding<NavigationPath>,
     preselectedSchoolId: String? = nil
@@ -145,11 +145,11 @@ struct AddCoachView: View {
   private var infoPrompt: some View {
     HStack(spacing: 12) {
       Image(systemName: "info.circle.fill")
-        .foregroundStyle(.blue)
+        .foregroundStyle(Color.accentPrimary)
         .accessibilityHidden(true)
 
       Text("Please select a school to continue")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
     }
     .padding(.vertical, 8)

@@ -1,3 +1,4 @@
+// swiftlint:disable file_length type_body_length
 import XCTest
 @testable import TheRecruitingCompass
 
@@ -8,6 +9,7 @@ final class ActivityFeedViewModelTests: XCTestCase {
   var mockService: MockActivityFeedService!
   var mockAuthManager: MockAuthManager!
   var mockCache: InMemoryCache!
+  var familyManager: FamilyManager!
 
   override func setUp() {
     super.setUp()
@@ -15,10 +17,28 @@ final class ActivityFeedViewModelTests: XCTestCase {
     mockAuthManager = MockAuthManager()
     // Fresh instance per test — InMemoryCache.shared would leak state across tests.
     mockCache = InMemoryCache()
+    familyManager = FamilyManager(familyService: MockFamilyService(), authManager: mockAuthManager)
+    familyManager.currentMember = Self.member(id: "m-me", userId: "test-user-id", familyUnitId: "family-1")
     sut = ActivityFeedViewModel(
       activityService: mockService,
+      familyManager: familyManager,
       authManager: mockAuthManager,
-      cache: mockCache
+      cache: mockCache,
+      reloadDebounce: .milliseconds(50)
+    )
+  }
+
+  private static func member(
+    id: String,
+    userId: String,
+    familyUnitId: String = "family-1",
+    fullName: String? = nil,
+    email: String = "member@example.com"
+  ) -> FamilyMember {
+    FamilyMember(
+      id: id, userId: userId, familyUnitId: familyUnitId, role: "parent",
+      addedAt: "2024-01-01T00:00:00Z",
+      user: FamilyMemberUser(id: userId, email: email, fullName: fullName, role: "parent")
     )
   }
 
@@ -27,6 +47,7 @@ final class ActivityFeedViewModelTests: XCTestCase {
     mockService = nil
     mockAuthManager = nil
     mockCache = nil
+    familyManager = nil
     super.tearDown()
   }
 
@@ -51,7 +72,8 @@ final class ActivityFeedViewModelTests: XCTestCase {
     content: String? = "Test content",
     subject: String? = "Test Subject",
     occurredAt: String? = nil,
-    createdAt: String = "2026-02-10T10:00:00.000Z"
+    createdAt: String = "2026-02-10T10:00:00.000Z",
+    loggedBy: String = "test-user-id"
   ) -> Interaction {
     Interaction(
       id: id,
@@ -63,7 +85,7 @@ final class ActivityFeedViewModelTests: XCTestCase {
       content: content,
       sentiment: nil,
       occurredAt: occurredAt ?? createdAt,
-      loggedBy: "test-user-id",
+      loggedBy: loggedBy,
       attachments: nil,
       familyUnitId: "family-1",
       createdAt: createdAt,
@@ -76,14 +98,15 @@ final class ActivityFeedViewModelTests: XCTestCase {
     schoolId: String = "school-1",
     newStatus: String = "researching",
     notes: String? = "Test notes",
-    changedAt: Date = Date()
+    changedAt: Date = Date(),
+    changedBy: String = "test-user-id"
   ) -> SchoolStatusHistory {
     SchoolStatusHistory(
       id: id,
       schoolId: schoolId,
       previousStatus: nil,
       newStatus: newStatus,
-      changedBy: "test-user-id",
+      changedBy: changedBy,
       changedAt: changedAt,
       notes: notes,
       createdAt: changedAt
@@ -162,22 +185,8 @@ final class ActivityFeedViewModelTests: XCTestCase {
     XCTAssertEqual(mockService.fetchSchoolNamesCallCount, 1)
   }
 
-  func testLoadActivities_PassesCorrectUserId() async {
-    // Given
-    authenticateUser(id: "specific-user")
-    mockService.mockSchoolNames = [:]
-
-    // When
-    await sut.loadActivities()
-
-    // Then
-    XCTAssertEqual(mockService.lastFetchInteractionsUserId, "specific-user")
-    XCTAssertEqual(mockService.lastFetchStatusChangesUserId, "specific-user")
-    XCTAssertEqual(mockService.lastFetchDocumentsUserId, "specific-user")
-  }
-
-  func testLoadActivities_NoUser_SetsError() async {
-    // Given: no authenticated user
+  func testLoadActivities_NoActiveFamily_SetsError() async {
+    familyManager.currentMember = nil
 
     // When
     await sut.loadActivities()
@@ -617,7 +626,7 @@ final class ActivityFeedViewModelTests: XCTestCase {
     XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
 
     let newEvent = ActivityEventFactory.fromInteraction(createInteraction(id: "realtime-1"), schoolName: nil)
-    sut.addRealtimeEvent(newEvent)
+    sut.addRealtimeEvent(newEvent, forFamily: "family-1")
     await sut.loadActivities()
 
     // Still cached — the realtime insert didn't invalidate it.
@@ -657,7 +666,7 @@ final class ActivityFeedViewModelTests: XCTestCase {
       createInteraction(id: "realtime-1"),
       schoolName: nil
     )
-    sut.addRealtimeEvent(newEvent)
+    sut.addRealtimeEvent(newEvent, forFamily: "family-1")
 
     XCTAssertEqual(sut.filteredActivities.count, 3)
   }
@@ -1073,25 +1082,5 @@ final class ActivityFeedViewModelTests: XCTestCase {
 
     // Then: page should NOT reset (didSet checks oldValue)
     XCTAssertEqual(sut.currentPage, 3)
-  }
-
-  // MARK: - Athlete Targeting Tests
-
-  func testLoadActivities_parentViewingAthlete_usesAthleteUserId() async {
-    // Given
-    let familyManager = ParentViewingAthleteFixture.makeFamilyManager(authManager: mockAuthManager)
-    sut = ActivityFeedViewModel(
-      activityService: mockService,
-      familyManager: familyManager,
-      authManager: mockAuthManager
-    )
-
-    // When
-    await sut.loadActivities()
-
-    // Then
-    XCTAssertEqual(mockService.lastFetchInteractionsUserId, ParentViewingAthleteFixture.athleteUserId)
-    XCTAssertEqual(mockService.lastFetchStatusChangesUserId, ParentViewingAthleteFixture.athleteUserId)
-    XCTAssertEqual(mockService.lastFetchDocumentsUserId, ParentViewingAthleteFixture.athleteUserId)
   }
 }

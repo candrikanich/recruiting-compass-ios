@@ -10,25 +10,25 @@ struct TemplateCard: View {
     Button(action: action) {
       HStack(spacing: 12) {
         Image(systemName: icon)
-          .font(.title2)
-          .foregroundStyle(.blue)
+          .font(.brand(.title2))
+          .foregroundStyle(Color.accentPrimary)
           .frame(width: 40)
 
         VStack(alignment: .leading, spacing: 4) {
           Text(title)
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .fontWeight(.medium)
             .foregroundStyle(.primary)
 
           Text(description)
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
         }
 
         Spacer()
 
         Image(systemName: "chevron.right")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
       .padding(.vertical, 4)

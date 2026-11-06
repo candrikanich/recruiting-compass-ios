@@ -9,11 +9,11 @@ struct ChartEmptyStateView: View {
       Spacer()
       VStack(spacing: 8) {
         Image(systemName: iconName)
-          .font(.title)
+          .font(.brand(.title))
           .foregroundStyle(Color.iconGray)
           .accessibilityHidden(true)
         Text(message)
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(Color.secondaryText)
       }
       .padding(.vertical, 24)

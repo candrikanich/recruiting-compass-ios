@@ -7,10 +7,10 @@ struct DocumentMetadataItem: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text(label)
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
       Text(value)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .fontWeight(.medium)
     }
     .frame(maxWidth: .infinity, alignment: .leading)

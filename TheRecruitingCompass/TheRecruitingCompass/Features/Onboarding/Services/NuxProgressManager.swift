@@ -21,12 +21,25 @@ final class NuxProgressManager {
   private var currentUserId: String?
   /// Advanced by `reset()`; a fetch only applies while its session is still current.
   private var session = 0
+  @ObservationIgnored private var inFlightLoad: (userId: String, task: Task<Void, Never>)?
 
   init(service: (any NuxProgressManaging)? = nil) {
     self.service = service ?? NuxProgressServiceImpl(supabaseManager: .shared)
   }
 
+  /// Joins a load already in flight for the same user: the app root and the dashboard both ask at launch.
   func load(userId: String) async {
+    if let inFlightLoad, inFlightLoad.userId == userId {
+      await inFlightLoad.task.value
+      return
+    }
+    let task = Task { await performLoad(userId: userId) }
+    inFlightLoad = (userId, task)
+    await task.value
+    if inFlightLoad?.task == task { inFlightLoad = nil }
+  }
+
+  private func performLoad(userId: String) async {
     currentUserId = userId
     let loadSession = session
     do {
@@ -91,6 +104,7 @@ final class NuxProgressManager {
   /// Clears the previous user's progress and stops background saves from targeting them.
   func reset() {
     session += 1
+    inFlightLoad = nil
     currentUserId = nil
     progress = .empty
     isLoaded = false

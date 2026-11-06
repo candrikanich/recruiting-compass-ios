@@ -27,7 +27,6 @@ final class InviteDetailsDecodingTests: XCTestCase {
     XCTAssertNil(details.inviterName)
     XCTAssertFalse(details.emailExists)
     XCTAssertNil(details.prefill)
-    XCTAssertNil(details.emailMismatch)
   }
 
   func test_decodesOptionalFieldsWhenServerDoesSendThem() throws {
@@ -38,8 +37,7 @@ final class InviteDetailsDecodingTests: XCTestCase {
       "familyName": "Smith Family",
       "invitedEmail": "parent@example.com",
       "inviterName": "Alex Smith",
-      "emailExists": true,
-      "emailMismatch": false
+      "emailExists": true
     }
     """.data(using: .utf8)!
 
@@ -47,6 +45,5 @@ final class InviteDetailsDecodingTests: XCTestCase {
 
     XCTAssertEqual(details.inviterName, "Alex Smith")
     XCTAssertTrue(details.emailExists)
-    XCTAssertEqual(details.emailMismatch, false)
   }
 }

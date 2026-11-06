@@ -14,7 +14,8 @@ final class MockSupabaseManager: SupabaseManaging {
   var signInWithTokenHashResult: Result<(user: User, session: Session), Error> = .failure(AuthError.networkError("Mock: not configured"))
   var signOutError: Error?
   var currentSessionResult: Session?
-  var refreshSessionResult: Result<User, Error> = .failure(AuthError.networkError("Mock: not configured"))
+  var currentSessionError: Error?
+  private(set) var getCurrentSessionCallCount = 0
   var resendVerificationEmailError: Error?
   var resetPasswordError: Error?
   var updatePasswordError: Error?
@@ -46,6 +47,7 @@ final class MockSupabaseManager: SupabaseManaging {
   private(set) var capturedSignUpPrimarySport: String?
   private(set) var capturedSignUpGender: String?
   private(set) var capturedSignUpZipCode: String?
+  private(set) var capturedSignUpMarketingEmailOptIn: Bool?
 
   func signUp(
     email: String,
@@ -59,8 +61,10 @@ final class MockSupabaseManager: SupabaseManaging {
     gender: String?,
     zipCode: String?,
     captchaToken: String,
-    skipVerificationEmail: Bool
+    skipVerificationEmail: Bool,
+    marketingEmailOptIn: Bool?
   ) async throws -> (user: User, session: Session?) {
+    capturedSignUpMarketingEmailOptIn = marketingEmailOptIn
     capturedSignUpDateOfBirth = dateOfBirth
     capturedSignUpGraduationYear = graduationYear
     capturedSignUpPrimarySport = primarySport
@@ -76,11 +80,9 @@ final class MockSupabaseManager: SupabaseManaging {
   }
 
   func getCurrentSession() async throws -> Session? {
-    currentSessionResult
-  }
-
-  func refreshSession() async throws -> User {
-    try refreshSessionResult.get()
+    getCurrentSessionCallCount += 1
+    if let error = currentSessionError { throw error }
+    return currentSessionResult
   }
 
   func resendVerificationEmail(email: String, captchaToken: String) async throws {

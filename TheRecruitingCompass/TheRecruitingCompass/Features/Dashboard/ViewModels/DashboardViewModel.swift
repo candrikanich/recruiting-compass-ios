@@ -36,6 +36,8 @@ final class DashboardViewModel {
   var allSchools: [School] = []
   var metrics: [PerformanceMetric] = []
   var interactionTrends: [InteractionTrend] = []
+  /// Most recent interaction of any age; drives the "Last one" line when the 30-day window is empty.
+  var interactionTrendsLastDate: Date?
   /// Family-scoped user deadlines, merged into the recruiting-calendar
   /// widget's "Upcoming" list alongside NCAA milestones (see
   /// `RecruitingCalendarWidget.userDeadlines`).
@@ -50,6 +52,15 @@ final class DashboardViewModel {
   /// True only after the last `fetchPlayerProfile()` loaded every completeness input without error.
   private var isProfileCompletenessSettled = false
   var recommendations: [SchoolRecommendation] = []
+  /// Catalog keys added from the recommendations widget, with when they were added. The web API caches
+  /// recommendations per athlete for 2 minutes and iOS inserts schools straight into Supabase (no cache
+  /// bust), so a refetch inside that window would bring a just-added school back. Entries expire with the
+  /// cache so a school that is later deleted can be recommended again.
+  private var addedRecommendationKeys: [String: Date] = [:]
+  private static let recommendationsCacheTTL: TimeInterval = 120
+  private static let recommendationsLimit = 6
+  /// Server-side cap on `limit` for `/api/schools/recommendations`.
+  private static let recommendationsMaxLimit = 12
   var isLoading = false
   var isLoggingOut = false
   var errorMessage: String?
@@ -73,9 +84,11 @@ final class DashboardViewModel {
   private let recommendationService: any SchoolRecommendationManaging
   private let deadlinesService: any DeadlinesManaging
   private let videoLinksService: any VideoLinksManaging
+  private let schoolsService: any SchoolsManaging
+  private let now: @Sendable () -> Date
 
   /// The user whose recruiting data the dashboard shows. When a parent is
-  /// viewing an athlete, events/metrics/interactions belong to the athlete;
+  /// viewing an athlete, events/metrics/offers belong to the athlete (interactions are family-wide);
   /// quick tasks stay keyed to the signed-in user (they are a personal,
   /// device-local list).
   private var targetUserId: String? {
@@ -129,7 +142,7 @@ final class DashboardViewModel {
   }
 
   var actingUserId: String { authManager.user?.id ?? "" }
-  var currentFamilyUnitId: String { familyManager.currentMember?.familyUnitId ?? "" }
+  var currentFamilyUnitId: String? { FamilyUnitID.normalized(familyManager.currentMember?.familyUnitId) }
 
   var selectedAthleteName: String {
     if let athlete = familyManager.selectedAthlete {
@@ -173,7 +186,9 @@ final class DashboardViewModel {
     preferenceService: (any PreferenceManaging)? = nil,
     recommendationService: (any SchoolRecommendationManaging)? = nil,
     deadlinesService: (any DeadlinesManaging)? = nil,
-    videoLinksService: (any VideoLinksManaging)? = nil
+    videoLinksService: (any VideoLinksManaging)? = nil,
+    schoolsService: (any SchoolsManaging)? = nil,
+    now: @escaping @Sendable () -> Date = { .now }
   ) {
     self.authManager = authManager ?? AuthManager.shared
     self.dashboardService = dashboardService ?? DashboardServiceImpl(supabaseManager: .shared)
@@ -183,6 +198,8 @@ final class DashboardViewModel {
     self.recommendationService = recommendationService ?? SchoolRecommendationServiceImpl(supabaseManager: .shared)
     self.deadlinesService = deadlinesService ?? DeadlinesServiceImpl(supabaseManager: .shared)
     self.videoLinksService = videoLinksService ?? VideoLinksServiceImpl(supabaseManager: .shared)
+    self.schoolsService = schoolsService ?? SchoolsFactory.makeRepository()
+    self.now = now
   }
 
   func fetchDashboardData() async {
@@ -196,7 +213,7 @@ final class DashboardViewModel {
     let targetUserId = familyManager.selectedAthlete?.userId ?? userId
 
     guard let familyUnitId = familyManager.familyUnitId else {
-      // Mirrors web: no family yet — show empty state. User creates from Family tab when inviting parent.
+      // Unreachable behind the family-required gate; the empty state only covers a load that raced it.
       logger.debug("No family unit for user \(userId), showing empty stats")
       stats = DashboardStats(
         coachCount: 0,
@@ -240,8 +257,9 @@ final class DashboardViewModel {
 
       loadQuickTasks()
       await fetchVisibleWidgets(familyUnitId: familyUnitId)
-    } catch is CancellationError {
-      // Superseded by a newer fetch (e.g. pull-to-refresh racing the view's .task) — that one owns the result.
+    } catch let error where ViewModelHelpers.isCancellation(error) {
+      // Superseded by a newer fetch (pull-to-refresh racing the view's .task), or the view's .task was
+      // cancelled by a push / tab switch — either way this fetch doesn't own the result.
       logger.debug("fetchDashboardData cancelled, superseded by a newer fetch")
       return
     } catch {
@@ -321,6 +339,7 @@ final class DashboardViewModel {
   private func fetchTrendsIfNeeded(_ needed: Bool) async {
     guard needed else {
       interactionTrends = []
+      interactionTrendsLastDate = nil
       return
     }
     await fetchInteractionTrends()
@@ -378,7 +397,7 @@ final class DashboardViewModel {
 
   func addTask(_ text: String) {
     let newTask = QuickTask(text: text)
-    quickTasks.append(newTask)
+    quickTasks.insert(newTask, at: 0)
     saveQuickTasks()
   }
 
@@ -413,7 +432,9 @@ final class DashboardViewModel {
     suggestionsError = nil
     defer { isSuggestionsLoading = false }
     do {
-      let result = try await dashboardService.fetchSuggestions(location: "dashboard", accessToken: token)
+      let result = try await dashboardService.fetchSuggestions(
+        location: "dashboard", athleteId: familyManager.selectedAthlete?.userId, accessToken: token
+      )
       suggestions = result.suggestions.sorted { $0.urgency.sortWeight < $1.urgency.sortWeight }
       suggestionsPendingCount = result.pendingCount
     } catch let err as SuggestionsAPIError where err == .unauthorized {
@@ -422,13 +443,17 @@ final class DashboardViewModel {
         _ = try await authManager.refreshSession()
         token = authManager.session?.accessToken
         logger.debug("Retrying suggestions after session refresh (token present: \(token != nil))")
-        let result = try await dashboardService.fetchSuggestions(location: "dashboard", accessToken: token)
+        let result = try await dashboardService.fetchSuggestions(
+        location: "dashboard", athleteId: familyManager.selectedAthlete?.userId, accessToken: token
+      )
         suggestions = result.suggestions.sorted { $0.urgency.sortWeight < $1.urgency.sortWeight }
         suggestionsPendingCount = result.pendingCount
       } catch {
         logger.warning("Failed to load suggestions after refresh: \(error.localizedDescription)")
         suggestionsError = "Couldn't load action items. Pull to refresh."
       }
+    } catch let error where ViewModelHelpers.isCancellation(error) {
+      logger.debug("fetchSuggestions cancelled")
     } catch {
       logger.warning("Failed to load suggestions: \(error.localizedDescription)")
       suggestionsError = "Couldn't load action items. Pull to refresh."
@@ -502,16 +527,20 @@ final class DashboardViewModel {
   }
 
   func fetchInteractionTrends() async {
-    guard let userId = targetUserId else { return }
+    guard let familyUnitId = familyManager.familyUnitId else { return }
     do {
-      let interactions = try await dashboardService.fetchInteractions(userId: userId, limit: 30)
-      let groupedByDate = Dictionary(grouping: interactions) { interaction -> String in
-        String((interaction.occurredAt ?? interaction.createdAt).prefix(10))
+      let now = Date.now
+      let windowStart = InteractionTrendWindow.windowStart(now: now)
+      let inWindow = try await dashboardService.fetchInteractions(familyUnitId: familyUnitId, since: windowStart)
+      let summary = InteractionTrendWindow.summarize(inWindow, now: now)
+      interactionTrends = summary.trends
+      if summary.trends.isEmpty {
+        // Only needed for the "Last one: <date>" line; ordered by occurred_at so backdated rows don't win.
+        let latest = try await dashboardService.fetchLatestInteraction(familyUnitId: familyUnitId)
+        interactionTrendsLastDate = latest?.displayDate
+      } else {
+        interactionTrendsLastDate = summary.lastInteractionDate
       }
-      interactionTrends = groupedByDate.map { datePrefix, interactions in
-        // datePrefix is "YYYY-MM-DD" extracted from ISO8601 timestamp
-        InteractionTrend(id: datePrefix, date: datePrefix + "T00:00:00Z", count: interactions.count)
-      }.sorted { $0.date < $1.date }
     } catch {
       logger.warning("Failed to load interaction trends: \(error.localizedDescription)")
     }
@@ -569,38 +598,32 @@ final class DashboardViewModel {
   func fetchRecommendations() async {
     guard let userId = targetUserId else { return }
     do {
-      recommendations = try await recommendationService.fetchRecommendations(athleteId: userId, limit: 6)
+      let cutoff = now().addingTimeInterval(-Self.recommendationsCacheTTL)
+      addedRecommendationKeys = addedRecommendationKeys.filter { $0.value > cutoff }
+      // Over-fetch by the hidden count so a stale list still fills the widget.
+      let limit = min(Self.recommendationsLimit + addedRecommendationKeys.count, Self.recommendationsMaxLimit)
+      let fetched = try await recommendationService.fetchRecommendations(athleteId: userId, limit: limit)
+      recommendations = Array(
+        fetched.filter { addedRecommendationKeys[$0.catalogKey] == nil }.prefix(Self.recommendationsLimit)
+      )
     } catch {
       logger.warning("Failed to load recommendations: \(error.localizedDescription)")
     }
   }
 
   func addRecommendedSchool(_ recommendation: SchoolRecommendation) async {
-    guard let familyUnitId = familyManager.familyUnitId,
-          let userId = authManager.user?.id else { return }
+    guard let userId = authManager.user?.id else { return }
     do {
-      let schoolsService = SchoolsServiceImpl(supabaseManager: .shared)
-      let request = SchoolCreateRequest(
-        userId: userId,
-        familyUnitId: familyUnitId,
-        name: recommendation.name,
-        location: nil,
-        city: nil,
-        state: recommendation.state,
-        division: recommendation.division,
-        conference: recommendation.conference,
-        website: nil,
-        twitterHandle: nil,
-        instagramHandle: nil,
-        ncaaId: nil,
-        notes: nil,
-        status: "tracking",
-        academicInfo: nil,
-        faviconUrl: nil
+      let request = try SchoolCreateRequest.from(
+        recommendation: recommendation, userId: userId, familyUnitId: familyManager.familyUnitId
       )
       _ = try await schoolsService.createSchool(request: request)
+      addedRecommendationKeys[recommendation.catalogKey] = now()
       recommendations.removeAll { $0.id == recommendation.id }
       await fetchDashboardData()
+    } catch let error as FamilyUnitID.MissingError {
+      logger.warning("Refusing to add recommended school: \(error.localizedDescription)")
+      errorMessage = error.localizedDescription
     } catch {
       logger.warning("Failed to add recommended school: \(error.localizedDescription)")
       errorMessage = "Couldn't add school. Please try again."

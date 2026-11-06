@@ -64,12 +64,13 @@ struct RecruitingTimelineView: View {
             onDismiss: { familyManager.clearAthleteSelection() }
           )
           Text(headerTitle)
-            .font(.title2.weight(.semibold))
+            .font(.brand(.title2, weight: .semibold))
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal)
           TimelineAthleteSwitcher(
             isViewingAsParent: viewModel.isViewingAsParent,
             athletes: familyManager.athletes,
+            familyLabels: familyManager.familyLabels,
             selectedAthleteId: familyManager.selectedAthleteId,
             onSelect: { athleteId in
               familyManager.selectAthlete(athleteId)
@@ -168,6 +169,7 @@ private struct TimelineParentBanner: View {
 private struct TimelineAthleteSwitcher: View {
   let isViewingAsParent: Bool
   let athletes: [FamilyMember]
+  let familyLabels: [String: String]
   let selectedAthleteId: String?
   let onSelect: (String) -> Void
 
@@ -175,6 +177,7 @@ private struct TimelineAthleteSwitcher: View {
     if isViewingAsParent, !athletes.isEmpty {
       AthleteSelector(
         athletes: athletes,
+        familyLabels: familyLabels,
         selectedAthleteId: selectedAthleteId,
         onSelect: onSelect
       )
@@ -232,8 +235,8 @@ private struct TimelineMainContent: View {
       .padding(.horizontal)
 
       if showSuccessMessage {
-        Text("Great job! 🎉")
-          .font(.subheadline.weight(.medium))
+        Text("Great job!")
+          .font(.brand(.subheadline, weight: .medium))
           .foregroundStyle(Color.successGreen)
           .padding(.vertical, 6)
           .accessibilityLabel(String(localized: "Great job"))

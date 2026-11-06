@@ -475,6 +475,18 @@ final class DocumentsListViewModelTests: XCTestCase {
     XCTAssertEqual(mockDocuments.lastShareDocumentSchoolId, "school-9")
   }
 
+  func testUploadDocument_stampsActiveFamilyUnitId() async {
+    let tempFile = makeTempVideoFile()
+    defer { try? FileManager.default.removeItem(at: tempFile) }
+    sut.uploadType = .highlightVideo
+    sut.uploadTitle = "Highlights"
+    sut.setSelectedFile(tempFile)
+
+    await sut.uploadDocument()
+
+    XCTAssertEqual(mockDocuments.lastUploadDocumentFamilyUnitId, "family-1")
+  }
+
   func testUploadDocument_noScope_doesNotShare() async {
     let tempFile = makeTempVideoFile()
     defer { try? FileManager.default.removeItem(at: tempFile) }

@@ -51,6 +51,7 @@ actor SchoolFaviconService: SchoolFaviconManaging {
     guard let url = components.url else { return }
 
     var request = URLRequest(url: url)
+    request.addClientHeaders()
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Accept")
 

@@ -3,6 +3,8 @@ import Charts
 
 struct InteractionTrendsChart: View {
   let trends: [InteractionTrend]
+  /// Most recent interaction of any age, used for the empty-window message.
+  var lastInteractionDate: Date?
 
   @Environment(\.sizeCategory) private var sizeCategory
 
@@ -16,8 +18,8 @@ struct InteractionTrendsChart: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      Text("Interaction Trends")
-        .font(.headline)
+      Text("Interaction Trends (30 Days)")
+        .font(.brand(.headline))
         .accessibilityAddTraits(.isHeader)
 
       Divider()
@@ -29,10 +31,20 @@ struct InteractionTrendsChart: View {
             .foregroundStyle(Color.secondaryText)
             .accessibilityHidden(true)
 
-          Text("No interaction data yet")
-            .font(.body)
-            .foregroundStyle(Color.secondaryText)
+          if let lastInteractionDate {
+            Text("No interactions in the last 30 days")
+              .font(.brand(.body))
+              .foregroundStyle(Color.secondaryText)
+            Text("Last one: \(lastInteractionDate.formatted(.dateTime.month(.abbreviated).day()))")
+              .font(.brand(.caption))
+              .foregroundStyle(Color.secondaryText)
+          } else {
+            Text("No interaction data yet")
+              .font(.brand(.body))
+              .foregroundStyle(Color.secondaryText)
+          }
         }
+        .accessibilityElement(children: .combine)
         .padding(.vertical, 24)
         .frame(maxWidth: .infinity)
       } else {
@@ -41,7 +53,7 @@ struct InteractionTrendsChart: View {
             x: .value("Date", trend.calendarDay(), unit: .day),
             y: .value("Count", trend.count)
           )
-          .foregroundStyle(Color.primaryGreen.gradient)
+          .foregroundStyle(Color.accentFill)
         }
         .frame(height: 200)
         .chartXAxis {
@@ -58,8 +70,8 @@ struct InteractionTrendsChart: View {
         .accessibilityValue("\(totalInteractions) total interactions, latest: \(trends.last?.count ?? 0)")
         .accessibilityChartDescriptor(InteractionTrendsChartDescriptor(trends: trends))
 
-        Text("\(totalInteractions) total interactions over \(trends.count) days")
-          .font(.caption)
+        Text("\(totalInteractions) interactions in the last 30 days")
+          .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
           .accessibilityHidden(true)
       }

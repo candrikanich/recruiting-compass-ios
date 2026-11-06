@@ -5,7 +5,7 @@ struct NotificationFilterChips: View {
   let onFilterChanged: (NotificationType?) -> Void
 
   var chipDisplayLabels: [String] {
-    ["All"] + NotificationType.allCases.map { "\($0.emoji) \($0.label)" }
+    ["All"] + NotificationType.allCases.map(\.label)
   }
 
   var chipAccessibilityLabels: [String] {
@@ -13,7 +13,7 @@ struct NotificationFilterChips: View {
     var labels = [NotificationToggleChip.accessibilityLabel(for: "All", isActive: allActive)]
     for type in NotificationType.allCases {
       let isActive = selectedType == type
-      labels.append(NotificationToggleChip.accessibilityLabel(for: "\(type.emoji) \(type.label)", isActive: isActive))
+      labels.append(NotificationToggleChip.accessibilityLabel(for: type.label, isActive: isActive))
     }
     return labels
   }
@@ -31,7 +31,8 @@ struct NotificationFilterChips: View {
 
         ForEach(NotificationType.allCases, id: \.self) { type in
           NotificationToggleChip(
-            label: "\(type.emoji) \(type.label)",
+            label: type.label,
+            systemImage: type.systemImage,
             isActive: selectedType == type
           ) {
             selectedType = type

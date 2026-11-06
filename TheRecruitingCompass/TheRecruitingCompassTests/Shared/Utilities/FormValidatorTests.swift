@@ -69,6 +69,23 @@ final class FormValidatorTests: XCTestCase {
     XCTAssertNil(result)
   }
 
+  func testValidateNameAcceptsAccentedAndNonLatinLetters() {
+    for name in ["José", "Zoë", "Nguyễn", "Søren", "Łukasz", "Дмитрий", "美咲"] {
+      XCTAssertNil(FormValidator.validateName(name), name)
+    }
+  }
+
+  // The iOS keyboard's smart punctuation turns ' into ’ as the user types.
+  func testValidateNameAcceptsSmartApostrophe() {
+    XCTAssertNil(FormValidator.validateName("O’Brien"))
+  }
+
+  func testValidateNameRejectsEmojiAndSymbols() {
+    let message = "Name can only contain letters, spaces, hyphens, and apostrophes"
+    XCTAssertEqual(FormValidator.validateName("John😀"), message)
+    XCTAssertEqual(FormValidator.validateName("John<script>"), message)
+  }
+
   // MARK: - Password Strength Validation Tests
 
   func testValidatePasswordStrengthWithWeakPassword() {
@@ -124,7 +141,7 @@ final class FormValidatorTests: XCTestCase {
 
   func testValidateFamilyCodeWithInvalidFormat() {
     let result = FormValidator.validateFamilyCode("INVALID-CODE")
-    XCTAssertEqual(result, "Family code must be in format FAM-XXXXXX")
+    XCTAssertEqual(result, "Family Code must be in format FAM-XXXXXX")
   }
 
   func testValidateFamilyCodeWithNil() {
@@ -139,11 +156,11 @@ final class FormValidatorTests: XCTestCase {
 
   func testValidateFamilyCodeWithTooShort() {
     let result = FormValidator.validateFamilyCode("FAM-ABC")
-    XCTAssertEqual(result, "Family code must be in format FAM-XXXXXX")
+    XCTAssertEqual(result, "Family Code must be in format FAM-XXXXXX")
   }
 
   func testValidateFamilyCodeWithTooLong() {
     let result = FormValidator.validateFamilyCode("FAM-ABC12345")
-    XCTAssertEqual(result, "Family code must be in format FAM-XXXXXX")
+    XCTAssertEqual(result, "Family Code must be in format FAM-XXXXXX")
   }
 }

@@ -1,4 +1,5 @@
 import XCTest
+import Supabase
 @testable import TheRecruitingCompass
 
 @MainActor
@@ -370,6 +371,148 @@ final class CreateEventViewModelTests: XCTestCase {
 
     XCTAssertNil(eventId)
     XCTAssertNotNil(sut.errorMessage)
+  }
+
+  func testCreateEvent_stampsFamilyUnitIdOnRequest() async {
+    sut.formData.type = .showcase
+    sut.formData.name = "Test Event"
+    sut.formData.startDate = date("2026-04-15")
+
+    _ = await sut.createEvent()
+
+    XCTAssertEqual(mockService.lastCreateEventRequest?.familyUnitId, "test-family-id")
+  }
+
+  func testCreateEvent_emptyFamilyUnitId_refusesToInsert() async {
+    let soloSut = CreateEventViewModel(eventsService: mockService, userId: "solo-user", familyUnitId: "")
+    soloSut.formData.type = .showcase
+    soloSut.formData.name = "Solo Event"
+    soloSut.formData.startDate = date("2026-04-15")
+
+    let id = await soloSut.createEvent()
+
+    XCTAssertNil(id)
+    XCTAssertEqual(mockService.createEventCallCount, 0)
+    XCTAssertEqual(soloSut.errorMessage, CreateEventViewModel.familyNotLoadedMessage)
+  }
+
+  func testCreateEvent_permissionDenied_postgrest42501_showsPermissionMessage() async {
+    fillRequiredFields()
+    mockService.createEventError = PostgrestError(code: "42501", message: "new row violates row-level security")
+
+    let eventId = await sut.createEvent()
+
+    XCTAssertNil(eventId)
+    XCTAssertTrue(sut.errorMessage?.contains("permission") == true)
+    XCTAssertFalse(sut.errorMessage?.contains("connection") == true)
+  }
+
+  func testCreateEvent_networkFailure_showsConnectionMessage() async {
+    fillRequiredFields()
+    mockService.createEventError = URLError(.notConnectedToInternet)
+
+    _ = await sut.createEvent()
+
+    XCTAssertTrue(sut.errorMessage?.lowercased().contains("connection") == true)
+  }
+
+  func testCreateEvent_otherFailure_doesNotBlameConnection() async {
+    fillRequiredFields()
+    mockService.createEventError = PostgrestError(code: "23502", message: "boom")
+
+    _ = await sut.createEvent()
+
+    XCTAssertNotNil(sut.errorMessage)
+    XCTAssertFalse(sut.errorMessage?.lowercased().contains("connection") == true)
+  }
+
+  // MARK: - Add school (inline)
+
+  private func fillNewSchool() {
+    sut.newSchoolName = "Oregon State"
+    sut.showAddSchoolModal = true
+  }
+
+  func testSaveNewSchool_withFamily_stampsFamilyUnitId() async {
+    fillNewSchool()
+
+    await sut.saveNewSchool()
+
+    XCTAssertEqual(mockService.createSchoolCallCount, 1)
+    XCTAssertEqual(mockService.lastCreateSchoolFamilyUnitId, "test-family-id")
+    XCTAssertEqual(sut.formData.schoolId, mockService.stubbedCreatedSchool.id)
+    XCTAssertFalse(sut.showAddSchoolModal)
+  }
+
+  func testSaveNewSchool_emptyFamilyUnitId_blocksWithFamilyMessageAndSendsNothing() async {
+    let soloSut = CreateEventViewModel(eventsService: mockService, userId: "solo-user", familyUnitId: "")
+    soloSut.newSchoolName = "Oregon State"
+    soloSut.showAddSchoolModal = true
+
+    await soloSut.saveNewSchool()
+
+    XCTAssertEqual(mockService.createSchoolCallCount, 0)
+    XCTAssertEqual(soloSut.errorMessage, CreateEventViewModel.familyNotLoadedMessage)
+    XCTAssertFalse(soloSut.errorMessage?.lowercased().contains("connection") == true)
+    XCTAssertTrue(soloSut.showAddSchoolModal, "modal stays open so the typed name is not lost")
+    XCTAssertEqual(soloSut.newSchoolName, "Oregon State")
+  }
+
+  func testSaveNewSchool_whitespaceFamilyUnitId_isTreatedAsMissing() async {
+    let soloSut = CreateEventViewModel(eventsService: mockService, userId: "solo-user", familyUnitId: "  \n")
+    soloSut.newSchoolName = "Oregon State"
+
+    await soloSut.saveNewSchool()
+
+    XCTAssertEqual(mockService.createSchoolCallCount, 0)
+    XCTAssertEqual(soloSut.errorMessage, CreateEventViewModel.familyNotLoadedMessage)
+  }
+
+  func testLoadSchools_emptyFamilyUnitId_doesNotQueryWithEmptyUuid() async {
+    let soloSut = CreateEventViewModel(eventsService: mockService, userId: "solo-user", familyUnitId: "")
+
+    await soloSut.loadSchools()
+
+    XCTAssertNil(mockService.lastFetchSchoolsFamilyUnitId)
+    XCTAssertNil(soloSut.errorMessage)
+    XCTAssertTrue(soloSut.schools.isEmpty)
+  }
+
+  // MARK: - Required-field state
+
+  func testMissingRequiredFields_emptyForm_listsTypeNameStartDate() {
+    sut.formData.startDate = nil
+
+    XCTAssertEqual(sut.missingRequiredFields, ["Event type", "Event name", "Start date"])
+    XCTAssertEqual(
+      sut.submitHint,
+      "Required to create: Event type, Event name, Start date"
+    )
+  }
+
+  func testSubmitHint_freshForm_namesTypeAndName() {
+    XCTAssertEqual(sut.submitHint, "Required to create: Event type, Event name")
+    XCTAssertTrue(sut.isSubmitDisabled)
+  }
+
+  func testMissingRequiredFields_partial_listsOnlyMissing() {
+    sut.formData.type = .camp
+    sut.formData.startDate = date("2026-04-15")
+
+    XCTAssertEqual(sut.missingRequiredFields, ["Event name"])
+  }
+
+  func testSubmitHint_allRequiredFilled_isNil() {
+    fillRequiredFields()
+
+    XCTAssertTrue(sut.missingRequiredFields.isEmpty)
+    XCTAssertNil(sut.submitHint)
+  }
+
+  private func fillRequiredFields() {
+    sut.formData.type = .showcase
+    sut.formData.name = "Test Event"
+    sut.formData.startDate = date("2026-04-15")
   }
 
   func testCreateEvent_preventsDuplicateSubmission() async {

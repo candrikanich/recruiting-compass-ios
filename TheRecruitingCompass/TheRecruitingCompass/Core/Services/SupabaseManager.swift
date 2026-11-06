@@ -1,3 +1,4 @@
+import Auth
 import Foundation
 import Supabase
 import Helpers
@@ -7,6 +8,28 @@ private let logger = Logger(
   subsystem: "com.chrisandrikanich.TheRecruitingCompass",
   category: "SupabaseManager"
 )
+
+/// Request body for `POST /api/auth/signup` — mirrors `SignupBody` in
+/// server/api/auth/signup.post.ts. That endpoint (not the Supabase SDK) owns
+/// account creation and the custom verification email for every platform;
+/// calling Supabase Auth directly here would bypass sendVerificationEmail()
+/// entirely, which is what left iOS parent signups with no verification email.
+struct WebSignupBody: Encodable {
+  let email: String
+  let password: String
+  let fullName: String
+  let role: String
+  let dateOfBirth: String?
+  let captchaToken: String
+  let metadata: [String: String]
+  // Invite/guardian-claim signups stamp email_verified_at when the invite is
+  // accepted moments later, so they must skip the verify-email flow entirely —
+  // matches web's join.vue/guardian claim callers (server/api/auth/signup.post.ts).
+  let skipVerificationEmail: Bool
+  /// Marketing consent (web #1066). Set only for marketing-eligible adults; nil is omitted
+  /// from the JSON (synthesized `encodeIfPresent`), which the server treats as false.
+  let marketingEmailOptIn: Bool?
+}
 
 /// @unchecked Sendable: Wraps the Supabase Swift SDK's SupabaseClient,
 /// which is not Sendable but is designed for concurrent use. All operations
@@ -62,25 +85,6 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     }
   }
 
-  /// Request body for `POST /api/auth/signup` — mirrors `SignupBody` in
-  /// server/api/auth/signup.post.ts. That endpoint (not the Supabase SDK) owns
-  /// account creation and the custom verification email for every platform;
-  /// calling Supabase Auth directly here would bypass sendVerificationEmail()
-  /// entirely, which is what left iOS parent signups with no verification email.
-  private struct WebSignupBody: Encodable {
-    let email: String
-    let password: String
-    let fullName: String
-    let role: String
-    let dateOfBirth: String?
-    let captchaToken: String
-    let metadata: [String: String]
-    // Invite/guardian-claim signups stamp email_verified_at when the invite is
-    // accepted moments later, so they must skip the verify-email flow entirely —
-    // matches web's join.vue/guardian claim callers (server/api/auth/signup.post.ts).
-    let skipVerificationEmail: Bool
-  }
-
   private struct WebSignupResult: Decodable {
     let userId: String
     /// Service-role magiclink token, present when minting succeeds server-side.
@@ -118,11 +122,16 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
   }
 
   func signIn(email: String, password: String, captchaToken: String) async throws -> (user: User, session: Session) {
-    let response = try await client.auth.signIn(
-      email: email,
-      password: password,
-      captchaToken: captchaToken
-    )
+    let response: Auth.Session
+    do {
+      response = try await client.auth.signIn(
+        email: email,
+        password: password,
+        captchaToken: captchaToken
+      )
+    } catch {
+      throw SupabaseAuthErrors.signInError(for: error) ?? error
+    }
 
     // Fetch user profile from database with retry
     guard let user = try await fetchUserProfileWithRetry(
@@ -150,12 +159,12 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     gender: String? = nil,
     zipCode: String? = nil,
     captchaToken: String,
-    skipVerificationEmail: Bool = false
+    skipVerificationEmail: Bool = false,
+    marketingEmailOptIn: Bool? = nil
   ) async throws -> (user: User, session: Session?) {
     // family_code isn't accepted by the web signup endpoint's metadata (server/api/auth/signup.post.ts
-    // ALLOWED_METADATA_KEYS) — family creation is its own step after signup (see
-    // SignupViewModel.signup(), which already passes familyCode: nil here and calls
-    // familyService.createFamily(role:) afterward, mirroring web's flow).
+    // ALLOWED_METADATA_KEYS). The server creates the family atomically with the account (web#1302); the
+    // device never creates one after signup, and the family-required gate covers anyone left without one.
     _ = familyCode
 
     // Carried across the email-confirmation gap and flushed into real preferences by
@@ -183,7 +192,8 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
         dateOfBirth: (dateOfBirth?.isEmpty == false) ? dateOfBirth : nil,
         captchaToken: captchaToken,
         metadata: metadata,
-        skipVerificationEmail: skipVerificationEmail
+        skipVerificationEmail: skipVerificationEmail,
+        marketingEmailOptIn: marketingEmailOptIn
       )
     )
 
@@ -397,18 +407,11 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     }
   }
 
-  func refreshSession() async throws -> User {
-    let authSession = try await client.auth.session
-
-    guard let user = try await fetchUserProfileWithRetry(
-      userId: authSession.user.id.uuidString,
-      email: authSession.user.email ?? "",
-      fallbackMetadata: authSession.user.userMetadata
-    ) else {
-      throw AuthError.serverError("Failed to fetch user profile")
-    }
-
-    return user
+  /// The signed-in user's id from the local auth session — no `users` read, unlike `getCurrentSession()`.
+  func currentAuthUserId() async throws -> String? {
+    let authUserId = try await client.auth.session.user.id
+    guard authUserId != UUID(uuidString: "00000000-0000-0000-0000-000000000000") else { return nil }
+    return authUserId.uuidString.lowercased()
   }
 
   func resendVerificationEmail(email: String, captchaToken: String) async throws {

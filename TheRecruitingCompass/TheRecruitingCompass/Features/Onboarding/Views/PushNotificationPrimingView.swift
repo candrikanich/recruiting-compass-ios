@@ -20,11 +20,11 @@ struct PushNotificationPrimingView: View {
 
       VStack(spacing: 12) {
         Text("Stay on top of recruiting")
-          .font(.title2.weight(.bold))
+          .font(.brand(.title2, weight: .bold))
           .multilineTextAlignment(.center)
 
         Text("Get notified about recruiting deadlines, coach activity, and task reminders.")
-          .font(.body)
+          .font(.brand(.body))
           .foregroundStyle(.secondary)
           .multilineTextAlignment(.center)
       }
@@ -39,7 +39,7 @@ struct PushNotificationPrimingView: View {
           }
         } label: {
           Text("Turn on notifications")
-            .font(.body.weight(.semibold))
+            .font(.brand(.body, weight: .semibold))
             .frame(maxWidth: .infinity)
             .frame(height: 50)
         }
@@ -51,7 +51,7 @@ struct PushNotificationPrimingView: View {
           onDismiss()
         } label: {
           Text("Not now")
-            .font(.body)
+            .font(.brand(.body))
             .foregroundStyle(.secondary)
         }
         .accessibilityIdentifier("skipPushNotificationsButton")

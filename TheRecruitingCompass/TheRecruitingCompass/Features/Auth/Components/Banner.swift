@@ -46,7 +46,7 @@ struct Banner: View {
 
       VStack(alignment: .leading, spacing: 2) {
         Text(message)
-          .font(.footnote)
+          .font(.brand(.footnote))
           .foregroundStyle(style.foregroundColor)
       }
 

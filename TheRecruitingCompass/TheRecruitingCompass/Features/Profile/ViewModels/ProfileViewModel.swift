@@ -23,6 +23,8 @@ final class ProfileViewModel {
     var dateOfBirth: String = ""
     var isSavingPersonalInfo = false
     var personalInfoMessage: SectionMessage?
+    /// Server's reason the date of birth was rejected; shown on the field, not as a generic save failure.
+    var dateOfBirthError: String?
 
     // MARK: - Section 3: Email
 
@@ -31,7 +33,16 @@ final class ProfileViewModel {
     var emailCurrentPassword: String = ""
     var isSavingEmail = false
     var emailMessage: SectionMessage?
-    var emailVerificationBannerVisible = false
+    /// Set only while a change request is pending; the view renders exactly this text.
+    private(set) var emailPendingMessage: String?
+
+    /// Mirrors web `EMAIL_CHANGE_PENDING_COPY`. True under either "secure email change" setting: one or two
+    /// inboxes may get a link and the change completes only after all are confirmed.
+    static let emailChangePendingMessage =
+        "We sent a confirmation link to your new address. Depending on your account's security settings, "
+        + "we may also send one to your current address. Open every link we send: your email changes only "
+        + "after all of them are confirmed. Until then you keep signing in with your current email. "
+        + "Once it changes, we may ask you to verify your new address."
 
     // MARK: - Section 4: Password
 
@@ -185,6 +196,7 @@ final class ProfileViewModel {
         guard isPersonalInfoValid, !isSavingPersonalInfo else { return }
         isSavingPersonalInfo = true
         personalInfoMessage = nil
+        dateOfBirthError = nil
         defer { isSavingPersonalInfo = false }
 
         let trimmedName = fullName.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -211,6 +223,9 @@ final class ProfileViewModel {
             personalInfoMessage = .success("Saved!")
             try? await Task.sleep(for: .seconds(2))
             personalInfoMessage = nil
+        } catch ProfileServiceError.dateOfBirth(let message) {
+            logger.error("Personal info save rejected the date of birth")
+            dateOfBirthError = message
         } catch {
             logger.error("Personal info save failed: \(error.localizedDescription)")
             personalInfoMessage = .error("Failed to save. Please try again.")
@@ -223,6 +238,7 @@ final class ProfileViewModel {
         guard !isSavingEmail else { return }
         isSavingEmail = true
         emailMessage = nil
+        emailPendingMessage = nil
         defer { isSavingEmail = false }
 
         do {
@@ -230,7 +246,7 @@ final class ProfileViewModel {
             isEmailFormExpanded = false
             newEmail = ""
             emailCurrentPassword = ""
-            emailVerificationBannerVisible = true
+            emailPendingMessage = Self.emailChangePendingMessage
         } catch let error as ProfileServiceError {
             logger.error("Email change failed: \(error.localizedDescription)")
             emailMessage = .error(error.errorDescription ?? "Failed to update email.")

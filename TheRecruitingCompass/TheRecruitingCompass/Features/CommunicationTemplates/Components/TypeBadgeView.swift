@@ -5,7 +5,7 @@ struct TypeBadgeView: View {
 
   var body: some View {
     Text(type.displayName)
-      .font(.caption.weight(.medium))
+      .font(.brand(.caption, weight: .medium))
       .foregroundStyle(type.color)
       .padding(.horizontal, 8)
       .padding(.vertical, 3)

@@ -3,6 +3,7 @@ import SwiftUI
 struct NotificationsListView: View {
   @State private var viewModel: NotificationsListViewModel
   @Environment(FamilyManager.self) private var familyManager
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
 
   @State private var showDeleteAlert = false
   @State private var showClearReadAlert = false
@@ -52,7 +53,7 @@ struct NotificationsListView: View {
                 NotificationCard(
                   notification: notification,
                   onTap: {
-                    Task { await viewModel.handleNotificationTap(notification) }
+                    Task { await viewModel.handleNotificationTap(notification, flags: featureFlags) }
                   },
                   onMarkRead: {
                     Task { await viewModel.markAsRead(id: notification.id) }
@@ -121,22 +122,20 @@ struct NotificationsListView: View {
           .foregroundStyle(.secondary)
       }
 
-    case .offerDetail:
-      Text("Offer details coming soon")
-        .font(.headline)
-        .foregroundStyle(.secondary)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .navigationTitle("Offer")
+    case .offerDetail(let id):
+      OfferDetailView(offerId: id)
 
-    case .eventDetail:
-      Text("Event details coming soon")
-        .font(.headline)
-        .foregroundStyle(.secondary)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .navigationTitle("Event")
+    case .eventDetail(let id):
+      EventDetailView(eventId: id)
 
     case .inboundDraftsList:
       InboundDraftsView()
+
+    case .familyManagement:
+      FamilyManagementView()
+
+    case .notificationsList:
+      EmptyView()
     }
   }
 }

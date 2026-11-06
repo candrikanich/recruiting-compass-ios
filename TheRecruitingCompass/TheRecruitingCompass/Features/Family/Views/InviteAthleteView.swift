@@ -13,15 +13,15 @@ struct InviteAthleteView: View {
         VStack(alignment: .leading, spacing: FamilyConstants.Spacing.medium) {
           VStack(alignment: .leading, spacing: 4) {
             Text("Invite your player")
-              .font(.headline)
-            Text("Send them an email invite or share your family code.")
-              .font(.subheadline)
+              .font(.brand(.headline))
+            Text("Send them an email invite or share your Family Code.")
+              .font(.brand(.subheadline))
               .foregroundStyle(.secondary)
           }
 
           VStack(alignment: .leading, spacing: FamilyConstants.Spacing.small) {
             Text("Player's email address")
-              .font(.subheadline.weight(.medium))
+              .font(.brand(.subheadline, weight: .medium))
             TextField("player@example.com", text: $viewModel.inviteEmail)
               .keyboardType(.emailAddress)
               .textContentType(.emailAddress)
@@ -32,7 +32,7 @@ struct InviteAthleteView: View {
 
           if let error = viewModel.errorMessage {
             Text(error)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.red)
           }
 
@@ -43,28 +43,28 @@ struct InviteAthleteView: View {
               ProgressView().tint(.white)
             } else {
               Text("Send Invite")
-                .font(.callout.weight(.semibold))
+                .font(.brand(.callout, weight: .semibold))
             }
           }
           .frame(maxWidth: .infinity)
           .frame(minHeight: 48)
           .foregroundStyle(.white)
-          .background(LinearGradient.primaryButton)
+          .background(Color.accentFill)
           .clipShape(.rect(cornerRadius: 8))
           .opacity(!viewModel.isInviteStepValid || viewModel.isLoading ? 0.5 : 1)
           .disabled(!viewModel.isInviteStepValid || viewModel.isLoading)
           .accessibilityLabel(String(localized: "Send invite"))
 
-          Text("Or share your family code")
-            .font(.subheadline.weight(.medium))
+          Text("Or share your Family Code")
+            .font(.brand(.subheadline, weight: .medium))
             .foregroundStyle(.secondary)
             .padding(.top, FamilyConstants.Spacing.small)
 
           if viewModel.isLoadingFamilyCode {
             HStack(spacing: FamilyConstants.Spacing.small) {
               ProgressView()
-              Text("Loading family code…")
-                .font(.subheadline)
+              Text("Loading Family Code…")
+                .font(.brand(.subheadline))
                 .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity)
@@ -72,7 +72,7 @@ struct InviteAthleteView: View {
             .background(Color(.tertiarySystemFill))
             .clipShape(.rect(cornerRadius: 8))
             .accessibilityElement(children: .combine)
-            .accessibilityLabel(String(localized: "Loading family code"))
+            .accessibilityLabel(String(localized: "Loading Family Code"))
           } else if let code = viewModel.familyCode {
             VStack(spacing: FamilyConstants.Spacing.small) {
               Text(code)
@@ -91,21 +91,21 @@ struct InviteAthleteView: View {
                   .frame(maxWidth: .infinity)
               }
               .buttonStyle(.bordered)
-              .accessibilityLabel(String(localized: "Copy family code"))
+              .accessibilityLabel(String(localized: "Copy Family Code"))
               Text("Your player enters this code during their signup.")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
             }
           } else {
             VStack(alignment: .leading, spacing: FamilyConstants.Spacing.small) {
-              Text("Family code couldn't be loaded.")
-                .font(.subheadline)
+              Text("Family Code couldn't be loaded.")
+                .font(.brand(.subheadline))
                 .foregroundStyle(.secondary)
               Button("Retry") {
                 Task { await viewModel.loadFamilyCode() }
               }
               .buttonStyle(.bordered)
-              .accessibilityLabel(String(localized: "Retry loading family code"))
+              .accessibilityLabel(String(localized: "Retry loading Family Code"))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(FamilyConstants.Spacing.small)

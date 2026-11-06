@@ -51,7 +51,7 @@ struct VerificationStatusIcon: View {
 
     case .checking:
       ProgressView()
-        .tint(Color.accentBlue)
+        .tint(Color.accentPrimary)
         .scaleEffect(1.5)
         .accessibilityLabel(String(localized: "Checking verification status"))
 
@@ -79,7 +79,7 @@ struct VerificationStatusIcon: View {
     case .pending:
       return Color.amberGold.opacity(0.15)
     case .checking:
-      return Color.accentBlue.opacity(0.15)
+      return Color.accentPrimary.opacity(0.15)
     case .verified:
       return Color.successGreen.opacity(0.15)
     case .error:

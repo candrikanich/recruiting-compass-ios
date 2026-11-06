@@ -5,6 +5,7 @@ struct SchoolDetailView: View {
 
   @State private var viewModel: SchoolDetailViewModel
   @Environment(FamilyManager.self) private var familyManager
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
   @Environment(\.dismiss) private var dismiss
   @Environment(\.openURL) private var openURL
   @Environment(\.filterCoachesBySchool) private var filterCoachesBySchool
@@ -237,7 +238,7 @@ struct SchoolDetailView: View {
       NavigationStack {
         AddCoachView(
           coachesService: CoachesServiceImpl(supabaseManager: .shared),
-          familyUnitId: familyManager.familyUnitId ?? "",
+          familyUnitId: familyManager.resolvedFamilyUnitId,
           userId: viewModel.currentUserId ?? "",
           navigationPath: .constant(NavigationPath()),
           preselectedSchoolId: schoolId
@@ -262,7 +263,7 @@ struct SchoolDetailView: View {
   @ViewBuilder
   private func statusSection(school: School) -> some View {
     SchoolRecruitingStatusAndTierSection(
-      currentStatus: SchoolStatus(rawValue: school.status) ?? .interested,
+      currentStatus: SchoolStatus(rawValue: school.status) ?? .unknown,
       isUpdatingStatus: viewModel.isUpdatingStatus,
       onStatusChange: { await viewModel.updateStatus(to: $0) }
     )
@@ -297,13 +298,12 @@ struct SchoolDetailView: View {
   }
 
   private func onQuickComm(school: School) {
-    let coaches = viewModel.coaches
-    if coaches.count == 1, let coach = coaches.first {
-      quickCommunicationContext = QuickCommunicationContext(
-        coach: coach,
-        schoolName: school.name
-      )
-    } else if coaches.count > 1 {
+    switch QuickCommEntry.resolve(coaches: viewModel.coaches, flags: featureFlags) {
+    case .none:
+      break
+    case .direct(let coach):
+      quickCommunicationContext = QuickCommunicationContext(coach: coach, schoolName: school.name)
+    case .pickCoach:
       showCoachPickerForQuickComm = true
     }
   }
@@ -340,10 +340,10 @@ struct SchoolDetailView: View {
     )) {
       VStack(alignment: .leading, spacing: 2) {
         Text("Recruiting questionnaire completed")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .fontWeight(.medium)
         Text("Enables the \"I've completed your recruiting questionnaire\" line in coach outreach for this school.")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
     }

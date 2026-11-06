@@ -238,7 +238,7 @@ struct EventsListView: View {
     Section {
       HStack {
         Text("\(viewModel.filteredEvents.count) result\(viewModel.filteredEvents.count == 1 ? "" : "s")")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         Spacer()
         Picker("Sort", selection: $viewModel.sortBy) {

@@ -58,7 +58,7 @@ struct UnifiedDeadline: Identifiable, Equatable, Sendable {
     case .user:
       return DeadlineCategory(rawValue: category)?.color ?? .gray
     case .system:
-      return .indigo
+      return Color.Category.clay
     }
   }
 }

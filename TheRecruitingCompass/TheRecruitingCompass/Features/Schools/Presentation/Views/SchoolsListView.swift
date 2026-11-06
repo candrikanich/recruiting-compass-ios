@@ -94,7 +94,7 @@ struct SchoolsListView: View {
         case .add:
           AddSchoolView(
             schoolsService: viewModel.schoolsService,
-            familyUnitId: familyManager.currentMember?.familyUnitId ?? "",
+            familyUnitId: FamilyUnitID.normalized(familyManager.currentMember?.familyUnitId),
             userId: authManager.user?.id ?? "",
             navigationPath: $navigationPath
           )

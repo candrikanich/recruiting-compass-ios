@@ -262,12 +262,12 @@ final class AppNotificationTests: XCTestCase {
 
   func testNotificationTypeEmojis() {
     for type in NotificationType.allCases {
-      XCTAssertFalse(type.emoji.isEmpty, "Emoji should not be empty for \(type.rawValue)")
+      XCTAssertFalse(type.systemImage.isEmpty, "Symbol should not be empty for \(type.rawValue)")
     }
   }
 
   func testNotificationType_CaseIterable() {
-    XCTAssertEqual(NotificationType.allCases.count, 7) // 6 known + .unknown
+    XCTAssertEqual(NotificationType.allCases.count, 8) // 7 known (incl. familyUpdate) + .unknown
   }
 
   func testDecodingDailyDigestAliasesToWeeklyDigest() throws {

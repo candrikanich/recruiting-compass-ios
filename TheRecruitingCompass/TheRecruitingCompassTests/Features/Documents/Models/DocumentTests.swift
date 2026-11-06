@@ -16,9 +16,9 @@ final class DocumentTests: XCTestCase {
   }
 
   func testTypeEmoji_delegatesToDocumentType() {
-    XCTAssertEqual(Document.mock(type: .highlightVideo).typeEmoji, "🎥")
-    XCTAssertEqual(Document.mock(type: .transcript).typeEmoji, "📄")
-    XCTAssertEqual(Document.mock(type: .resume).typeEmoji, "📋")
+    XCTAssertEqual(Document.mock(type: .highlightVideo).typeSystemImage, "video")
+    XCTAssertEqual(Document.mock(type: .transcript).typeSystemImage, "doc.text")
+    XCTAssertEqual(Document.mock(type: .resume).typeSystemImage, "list.clipboard")
   }
 
   func testDisplayDate_withValidISO8601_formatsAbbreviated() {

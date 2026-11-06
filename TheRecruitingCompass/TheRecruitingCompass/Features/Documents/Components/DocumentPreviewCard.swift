@@ -6,7 +6,7 @@ struct DocumentPreviewCard: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Preview")
-        .font(.headline)
+        .font(.brand(.headline))
       DocumentPreviewView(document: document)
     }
     .padding()

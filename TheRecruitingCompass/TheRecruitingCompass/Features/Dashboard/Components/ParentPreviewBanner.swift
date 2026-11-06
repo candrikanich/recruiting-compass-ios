@@ -10,17 +10,17 @@ struct ParentPreviewBanner: View {
     HStack(spacing: 12) {
       Image(systemName: "eye")
         .font(.system(size: fontSize))
-        .foregroundStyle(.white)
+        .foregroundStyle(Color.Surface.onBrandTint)
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 2) {
         Text("Parent Preview Mode")
-          .font(.subheadline.weight(.semibold))
-          .foregroundStyle(.white)
+          .font(.brand(.subheadline, weight: .semibold))
+          .foregroundStyle(Color.Surface.onBrandTint)
 
         Text("Viewing \(athleteName)'s dashboard")
-          .font(.caption)
-          .foregroundStyle(.white.opacity(0.9))
+          .font(.brand(.caption))
+          .foregroundStyle(Color.Surface.onBrandTint)
       }
 
       Spacer()
@@ -28,7 +28,7 @@ struct ParentPreviewBanner: View {
       Button(action: onDismiss) {
         Image(systemName: "xmark.circle.fill")
           .font(.system(size: fontSize + 2))
-          .foregroundStyle(.white.opacity(0.9))
+          .foregroundStyle(Color.Surface.onBrandTint)
           .frame(minWidth: 44, minHeight: 44)
           .contentShape(Rectangle())
       }
@@ -37,13 +37,10 @@ struct ParentPreviewBanner: View {
       .accessibilityHint("Returns to your athlete selection view")
     }
     .padding()
-    .background(
-      LinearGradient(
-        gradient: Gradient(colors: [Color.accentBlue, Color(hex: "#2563EB")]),
-        startPoint: .leading,
-        endPoint: .trailing
-      )
-    )
+    .background(Color.Surface.brandTint)
+    .overlay(alignment: .bottom) {
+      Rectangle().fill(Color.Surface.brandTintBorder).frame(height: 1)
+    }
     .accessibilityElement(children: .contain)
     .accessibilityLabel(String(localized: "Parent preview mode active, viewing \(athleteName)'s dashboard"))
   }

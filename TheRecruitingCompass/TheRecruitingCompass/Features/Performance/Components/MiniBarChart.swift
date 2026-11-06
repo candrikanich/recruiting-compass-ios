@@ -11,7 +11,7 @@ struct MiniBarChart: View {
         x: .value("Index", index),
         y: .value("Value", value)
       )
-      .foregroundStyle(Color.accentBlue)
+      .foregroundStyle(Color.accentPrimary)
       .cornerRadius(3)
     }
     .chartXAxis(.hidden)

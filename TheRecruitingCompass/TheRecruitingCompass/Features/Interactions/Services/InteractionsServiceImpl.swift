@@ -24,6 +24,17 @@ final class InteractionsServiceImpl: InteractionsManaging, Sendable {
     }
   }
 
+  func fetchSchoolContactSignals(familyUnitId: String) async throws -> [SchoolContactSignal] {
+    try await logger.fetch("school contact signals") {
+      try await supabaseManager.client
+        .from("interactions")
+        .select("school_id, type")
+        .eq("family_unit_id", value: familyUnitId)
+        .execute()
+        .value
+    }
+  }
+
   func fetchInteractionsForUser(userId: String) async throws -> [Interaction] {
     try await logger.fetch("interactions for user") {
       try await supabaseManager.client

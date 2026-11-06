@@ -20,11 +20,11 @@ struct WarningBanner: View {
 
       VStack(alignment: .leading, spacing: 4) {
         Text(title)
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .fontWeight(.semibold)
 
         Text(message)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
 
@@ -54,7 +54,7 @@ struct WarningBanner: View {
     WarningBanner(
       title: "Info",
       message: "This is an informational message.",
-      color: .blue
+      color: Color.accentPrimary
     )
   }
   .padding()

@@ -18,12 +18,13 @@ extension CoachCreateRequest {
   ///   - userId: The current user ID
   ///   - familyUnitId: The family unit ID
   /// - Returns: CoachCreateRequest ready for API submission, or nil if required fields are missing
+  /// - Throws: `FamilyUnitID.MissingError` when there is no family to stamp
   static func from(
     form: CoachFormState,
     schoolId: String,
     userId: String,
-    familyUnitId: String
-  ) -> CoachCreateRequest? {
+    familyUnitId: String?
+  ) throws -> CoachCreateRequest? {
     // Required: role
     guard let role = form.role?.rawValue else {
       return nil
@@ -60,7 +61,7 @@ extension CoachCreateRequest {
     let tags = CoachTagsValidator.sanitize(form.tags)
     let source = CoachTagsValidator.sanitizeSource(form.source)
 
-    return CoachCreateRequest(
+    return try CoachCreateRequest(
       schoolId: schoolId,
       userId: userId,
       familyUnitId: familyUnitId,

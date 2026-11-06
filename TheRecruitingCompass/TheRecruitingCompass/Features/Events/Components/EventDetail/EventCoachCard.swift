@@ -10,6 +10,21 @@ struct EventCoachCard: View {
   }
 
   let coach: Coach
+  var schoolName: String?
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
+  @State private var quickCommunicationContext: QuickCommunicationContext?
+
+  /// Email goes through Quick Communication (guardian lock, send guardrails), never a raw `mailto:`,
+  /// and disappears with the `athlete_messages` switch.
+  @MainActor
+  static func showsEmailAction(for coach: Coach, flags: FeatureFlagStore?) -> Bool {
+    guard flags.isEnabled(.athleteMessages) else { return false }
+    return coach.email?.isEmpty == false
+  }
+
+  static func quickCommunicationContext(for coach: Coach, schoolName: String?) -> QuickCommunicationContext {
+    QuickCommunicationContext(coach: coach, schoolName: schoolName)
+  }
 
   var body: some View {
     HStack(spacing: Layout.cardSpacing) {
@@ -17,10 +32,10 @@ struct EventCoachCard: View {
 
       VStack(alignment: .leading, spacing: Layout.nameSpacing) {
         Text(coach.fullName)
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .fontWeight(.medium)
         Text(coach.role.displayName)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
 
@@ -43,7 +58,7 @@ struct EventCoachCard: View {
   @ViewBuilder
   private var initialsCircle: some View {
     Text(coach.initials)
-      .font(.caption)
+      .font(.brand(.caption))
       .bold()
       .foregroundStyle(.white)
       .frame(width: Layout.initialsSize, height: Layout.initialsSize)
@@ -55,14 +70,16 @@ struct EventCoachCard: View {
   @ViewBuilder
   private var contactButtons: some View {
     HStack(spacing: Layout.contactSpacing) {
-      if let email = coach.email, !email.isEmpty,
-         let emailURL = URL(string: "mailto:\(email)") {
-        Link(destination: emailURL) {
+      if Self.showsEmailAction(for: coach, flags: featureFlags) {
+        Button {
+          quickCommunicationContext = Self.quickCommunicationContext(for: coach, schoolName: schoolName)
+        } label: {
           Image(systemName: "envelope")
-            .font(.body)
+            .font(.brand(.body))
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
         .accessibilityLabel(String(localized: "Email \(coach.fullName)"))
       }
 
@@ -70,7 +87,7 @@ struct EventCoachCard: View {
          let phoneURL = URL(string: "tel:\(phone)") {
         Link(destination: phoneURL) {
           Image(systemName: "phone")
-            .font(.body)
+            .font(.brand(.body))
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
@@ -78,5 +95,8 @@ struct EventCoachCard: View {
       }
     }
     .foregroundStyle(Color.accentColor)
+    .sheet(item: $quickCommunicationContext) { context in
+      QuickCommunicationView(context: context)
+    }
   }
 }

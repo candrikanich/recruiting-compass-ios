@@ -74,7 +74,7 @@ struct PlayerDetailsView: View {
                         viewModel.selectedTab = index
                     } label: {
                         Text(title)
-                            .font(.subheadline.weight(isSelected ? .semibold : .regular))
+                            .font(.brand(.subheadline, weight: isSelected ? .semibold : .regular))
                             .foregroundStyle(isSelected ? Color.white : Color.primary)
                             .padding(.vertical, 8)
                             .padding(.horizontal, 16)
@@ -103,7 +103,7 @@ struct PlayerDetailsView: View {
         case 1:  AthleticsTab(viewModel: viewModel)
         case 2:  AcademicsSocialTab(viewModel: viewModel)
         case 3:  HistoryTab(viewModel: viewModel)
-        case 4:  PublicTab(viewModel: viewModel)
+        case 4:  PublicTab(viewModel: viewModel).id(viewModel.publicTargetUserId)
         default: BasicsTab(viewModel: viewModel)
         }
     }

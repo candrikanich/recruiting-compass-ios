@@ -16,7 +16,7 @@ struct CharacterCountView: View {
 
   var body: some View {
     Text("\(currentCount)/\(maxCount)")
-      .font(.caption)
+      .font(.brand(.caption))
       .foregroundStyle(isOverLimit ? .red : (showWarning ? .orange : .secondary))
       .accessibilityLabel(String(localized: "\(currentCount) of \(maxCount) characters"))
       .accessibilityValue(isOverLimit ? "Limit exceeded" : "")

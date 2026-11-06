@@ -39,8 +39,10 @@ struct ProfileView: View {
                 PlayerDetailsView(
                     preferenceService: preferenceService,
                     userRole: user?.role ?? .player,
-                    targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
+                    targetUserId: PublicProfileTarget.userId(
+                        user: authManager.user, selectedAthleteUserId: familyManager.selectedAthlete?.userId)
                 )
+                .id(familyManager.selectedAthleteId)
             }
         }
         .task {
@@ -105,7 +107,7 @@ private struct ProfilePhotoSection: View {
                     } else {
                         PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
                             Text("Upload Photo")
-                                .font(.subheadline.weight(.medium))
+                                .font(.brand(.subheadline, weight: .medium))
                         }
                         .buttonStyle(.bordered)
                         .accessibilityLabel(String(localized: "Upload profile photo"))
@@ -114,14 +116,14 @@ private struct ProfilePhotoSection: View {
                             Button("Remove", role: .destructive) {
                                 viewModel.showRemovePhotoConfirm = true
                             }
-                            .font(.subheadline)
+                            .font(.brand(.subheadline))
                             .accessibilityLabel(String(localized: "Remove profile photo"))
                         }
                     }
 
                     if let error = viewModel.photoError {
                         Text(error)
-                            .font(.caption)
+                            .font(.brand(.caption))
                             .foregroundStyle(Color.errorRed)
                     }
                 }
@@ -166,11 +168,17 @@ private struct ProfilePersonalInfoSection: View {
 
             if isAthlete {
                 DateOfBirthField(value: $viewModel.dateOfBirth)
+                if let dobError = viewModel.dateOfBirthError {
+                    Label(dobError, systemImage: "exclamationmark.circle.fill")
+                        .font(.brand(.subheadline))
+                        .foregroundStyle(Color.errorRed)
+                        .accessibilityLabel(String(localized: "Date of birth error: \(dobError)"))
+                }
             }
 
             if let msg = viewModel.personalInfoMessage {
                 Label(msg.text, systemImage: msg.isSuccess ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
-                    .font(.subheadline)
+                    .font(.brand(.subheadline))
                     .foregroundStyle(msg.isSuccess ? Color.primaryGreen : Color.errorRed)
                     .accessibilityLabel(msg.isSuccess ? "Saved successfully" : String(localized: "Error: \(msg.text)"))
             }
@@ -214,14 +222,10 @@ private struct ProfileEmailSection: View {
                 .accessibilityLabel(String(localized: "Current email: \(email)"))
             }
 
-            if viewModel.emailVerificationBannerVisible {
-                Label(
-                    "A verification email has been sent to your new address. Check your inbox to confirm the change.",
-                    systemImage: "envelope.badge"
-                )
-                .font(.subheadline)
-                .foregroundStyle(.blue)
-                .accessibilityLabel(String(localized: "Verification email sent. Check your inbox."))
+            if let pendingMessage = viewModel.emailPendingMessage {
+                Label(pendingMessage, systemImage: "envelope.badge")
+                    .font(.brand(.subheadline))
+                    .foregroundStyle(Color.accentPrimary)
             }
 
             if viewModel.isEmailFormExpanded {
@@ -238,7 +242,7 @@ private struct ProfileEmailSection: View {
 
                 if let msg = viewModel.emailMessage {
                     Text(msg.text)
-                        .font(.subheadline)
+                        .font(.brand(.subheadline))
                         .foregroundStyle(Color.errorRed)
                         .accessibilityLabel(String(localized: "Error: \(msg.text)"))
                 }
@@ -302,14 +306,14 @@ private struct ProfilePasswordSection: View {
 
             if !viewModel.confirmPassword.isEmpty && !viewModel.passwordsMatch {
                 Text("Passwords do not match.")
-                    .font(.subheadline)
+                    .font(.brand(.subheadline))
                     .foregroundStyle(Color.errorRed)
                     .accessibilityLabel(String(localized: "Error: Passwords do not match"))
             }
 
             if let msg = viewModel.passwordMessage {
                 Label(msg.text, systemImage: msg.isSuccess ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
-                    .font(.subheadline)
+                    .font(.brand(.subheadline))
                     .foregroundStyle(msg.isSuccess ? Color.primaryGreen : Color.errorRed)
                     .accessibilityLabel(msg.isSuccess ? msg.text : String(localized: "Error: \(msg.text)"))
             }
@@ -343,7 +347,7 @@ private struct ProfileAthleteSection: View {
             NavigationLink(value: ProfileDestination.playerDetails) {
                 HStack(spacing: 12) {
                     Image(systemName: "trophy.fill")
-                        .font(.title3)
+                        .font(.brand(.title3))
                         .foregroundStyle(.white)
                         .frame(width: 36, height: 36)
                         .background(Color.green)
@@ -352,9 +356,9 @@ private struct ProfileAthleteSection: View {
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Athlete Profile")
-                            .font(.body.weight(.medium))
+                            .font(.brand(.body, weight: .medium))
                         Text("Manage your recruiting profile — positions, stats, academic scores, and social handles.")
-                            .font(.caption)
+                            .font(.brand(.caption))
                             .foregroundStyle(.secondary)
                             .lineLimit(2)
                     }
@@ -390,7 +394,7 @@ private struct ProfileDataPrivacySection: View {
 
             if let error = viewModel.deletionError {
                 Text(error)
-                    .font(.subheadline)
+                    .font(.brand(.subheadline))
                     .foregroundStyle(Color.errorRed)
                     .accessibilityLabel(String(localized: "Error: \(error)"))
             }
@@ -407,7 +411,7 @@ private struct ProfileDeletionDefaultState: View {
         VStack(alignment: .leading, spacing: 12) {
             // swiftlint:disable:next line_length
             Text("You can request deletion of your account and all associated data. Your account will be permanently deleted 30 days after your request, giving you time to change your mind.")
-                .font(.subheadline)
+                .font(.brand(.subheadline))
                 .foregroundStyle(.secondary)
 
             Button {
@@ -433,7 +437,7 @@ private struct ProfileDeletionConfirmState: View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("This action cannot be easily undone.")
-                    .font(.subheadline.weight(.semibold))
+                    .font(.brand(.subheadline, weight: .semibold))
                     .foregroundStyle(Color.errorRed)
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -477,7 +481,7 @@ private struct ProfileDeletionConfirmState: View {
     private func bulletItem(_ text: String) -> some View {
         HStack(alignment: .top, spacing: 6) {
             Text("•").foregroundStyle(Color.errorRed)
-            Text(text).font(.caption).foregroundStyle(.primary)
+            Text(text).font(.brand(.caption)).foregroundStyle(.primary)
         }
     }
 }
@@ -490,10 +494,10 @@ private struct ProfileDeletionPendingState: View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
                 Text("Your account is scheduled for deletion on \(scheduledFor.formatted(date: .long, time: .omitted)).")
-                    .font(.subheadline.weight(.medium))
+                    .font(.brand(.subheadline, weight: .medium))
                     .foregroundStyle(.orange)
                 Text("All your data will be permanently removed on that date. You can cancel this request before then.")
-                    .font(.subheadline)
+                    .font(.brand(.subheadline))
                     .foregroundStyle(.secondary)
             }
             .padding(12)
@@ -525,11 +529,7 @@ private struct ProfileDeletionPendingState: View {
 private struct DateOfBirthField: View {
     @Binding var value: String
 
-    private static let dobFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.dateFormat = "yyyy-MM-dd"
-        return f
-    }()
+    private static let dobFormatter = COPPAHelper.makeDateOfBirthFormatter()
 
     private var date: Binding<Date> {
         Binding(
@@ -564,13 +564,9 @@ private struct InitialsAvatar: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [Color.blue.opacity(0.7), Color.blue],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+            Color.accentFill
             Text(initials)
-                .font(.title2.weight(.semibold))
+                .font(.brand(.title2, weight: .semibold))
                 .foregroundStyle(.white)
         }
     }

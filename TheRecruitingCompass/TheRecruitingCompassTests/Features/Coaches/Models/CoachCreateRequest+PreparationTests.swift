@@ -105,7 +105,7 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     XCTAssertNil(request.notes)
   }
 
-  func testFrom_withNilRole_returnsNil() {
+  func testFrom_withNilRole_returnsNil() throws {
     // Given
     var formState = CoachFormState()
     formState.role = nil  // role not set
@@ -113,7 +113,7 @@ final class CoachCreateRequestPreparationTests: XCTestCase {
     formState.lastName = "User"
 
     // When
-    let request = CoachCreateRequest.from(
+    let request = try CoachCreateRequest.from(
       form: formState,
       schoolId: "school",
       userId: "user",

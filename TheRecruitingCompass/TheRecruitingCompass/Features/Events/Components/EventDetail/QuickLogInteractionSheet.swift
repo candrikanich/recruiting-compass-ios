@@ -39,7 +39,7 @@ struct QuickLogInteractionSheet: View {
   private var typeSection: some View {
     Section {
       Picker("Type", selection: $data.type) {
-        ForEach(InteractionType.allCases, id: \.self) { type in
+        ForEach(InteractionType.selectableCases, id: \.self) { type in
           Label(type.displayName, systemImage: type.iconName)
             .tag(type)
         }
@@ -54,7 +54,7 @@ struct QuickLogInteractionSheet: View {
   private var directionSection: some View {
     Section {
       Picker("Direction", selection: $data.direction) {
-        ForEach(Direction.allCases, id: \.self) { direction in
+        ForEach(Direction.selectableCases, id: \.self) { direction in
           Text(direction.displayName).tag(direction)
         }
       }
@@ -69,7 +69,7 @@ struct QuickLogInteractionSheet: View {
   private var sentimentSection: some View {
     Section {
       Picker("Sentiment", selection: $data.sentiment) {
-        ForEach(Sentiment.allCases, id: \.self) { sentiment in
+        ForEach(Sentiment.selectableCases, id: \.self) { sentiment in
           Text(sentiment.displayName).tag(sentiment)
         }
       }

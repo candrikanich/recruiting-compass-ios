@@ -13,7 +13,7 @@ struct NotificationBulkActions: View {
     HStack(spacing: 12) {
       Button(action: onMarkAllRead) {
         Label(markAllReadAccessibilityLabel, systemImage: "checkmark.circle")
-          .font(.subheadline.weight(.medium))
+          .font(.brand(.subheadline, weight: .medium))
       }
       .disabled(!hasUnread)
       .accessibilityIdentifier("Mark all as read")
@@ -23,7 +23,7 @@ struct NotificationBulkActions: View {
 
       Button(role: .destructive, action: onClearRead) {
         Label(clearReadAccessibilityLabel, systemImage: "trash")
-          .font(.subheadline.weight(.medium))
+          .font(.brand(.subheadline, weight: .medium))
       }
       .disabled(!hasRead)
       .accessibilityIdentifier("Clear read notifications")

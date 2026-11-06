@@ -253,7 +253,7 @@ struct CoachFormView: View {
         HStack {
           Spacer()
           Text("\(formState.notes.count) / \(CoachFormState.notesCharacterLimit)")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
         }
       }

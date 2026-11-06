@@ -114,11 +114,11 @@ private struct VideoLinkRow: View {
     HStack(spacing: 12) {
       VStack(alignment: .leading, spacing: 4) {
         Text(link.title.flatMap { $0.isEmpty ? nil : $0 } ?? link.platform.displayName)
-          .font(.body)
+          .font(.brand(.body))
           .fontWeight(.medium)
 
         Text(link.url)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
           .lineLimit(1)
       }
@@ -126,7 +126,7 @@ private struct VideoLinkRow: View {
       Spacer()
 
       Label(link.healthStatus.displayName, systemImage: healthIcon)
-        .font(.caption2.weight(.medium))
+        .font(.brand(.caption2, weight: .medium))
         .labelStyle(.iconOnly)
         .foregroundStyle(healthColor)
         .accessibilityHidden(false)

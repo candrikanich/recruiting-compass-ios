@@ -24,7 +24,7 @@ protocol CommunicationTemplatesServicing: Sendable {
 
 private struct TemplatePayload: Encodable {
   let name: String
-  let type: String
+  let type: String?
   let body: String
   let userId: String
   let familyUnitId: String?
@@ -37,9 +37,9 @@ private struct TemplatePayload: Encodable {
 }
 
 /// Payload for update only; omits user_id so ownership is not changed.
-private struct TemplateUpdatePayload: Encodable {
+struct TemplateUpdatePayload: Encodable {
   let name: String
-  let type: String
+  let type: String?
   let body: String
 }
 
@@ -57,9 +57,8 @@ final class CommunicationTemplatesServiceImpl: CommunicationTemplatesServicing, 
       // RLS enforces the same scope; this filter keeps the payload tight and still
       // returns predefined/global built-ins (family_unit_id NULL) via the OR.
       let familyUnitId = await Self.activeFamilyUnitId()
-      let orFilter = familyUnitId.isEmpty
-        ? "is_predefined.eq.true"
-        : "family_unit_id.eq.\(familyUnitId),is_predefined.eq.true"
+      let orFilter = familyUnitId.map { "family_unit_id.eq.\($0),is_predefined.eq.true" }
+        ?? "is_predefined.eq.true"
       let templates: [CommunicationTemplate] = try await supabaseManager.client
         .from("communication_templates")
         .select()
@@ -84,11 +83,11 @@ final class CommunicationTemplatesServiceImpl: CommunicationTemplatesServicing, 
     do {
       let session = try await supabaseManager.client.auth.session
       let userId = session.user.id.uuidString
-      let familyUnitId = await Self.activeFamilyUnitId()
+      let familyUnitId = try FamilyUnitID.require(await Self.activeFamilyUnitId())
       let payload = makePayload(
         from: formData,
         userId: userId,
-        familyUnitId: familyUnitId.isEmpty ? nil : familyUnitId
+        familyUnitId: familyUnitId
       )
       let template: CommunicationTemplate = try await supabaseManager.client
         .from("communication_templates")
@@ -145,9 +144,10 @@ final class CommunicationTemplatesServiceImpl: CommunicationTemplatesServicing, 
     userId: String,
     familyUnitId: String?
   ) -> TemplatePayload {
-    TemplatePayload(
+    assert(formData.type != .unknown, "TemplateType.unknown is decode-only")
+    return TemplatePayload(
       name: formData.name.trimmingCharacters(in: .whitespaces),
-      type: formData.type.rawValue,
+      type: formData.type.serverValue,
       body: formData.body,
       userId: userId,
       familyUnitId: familyUnitId
@@ -156,15 +156,20 @@ final class CommunicationTemplatesServiceImpl: CommunicationTemplatesServicing, 
 
   /// Resolves the caller's active family unit id off the main actor. Mirrors how
   /// every other family-scoped iOS service reads `FamilyManager` (interactions,
-  /// offers). Returns "" when unresolved so the caller falls back to predefined-only.
-  private static func activeFamilyUnitId() async -> String {
-    await MainActor.run { FamilyManager.shared.familyUnitId ?? "" }
+  /// offers). Nil when unresolved: reads fall back to predefined-only, creates refuse.
+  private static func activeFamilyUnitId() async -> String? {
+    await MainActor.run { FamilyManager.shared.resolvedFamilyUnitId }
   }
 
   private func makeUpdatePayload(from formData: TemplateFormData) -> TemplateUpdatePayload {
+    Self.updatePayload(from: formData)
+  }
+
+  /// Omits `type` for an `.unknown` template so editing the name/body never overwrites the server's value.
+  static func updatePayload(from formData: TemplateFormData) -> TemplateUpdatePayload {
     TemplateUpdatePayload(
       name: formData.name.trimmingCharacters(in: .whitespaces),
-      type: formData.type.rawValue,
+      type: formData.type.serverValue,
       body: formData.body
     )
   }

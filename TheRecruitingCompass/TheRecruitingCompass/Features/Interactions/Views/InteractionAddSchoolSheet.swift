@@ -12,7 +12,7 @@ struct InteractionAddSchoolSheet: View {
 
   init(
     schoolsService: any SchoolsManaging,
-    familyUnitId: String,
+    familyUnitId: String?,
     userId: String,
     prefillWebsite: String?,
     onSchoolCreated: @escaping (School) -> Void
@@ -179,7 +179,7 @@ private struct InteractionAddSchoolAutocompleteToggleSection: View {
 
             if !searchQuery.isEmpty && searchQuery.count < 3 {
               Text("\(3 - searchQuery.count) more character\(searchQuery.count == 2 ? "" : "s") needed")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
             }
 

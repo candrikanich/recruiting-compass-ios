@@ -54,7 +54,7 @@ struct TaskCard: View {
           HStack(spacing: 6) {
             if task.isLocked {
               Text("Locked")
-                .font(.caption2.weight(.medium))
+                .font(.brand(.caption2, weight: .medium))
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
                 .background(Color.orange.opacity(0.2))
@@ -63,30 +63,30 @@ struct TaskCard: View {
             }
             if task.required {
               Text("Required")
-                .font(.caption2.weight(.medium))
+                .font(.brand(.caption2, weight: .medium))
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(Color.accentBlue.opacity(0.2))
+                .background(Color.accentPrimary.opacity(0.2))
                 .clipShape(Capsule())
                 .accessibilityHidden(true)
             }
             HStack(spacing: 3) {
               Image(systemName: task.statusIconName)
-                .font(.caption2)
+                .font(.brand(.caption2))
                 .accessibilityHidden(true)
               Text(task.effectiveStatus.displayName)
             }
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(task.statusColor)
           }
 
           Text(task.title)
-            .font(.headline)
+            .font(.brand(.headline))
             .foregroundStyle(.primary)
 
           if let desc = task.description, !desc.isEmpty {
             Text(desc)
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .foregroundStyle(.secondary)
               .lineLimit(isExpanded ? nil : 2)
           }
@@ -94,7 +94,7 @@ struct TaskCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
 
         Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-          .font(.caption.weight(.semibold))
+          .font(.brand(.caption, weight: .semibold))
           .foregroundStyle(.secondary)
           .accessibilityHidden(true)
       }

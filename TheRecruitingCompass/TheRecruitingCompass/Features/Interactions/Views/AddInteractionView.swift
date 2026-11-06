@@ -9,7 +9,7 @@ struct AddInteractionView: View {
   @FocusState private var focusedField: String?
 
   private let schoolsService: any SchoolsManaging
-  private let familyUnitId: String
+  private let familyUnitId: String?
   private let userId: String
 
   /// Called on a successful log with the auto-advance toast message (or nil).
@@ -18,7 +18,7 @@ struct AddInteractionView: View {
 
   init(
     interactionsService: InteractionsManaging,
-    familyUnitId: String,
+    familyUnitId: String?,
     userId: String,
     preselectedSchoolId: String? = nil,
     draftToConfirm: InboundEmailDraft? = nil,
@@ -226,11 +226,11 @@ struct AddInteractionView: View {
   private var directionSection: some View {
     Section {
       Picker("Direction", selection: $viewModel.formState.direction) {
-        ForEach(Direction.allCases, id: \.self) { direction in
+        ForEach(Direction.selectableCases, id: \.self) { direction in
           VStack(alignment: .leading) {
             Text(direction.displayName)
             Text(direction.subtitle)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.secondary)
           }
           .tag(direction)
@@ -308,7 +308,7 @@ struct AddInteractionView: View {
       Picker("How was this interaction?", selection: $viewModel.formState.sentiment) {
         Text("Not set").tag(nil as Sentiment?)
 
-        ForEach(Sentiment.allCases, id: \.self) { sentiment in
+        ForEach(Sentiment.selectableCases, id: \.self) { sentiment in
           Text(sentiment.displayName).tag(sentiment as Sentiment?)
         }
       }
@@ -327,10 +327,10 @@ struct AddInteractionView: View {
     Section {
       VStack(alignment: .leading, spacing: 16) {
         Text("Coach Interest Level")
-          .font(.headline)
+          .font(.brand(.headline))
 
         Text("Answer these questions to gauge the coach's level of interest based on their response.")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
 
         ForEach(Array(InterestCalibration.questions.enumerated()), id: \.offset) { index, question in

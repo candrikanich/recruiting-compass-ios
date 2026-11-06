@@ -15,8 +15,8 @@ struct SchoolAnalyticsCards: View {
         title: "Total Schools",
         value: analytics.totalCount,
         icon: "building.2.fill",
-        backgroundColor: Color.blue.opacity(0.1),
-        iconColor: .blue,
+        backgroundColor: Color.accentPrimary.opacity(0.1),
+        iconColor: Color.accentPrimary,
         accessibilityLabelOverride: analytics.totalCount == 1
           ? "1 total school"
           : "\(analytics.totalCount) total schools"
@@ -26,8 +26,8 @@ struct SchoolAnalyticsCards: View {
         title: "Contacted",
         value: analytics.contactedCount,
         icon: "bubble.left.and.bubble.right.fill",
-        backgroundColor: Color.purple.opacity(0.1),
-        iconColor: .purple,
+        backgroundColor: Color.Category.gold.opacity(0.1),
+        iconColor: Color.Category.gold,
         accessibilityLabelOverride: analytics.contactedCount == 1
           ? "1 school contacted"
           : "\(analytics.contactedCount) schools contacted"

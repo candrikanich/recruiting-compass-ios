@@ -34,7 +34,7 @@ enum DeepLinkHandler {
       return .resetPassword(token: token)
     }
 
-    // Universal links: https://myrecruitingcompass.com/join?token=... or /invite/TOKEN
+    // Universal links: https://myrecruitingcompass.com/join?token=...
     guard url.scheme == "http" || url.scheme == "https",
           let host = url.host,
           universalLinkHosts.contains(host) else {
@@ -47,16 +47,6 @@ enum DeepLinkHandler {
        let token = components.queryItems?.first(where: { $0.name == "token" })?.value,
        isValidInviteToken(token) {
       return .joinInvite(token: token)
-    }
-
-    // /invite/:token (path component)
-    if url.path.hasPrefix("/invite/") {
-      let token = url.path
-        .replacing("/invite/", with: "")
-        .trimmingCharacters(in: .whitespacesAndNewlines)
-      if isValidInviteToken(token) {
-        return .joinInvite(token: token)
-      }
     }
 
     // /guardian/claim/:token

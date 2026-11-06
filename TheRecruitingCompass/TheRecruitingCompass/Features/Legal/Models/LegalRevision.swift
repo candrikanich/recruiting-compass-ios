@@ -5,12 +5,13 @@ import Foundation
 /// (utils/legal.ts) and the "Last Updated" date shown on the web legal pages. Bump all
 /// three in lockstep whenever the legal documents materially change.
 enum LegalRevision {
-  /// August 16, 2026 — current Privacy Policy revision.
-  static let lastUpdated: Date = makeDate(year: 2026, month: 8, day: 16)
+  /// October 2, 2026 — current Privacy Policy revision.
+  static let lastUpdated: Date = makeDate(year: 2026, month: 10, day: 2)
 
-  /// September 3, 2026 — Terms revision that added §22 Subscriptions and Payments.
+  /// October 26, 2026 — Terms revision that made §22 billing per player (web#1510); Oct 19 removed website-billing language
+  /// (restore with web billing, web#617).
   /// Mirrors web `CURRENT_TERMS_VERSION` (utils/legal.ts) and pages/legal/terms.vue "Last Updated". Bump in lockstep.
-  static let termsLastUpdated: Date = makeDate(year: 2026, month: 9, day: 3)
+  static let termsLastUpdated: Date = makeDate(year: 2026, month: 10, day: 26)
 
   private static func makeDate(year: Int, month: Int, day: Int) -> Date {
     var components = DateComponents()

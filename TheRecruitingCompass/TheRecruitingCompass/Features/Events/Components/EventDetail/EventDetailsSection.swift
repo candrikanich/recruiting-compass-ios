@@ -11,8 +11,8 @@ struct EventDetailsSection: View {
     Section {
       if let description = event.description, !description.isEmpty {
         VStack(alignment: .leading, spacing: Layout.descriptionSpacing) {
-          Text("Description").font(.caption).foregroundStyle(.secondary)
-          Text(description).font(.body)
+          Text("Description").font(.brand(.caption)).foregroundStyle(.secondary)
+          Text(description).font(.brand(.body))
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(String(localized: "Description: \(description)"))

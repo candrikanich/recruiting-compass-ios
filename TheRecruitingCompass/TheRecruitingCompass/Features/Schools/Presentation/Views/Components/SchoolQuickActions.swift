@@ -5,11 +5,12 @@ struct SchoolQuickActions: View {
   let onQuickComm: () -> Void
   let onManageCoaches: () -> Void
   let coachCount: Int
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Label("Quick Actions", systemImage: "bolt")
-        .font(.headline)
+        .font(.brand(.headline))
         .foregroundStyle(.primary)
         .accessibilityAddTraits(.isHeader)
 
@@ -17,34 +18,24 @@ struct SchoolQuickActions: View {
         QuickActionButton(
           icon: "plus.message.fill",
           title: String(localized: "Log Interaction"),
-          gradient: LinearGradient(
-            colors: [Color.accentBlue, Color.accentBlue.opacity(0.7)],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-          ),
+          style: .primary,
           action: onLogInteraction
         )
 
-        QuickActionButton(
+        if featureFlags.isEnabled(.athleteMessages) {
+          QuickActionButton(
           icon: "envelope.badge.fill",
           title: String(localized: "Quick Comm"),
-          gradient: LinearGradient(
-            colors: [Color.successGreen, Color.successGreen.opacity(0.7)],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-          ),
+          style: .neutral,
           action: onQuickComm,
           isDisabled: coachCount == 0
-        )
+          )
+        }
 
         QuickActionButton(
           icon: "person.2.fill",
           title: String(localized: "Manage Coaches"),
-          gradient: LinearGradient(
-            colors: [Color.purple, Color.purple.opacity(0.7)],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-          ),
+          style: .neutral,
           action: onManageCoaches
         )
       }
@@ -57,9 +48,17 @@ struct SchoolQuickActions: View {
 }
 
 private struct QuickActionButton: View {
+  /// "One accent, neutral everything else": the primary action is solid forest, the rest are bordered neutrals.
+  enum Style {
+    case primary, neutral
+
+    var iconBackground: Color { self == .primary ? Color.accentFill : Color.Surface.card }
+    var iconForeground: Color { self == .primary ? .white : Color.accentPrimary }
+  }
+
   let icon: String
   let title: String
-  let gradient: LinearGradient
+  let style: Style
   let action: () -> Void
   var isDisabled: Bool = false
 
@@ -69,15 +68,16 @@ private struct QuickActionButton: View {
     Button(action: action) {
       VStack(spacing: 8) {
         Image(systemName: icon)
-          .font(sizeCategory.isAccessibilityCategory ? .title2 : .title3)
-          .foregroundStyle(.white)
+          .font(sizeCategory.isAccessibilityCategory ? .brand(.title2) : .brand(.title3))
+          .foregroundStyle(style.iconForeground)
           .frame(width: 48, height: 48)
-          .background(gradient)
+          .background(style.iconBackground)
           .clipShape(Circle())
+          .overlay(Circle().stroke(Color.Surface.borderStrong, lineWidth: style == .primary ? 0 : 1))
           .accessibilityHidden(true)
 
         Text(title)
-          .font(.caption)
+          .font(.brand(.caption))
           .fontWeight(.medium)
           .foregroundStyle(.primary)
           .multilineTextAlignment(.center)
@@ -86,7 +86,7 @@ private struct QuickActionButton: View {
       }
       .frame(maxWidth: .infinity)
       .padding(.vertical, 12)
-      .background(Color(.systemGray6))
+      .background(Color.Surface.muted)
       .clipShape(.rect(cornerRadius: 12))
     }
     .buttonStyle(.plain)

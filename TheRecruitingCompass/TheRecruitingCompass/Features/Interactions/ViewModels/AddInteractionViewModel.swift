@@ -43,7 +43,7 @@ final class AddInteractionViewModel {
   // MARK: - Dependencies
 
   private let interactionsService: any InteractionsManaging
-  private let familyUnitId: String
+  private let familyUnitId: String?
   private let userId: String
   private let preselectedSchoolId: String?
   /// Set when this form is reviewing an inbound-email draft rather than
@@ -88,7 +88,7 @@ final class AddInteractionViewModel {
 
   init(
     interactionsService: any InteractionsManaging,
-    familyUnitId: String,
+    familyUnitId: String?,
     userId: String,
     preselectedSchoolId: String? = nil,
     draftToConfirm: InboundEmailDraft? = nil,
@@ -116,6 +116,11 @@ final class AddInteractionViewModel {
     isLoading = true
     errorMessage = nil
     defer { isLoading = false }
+
+    guard let familyUnitId = FamilyUnitID.normalized(familyUnitId) else {
+      errorMessage = FamilyUnitID.MissingError.missing.errorDescription
+      return
+    }
 
     do {
       async let schoolsTask = interactionsService.fetchSchools(familyUnitId: familyUnitId)
@@ -203,7 +208,7 @@ final class AddInteractionViewModel {
     logger.debug("Creating new coach: \(self.newCoachForm.fullName)")
 
     do {
-      let request = CoachCreateRequest(
+      let request = try CoachCreateRequest(
         schoolId: formState.schoolId,
         userId: userId,
         familyUnitId: familyUnitId,
@@ -222,7 +227,7 @@ final class AddInteractionViewModel {
 
       // Invalidate CoachesListViewModel's cached list (Phase 3.6) so the new
       // coach appears immediately on next visit instead of waiting out the TTL.
-      await InMemoryCache.shared.remove(forKey: ListCacheKeys.coaches(familyUnitId: familyUnitId))
+      await InMemoryCache.shared.remove(forKey: ListCacheKeys.coaches(familyUnitId: request.familyUnitId))
 
       // Add to local coach list and select
       allCoaches.append(newCoach)
@@ -232,6 +237,10 @@ final class AddInteractionViewModel {
       newCoachForm.reset()
 
       return true
+    } catch let error as FamilyUnitID.MissingError {
+      logger.error("Refusing to create coach: \(error.localizedDescription)")
+      errorMessage = error.localizedDescription
+      return false
     } catch {
       logger.error("Failed to create coach: \(error.localizedDescription)")
       errorMessage = String(localized: "Failed to create coach. Please try again.")
@@ -340,7 +349,7 @@ final class AddInteractionViewModel {
       } ?? false
 
       // Create request
-      let request = InteractionCreateRequest(
+      let request = try InteractionCreateRequest(
         schoolId: formState.schoolId.isEmpty ? nil : formState.schoolId,
         coachId: formState.coachId,
         eventId: nil,
@@ -359,7 +368,8 @@ final class AddInteractionViewModel {
 
       // Invalidate InteractionsListViewModel's cached list (Phase 3.6) for both
       // possible fetch scopes — this VM doesn't know which one is cached.
-      await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForFamily(familyUnitId: familyUnitId))
+      let familyKey = ListCacheKeys.interactionsForFamily(familyUnitId: request.familyUnitId)
+      await InMemoryCache.shared.remove(forKey: familyKey)
       await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForAthlete(userId: userId))
 
       // Upload attachments if any (Phase 4 - defer for MVP)
@@ -373,6 +383,10 @@ final class AddInteractionViewModel {
       }
 
       return true
+    } catch let error as FamilyUnitID.MissingError {
+      logger.error("Refusing to submit interaction: \(error.localizedDescription)")
+      errorMessage = error.localizedDescription
+      return false
     } catch {
       logger.error("Failed to submit interaction: \(error.localizedDescription)")
       errorMessage = String(localized: "Failed to create interaction. Please try again.")
@@ -400,7 +414,9 @@ final class AddInteractionViewModel {
       )
       logger.info("Confirmed draft \(draft.id) -> interaction \(response.interactionId ?? "nil")")
 
-      await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForFamily(familyUnitId: familyUnitId))
+      if let familyUnitId = FamilyUnitID.normalized(familyUnitId) {
+        await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForFamily(familyUnitId: familyUnitId))
+      }
       await InMemoryCache.shared.remove(forKey: ListCacheKeys.interactionsForAthlete(userId: userId))
 
       return true

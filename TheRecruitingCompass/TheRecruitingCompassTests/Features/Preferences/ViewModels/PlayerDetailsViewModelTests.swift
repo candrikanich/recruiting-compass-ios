@@ -97,6 +97,12 @@ final class PlayerDetailsViewModelTests: XCTestCase {
     XCTAssertFalse(viewModel.isReadOnly)
   }
 
+  func testPublicTargetUserId_IsTheTargetUserIdPassedIn() {
+    viewModel = PlayerDetailsViewModel(
+      preferenceService: mockService, userRole: .parent, targetUserId: "athlete-123")
+    XCTAssertEqual(viewModel.publicTargetUserId, "athlete-123")
+  }
+
   func testSaveDetails_WhenParentRole_SavesToAthleteRow() async {
     // Given a parent editing the athlete's profile
     viewModel = PlayerDetailsViewModel(

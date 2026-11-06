@@ -10,7 +10,7 @@ struct SchoolRecruitingStatusAndTierSection: View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
         Text("Recruiting Status")
-          .font(.headline)
+          .font(.brand(.headline))
           .accessibilityAddTraits(.isHeader)
 
         if isUpdatingStatus {

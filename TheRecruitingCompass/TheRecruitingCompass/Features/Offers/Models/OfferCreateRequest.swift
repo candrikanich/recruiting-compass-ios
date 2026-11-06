@@ -8,6 +8,7 @@ private let logger = Logger(
 
 struct OfferCreateRequest: Codable, Sendable {
   let userId: String
+  let familyUnitId: String?
   let schoolId: String
   let offerType: OfferType
   let scholarshipAmount: Double?
@@ -20,6 +21,7 @@ struct OfferCreateRequest: Codable, Sendable {
 
   enum CodingKeys: String, CodingKey {
     case userId = "user_id"
+    case familyUnitId = "family_unit_id"
     case schoolId = "school_id"
     case offerType = "offer_type"
     case scholarshipAmount = "scholarship_amount"
@@ -37,13 +39,17 @@ struct OfferCreateRequest: Codable, Sendable {
     return formatter
   }()
 
-  init(userId: String, form: NewOfferFormState) {
+  init(userId: String, familyUnitId: String? = nil, form: NewOfferFormState) {
     self.userId = userId
+    self.familyUnitId = familyUnitId
     let resolvedSchoolId = form.schoolId ?? ""
     if resolvedSchoolId.isEmpty {
       logger.warning("OfferCreateRequest initialized with empty schoolId — form.schoolId was nil")
     }
     self.schoolId = resolvedSchoolId
+    // INSERT path: pickers use selectableCases. Omitting would silently save the server default
+    // (status -> "pending"), so fail loudly in debug instead.
+    assert(form.offerType != .unknown && form.status != .unknown, "OfferType/OfferStatus.unknown are decode-only")
     self.offerType = form.offerType
     self.scholarshipAmount = Double(form.scholarshipAmount)
     self.scholarshipPercentage = form.scholarshipPercentage > 0 ? form.scholarshipPercentage : nil
@@ -52,5 +58,21 @@ struct OfferCreateRequest: Codable, Sendable {
     self.status = form.status
     self.conditions = nil
     self.notes = form.notes.isEmpty ? nil : form.notes
+  }
+
+  func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encode(userId, forKey: .userId)
+    try container.encodeIfPresent(familyUnitId, forKey: .familyUnitId)
+    try container.encode(schoolId, forKey: .schoolId)
+    // `.unknown` is decode-only and asserted against in init; omitting here is a release-build safety net.
+    try container.encodeIfPresent(offerType.serverValue, forKey: .offerType)
+    try container.encodeIfPresent(status.serverValue, forKey: .status)
+    try container.encodeIfPresent(scholarshipAmount, forKey: .scholarshipAmount)
+    try container.encodeIfPresent(scholarshipPercentage, forKey: .scholarshipPercentage)
+    try container.encode(offerDate, forKey: .offerDate)
+    try container.encodeIfPresent(deadlineDate, forKey: .deadlineDate)
+    try container.encodeIfPresent(conditions, forKey: .conditions)
+    try container.encodeIfPresent(notes, forKey: .notes)
   }
 }

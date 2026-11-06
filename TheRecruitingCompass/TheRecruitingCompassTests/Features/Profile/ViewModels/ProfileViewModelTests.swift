@@ -195,7 +195,56 @@ final class ProfileViewModelTests: XCTestCase {
     XCTAssertFalse(viewModel.isEmailFormExpanded)
     XCTAssertEqual(viewModel.newEmail, "")
     XCTAssertEqual(viewModel.emailCurrentPassword, "")
-    XCTAssertTrue(viewModel.emailVerificationBannerVisible)
+    XCTAssertEqual(viewModel.emailPendingMessage, Self.webEmailChangePendingCopy)
+  }
+
+  private static let webEmailChangePendingCopy =
+    "We sent a confirmation link to your new address. Depending on your account's security settings, "
+    + "we may also send one to your current address. Open every link we send: your email changes only "
+    + "after all of them are confirmed. Until then you keep signing in with your current email. "
+    + "Once it changes, we may ask you to verify your new address."
+
+  func testEmailChangePendingMessage_matchesWebCopy() {
+    XCTAssertEqual(ProfileViewModel.emailChangePendingMessage, Self.webEmailChangePendingCopy)
+  }
+
+  func testEmailChangePendingMessage_dropsOldSingleInboxWording() {
+    XCTAssertFalse(ProfileViewModel.emailChangePendingMessage.contains("A verification email has been sent"))
+    XCTAssertFalse(ProfileViewModel.emailChangePendingMessage.contains("Check your inbox to confirm the change"))
+  }
+
+  func testSubmitEmailChange_genericFailureAfterSuccess_clearsPendingMessage() async {
+    await assertFailureAfterSuccessClearsPending(error: NSError(domain: "test", code: 1))
+  }
+
+  func testSubmitEmailChange_serviceErrorAfterSuccess_clearsPendingMessage() async {
+    await assertFailureAfterSuccessClearsPending(error: ProfileServiceError.serverError("Request failed."))
+  }
+
+  func testSubmitEmailChange_genericFailure_neverShowsPendingMessage() async {
+    mockProfileService.shouldThrowOnChangeEmail = true
+    mockProfileService.errorToThrow = NSError(domain: "test", code: 1)
+    await viewModel.submitEmailChange()
+    XCTAssertNil(viewModel.emailPendingMessage)
+  }
+
+  func testSubmitEmailChange_serviceError_neverShowsPendingMessage() async {
+    mockProfileService.shouldThrowOnChangeEmail = true
+    mockProfileService.errorToThrow = ProfileServiceError.serverError("Request failed.")
+    await viewModel.submitEmailChange()
+    XCTAssertNil(viewModel.emailPendingMessage)
+  }
+
+  private func assertFailureAfterSuccessClearsPending(error: Error, line: UInt = #line) async {
+    await viewModel.submitEmailChange()
+    XCTAssertNotNil(viewModel.emailPendingMessage, line: line)
+
+    mockProfileService.shouldThrowOnChangeEmail = true
+    mockProfileService.errorToThrow = error
+    await viewModel.submitEmailChange()
+
+    XCTAssertNil(viewModel.emailPendingMessage, line: line)
+    guard case .error = viewModel.emailMessage else { return XCTFail("Expected .error message", line: line) }
   }
 
   func testSubmitEmailChange_wrongPassword_setsSpecificErrorMessage() async {
@@ -386,6 +435,39 @@ final class ProfileViewModelTests: XCTestCase {
       return XCTFail("Expected .serverError")
     }
     XCTAssertFalse(message.contains("tomorrow"))
+  }
+
+  // MARK: - Date-of-birth server errors (ios#395)
+
+  func testSavePersonalInfo_serverDateOfBirthRejection_showsServerMessageOnField() async {
+    viewModel.loadInitialState()
+    mockProfileService.shouldThrowOnUpdatePersonalInfo = true
+    mockProfileService.errorToThrow = ProfileServiceError.dateOfBirth("Ask your parent to confirm first.")
+
+    await viewModel.savePersonalInfo()
+
+    XCTAssertEqual(viewModel.dateOfBirthError, "Ask your parent to confirm first.")
+    XCTAssertNil(viewModel.personalInfoMessage, "must not also report a generic result")
+  }
+
+  func testSavePersonalInfo_otherFailure_keepsGenericMessageAndNoFieldError() async {
+    viewModel.loadInitialState()
+    mockProfileService.shouldThrowOnUpdatePersonalInfo = true
+    mockProfileService.errorToThrow = ProfileServiceError.serverError("boom")
+
+    await viewModel.savePersonalInfo()
+
+    XCTAssertNil(viewModel.dateOfBirthError)
+    XCTAssertEqual(viewModel.personalInfoMessage?.text, "Failed to save. Please try again.")
+  }
+
+  func testSavePersonalInfo_clearsPreviousDateOfBirthErrorOnRetry() async {
+    viewModel.loadInitialState()
+    viewModel.dateOfBirthError = "old"
+
+    await viewModel.savePersonalInfo()
+
+    XCTAssertNil(viewModel.dateOfBirthError)
   }
 
   // MARK: - Helpers

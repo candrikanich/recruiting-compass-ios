@@ -13,14 +13,18 @@ struct PublicProfileServiceImpl: PublicProfileManaging {
 
     private var baseURL: URL? { baseURLOverride ?? SupabaseConfig.apiBaseURL }
 
-    func fetchProfile(accessToken: String?) async throws -> PlayerProfile? {
+    func fetchProfile(athleteId: String?, accessToken: String?) async throws -> PlayerProfile? {
         guard let baseURL, let token = accessToken, !token.isEmpty else { return nil }
-        var request = URLRequest(url: baseURL.appendingPathComponent("api/player/profile"))
+        var url = baseURL.appendingPathComponent("api/player/profile")
+        if let athleteId {
+            url.append(queryItems: [URLQueryItem(name: "athleteId", value: athleteId)])
+        }
+        var request = URLRequest(url: url)
         request.addClientHeaders()
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         let (data, response) = try await session.data(for: request)
-        try Self.mapStatus(response)
+        try Self.mapStatus(response, body: data)
         guard !data.isEmpty else { return nil }
         return try JSONDecoder().decode(PlayerProfile.self, from: data)
     }
@@ -37,14 +41,16 @@ struct PublicProfileServiceImpl: PublicProfileManaging {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(csrf, forHTTPHeaderField: "x-csrf-token")
         request.httpBody = try JSONEncoder().encode(payload)
-        let (_, response) = try await session.data(for: request)
-        try Self.mapStatus(response)
+        let (data, response) = try await session.data(for: request)
+        try Self.mapStatus(response, body: data)
     }
 
-    func fetchTrackingLink(coachId: String, accessToken: String?) async throws -> ProfileTrackingLink? {
+    func fetchTrackingLink(
+        coachId: String, athleteId: String?, accessToken: String?
+    ) async throws -> ProfileTrackingLink? {
         guard let baseURL, let token = accessToken, !token.isEmpty else { return nil }
         let safeId = coachId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? coachId
-        let url = baseURL.appendingPathComponent("api/player/profile/tracking-links").appendingPathComponent(safeId)
+        let url = Self.trackingLinkURL(baseURL: baseURL, safeCoachId: safeId, athleteId: athleteId)
         var request = URLRequest(url: url)
         request.addClientHeaders()
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -55,13 +61,15 @@ struct PublicProfileServiceImpl: PublicProfileManaging {
         return try JSONDecoder().decode(ProfileTrackingLink.self, from: data)
     }
 
-    func createTrackingLink(coachId: String, accessToken: String?) async throws -> ProfileTrackingLink {
+    func createTrackingLink(
+        coachId: String, athleteId: String?, accessToken: String?
+    ) async throws -> ProfileTrackingLink {
         guard let baseURL, let token = accessToken, !token.isEmpty else {
             throw PublicProfileAPIError.notConfigured
         }
         let csrf = try await fetchCSRFToken(baseURL: baseURL)
         let safeId = coachId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? coachId
-        let url = baseURL.appendingPathComponent("api/player/profile/tracking-links").appendingPathComponent(safeId)
+        let url = Self.trackingLinkURL(baseURL: baseURL, safeCoachId: safeId, athleteId: athleteId)
         var request = URLRequest(url: url)
         request.addClientHeaders()
         request.httpMethod = "POST"
@@ -73,12 +81,34 @@ struct PublicProfileServiceImpl: PublicProfileManaging {
         return try JSONDecoder().decode(ProfileTrackingLink.self, from: data)
     }
 
-    private static func mapStatus(_ response: URLResponse) throws {
+    /// `?athleteId=` makes the server resolve the selected athlete's profile for a parent; players omit it.
+    private static func trackingLinkURL(baseURL: URL, safeCoachId: String, athleteId: String?) -> URL {
+        var url = baseURL.appendingPathComponent("api/player/profile/tracking-links")
+            .appendingPathComponent(safeCoachId)
+        if let athleteId {
+            url.append(queryItems: [URLQueryItem(name: "athleteId", value: athleteId)])
+        }
+        return url
+    }
+
+    /// h3 error bodies carry `message`; used for statuses where the server's wording is the useful part.
+    private static func serverMessage(in data: Data) -> String? {
+        struct ErrorBody: Decodable { let message: String? }
+        let text = (try? JSONDecoder().decode(ErrorBody.self, from: data))?.message?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return text?.isEmpty == false ? text : nil
+    }
+
+    private static func mapStatus(_ response: URLResponse, body: Data = Data()) throws {
         guard let http = response as? HTTPURLResponse else { throw PublicProfileAPIError.server(-1) }
         switch http.statusCode {
         case 200...299: return
         case 401: throw PublicProfileAPIError.unauthorized
-        case 403: throw PublicProfileAPIError.notMember
+        case 403:
+            throw serverMessage(in: body).map(PublicProfileAPIError.serverMessage) ?? .notMember
+        case 400, 404:
+            throw serverMessage(in: body).map(PublicProfileAPIError.serverMessage)
+                ?? .server(http.statusCode)
         case 409: throw PublicProfileAPIError.slugTaken
         case 422: throw PublicProfileAPIError.slugInvalid
         default: throw PublicProfileAPIError.server(http.statusCode)

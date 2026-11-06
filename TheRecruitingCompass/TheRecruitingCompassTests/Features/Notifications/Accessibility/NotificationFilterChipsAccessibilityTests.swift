@@ -57,7 +57,7 @@ final class NotificationFilterChipsAccessibilityTests: XCTestCase {
     let selectedLabels = chips.chipAccessibilityLabels.filter { $0.hasSuffix(", selected") }
 
     XCTAssertEqual(selectedLabels.count, 1, "Exactly one chip should be marked selected")
-    XCTAssertEqual(selectedLabels.first, "\(NotificationType.followUpReminder.emoji) Follow-ups filter, selected")
+    XCTAssertEqual(selectedLabels.first, "Follow-ups filter, selected")
   }
 
   func testNoChipSelected_WhenSelectionIsNilExceptAll() {
@@ -70,12 +70,12 @@ final class NotificationFilterChipsAccessibilityTests: XCTestCase {
 
   // MARK: - Chip Display Labels
 
-  func testChipDisplayLabels_IncludeEmojiAndTypeLabel() {
+  func testChipDisplayLabels_IncludeTypeLabel() {
     let chips = makeChips()
     XCTAssertEqual(chips.chipDisplayLabels.first, "All", "First chip should be the 'All' option")
 
     for type in NotificationType.allCases {
-      let expected = "\(type.emoji) \(type.label)"
+      let expected = type.label
       XCTAssertTrue(chips.chipDisplayLabels.contains(expected), "Display labels should include '\(expected)'")
     }
   }

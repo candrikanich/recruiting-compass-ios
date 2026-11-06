@@ -39,6 +39,40 @@ final class PublicProfileViewModelTests: XCTestCase {
         XCTAssertEqual(mock.updatedPayloads.last?.bio, "updated")
     }
 
+    private func encodedKeys(_ payload: UpdateProfilePayload?) throws -> Set<String> {
+        let data = try JSONEncoder().encode(try XCTUnwrap(payload))
+        let object = try XCTUnwrap(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+        return Set(object.keys)
+    }
+
+    func testSaveWithUnknownCommitmentStatus_omitsCommittedSchoolIdAndStatus() async throws {
+        let mock = MockPublicProfileManaging()
+        var profile = makeProfile()
+        profile.commitmentStatus = .unknown
+        profile.committedSchoolId = "school-1"
+        mock.stubProfile = profile
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        vm.bio = "edited bio only"
+        await vm.save()
+        let keys = try encodedKeys(mock.updatedPayloads.last)
+        XCTAssertFalse(keys.contains("committed_school_id"))
+        XCTAssertFalse(keys.contains("commitment_status"))
+        XCTAssertTrue(keys.contains("bio"))
+    }
+
+    func testSaveWithUncommittedStatus_stillClearsCommittedSchoolId() async throws {
+        let mock = MockPublicProfileManaging()
+        var profile = makeProfile()
+        profile.commitmentStatus = .uncommitted
+        profile.committedSchoolId = "school-1"
+        mock.stubProfile = profile
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        await vm.save()
+        XCTAssertTrue(try encodedKeys(mock.updatedPayloads.last).contains("committed_school_id"))
+    }
+
     func testSaveMapsSlugTakenToError() async {
         let mock = MockPublicProfileManaging()
         mock.stubProfile = makeProfile()
@@ -67,6 +101,178 @@ final class PublicProfileViewModelTests: XCTestCase {
         XCTAssertEqual(mock.updatedPayloads.last?.isPublished, true)
         XCTAssertEqual(mock.updatedPayloads.last?.bio, "updated despite bad slug")
         XCTAssertNil(mock.updatedPayloads.last?.vanitySlug)
+    }
+
+    private static let notLoadedMessage =
+        "Your profile didn't load, so changes can't be saved. Reopen this screen to retry."
+
+    func testSaveAfterFailedLoadSendsNothingAndShowsRetryMessage() async {
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = PublicProfileAPIError.server(500)
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        mock.errorToThrow = nil
+        vm.bio = "typed after a failed load"
+        await vm.save()
+        XCTAssertTrue(mock.attemptedPayloads.isEmpty)
+        XCTAssertEqual(vm.saveError, Self.notLoadedMessage)
+        XCTAssertNotEqual(vm.saveError, "Couldn't save changes. Please try again.")
+    }
+
+    func testToggleOnlySaveAfterFailedLoadSendsNothing() async {
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = PublicProfileAPIError.server(500)
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        mock.errorToThrow = nil
+        vm.isPublished = true
+        vm.toggleSectionVisibility(.awards)
+        await vm.save()
+        XCTAssertTrue(mock.attemptedPayloads.isEmpty)
+        XCTAssertEqual(vm.saveError, Self.notLoadedMessage)
+    }
+
+    func testFailedLoadShowsRetryStateInsteadOfEditor() async {
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = PublicProfileAPIError.server(500)
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        XCTAssertEqual(vm.loadState, .loading)
+        await vm.load()
+        XCTAssertEqual(vm.loadState, .failed("Couldn't load your public profile. Please try again."))
+    }
+
+    func testFailedLoadWithNoProfileDataShowsRetryState() async {
+        let mock = MockPublicProfileManaging()
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        XCTAssertEqual(vm.loadState, .failed("Couldn't load your public profile. Please try again."))
+    }
+
+    func testServerMessageOnLoadIsShownInRetryState() async {
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = PublicProfileAPIError.serverMessage("Not authorized to edit this athlete's profile")
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        XCTAssertEqual(vm.loadState, .failed("Not authorized to edit this athlete's profile"))
+    }
+
+    func testRetryAfterFailedLoadShowsEditorWithStoredValues() async {
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = PublicProfileAPIError.server(500)
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        mock.errorToThrow = nil
+        mock.stubProfile = makeProfile(published: true)
+        await vm.load()
+        XCTAssertEqual(vm.loadState, .loaded)
+        XCTAssertTrue(vm.isPublished)
+    }
+
+    func testFailedLoadKeepsMoreSpecificRefusalThanReopen() async {
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = PublicProfileAPIError.serverMessage("Not authorized to edit this athlete's profile")
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        await vm.save()
+        XCTAssertEqual(vm.saveError, "Not authorized to edit this athlete's profile")
+        XCTAssertTrue(mock.attemptedPayloads.isEmpty)
+    }
+
+    func testSuccessfulLoadClearsRefusalFromSaveDuringLoad() async {
+        let mock = MockPublicProfileManaging()
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.save()
+        XCTAssertEqual(vm.saveError, Self.notLoadedMessage)
+        mock.stubProfile = makeProfile()
+        await vm.load()
+        XCTAssertNil(vm.saveError)
+    }
+
+    func testSuccessfulLoadKeepsUnrelatedSaveError() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        mock.errorToThrow = PublicProfileAPIError.serverMessage("Not authorized")
+        await vm.save()
+        mock.errorToThrow = nil
+        await vm.load()
+        XCTAssertEqual(vm.saveError, "Not authorized")
+    }
+
+    func testFailedReloadOnLoadedViewModelKeepsEditorAndLoadedValues() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile(published: true)
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        mock.errorToThrow = PublicProfileAPIError.server(500)
+        await vm.load()
+        XCTAssertEqual(vm.loadState, .loaded)
+        XCTAssertTrue(vm.isPublished)
+    }
+
+    func testUnauthorizedLoadWhoseRefreshFailsEndsInFailedState() async {
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = PublicProfileAPIError.unauthorized
+        let auth = MockAuthManager()
+        auth.shouldThrowRefreshError = true
+        let vm = PublicProfileViewModel(service: mock, authManager: auth)
+        await vm.load()
+        XCTAssertEqual(vm.loadState, .failed("Couldn't load your public profile. Please try again."))
+    }
+
+    func testRetryShowsLoadingWhileTheReloadIsInFlight() async {
+        let gate = GatedProfileService(stub: makeProfile())
+        let vm = PublicProfileViewModel(service: gate, authManager: MockAuthManager())
+        await vm.load()
+        XCTAssertEqual(vm.loadState, .failed("Couldn't load your public profile. Please try again."))
+        gate.holdNextFetch = true
+        let retry = Task { await vm.load() }
+        for _ in 0..<2000 where !gate.isHolding { try? await Task.sleep(for: .milliseconds(5)) }
+        XCTAssertTrue(gate.isHolding)
+        XCTAssertEqual(vm.loadState, .loading)
+        gate.release()
+        await retry.value
+        XCTAssertEqual(vm.loadState, .loaded)
+    }
+
+    func testContentStateMapsLoadStateToWhatTheScreenRenders() {
+        func state(
+            _ load: PublicProfileViewModel.LoadState, noProfile: Bool = false, configured: Bool = true
+        ) -> PublicProfileViewModel.ContentState {
+            PublicProfileViewModel.contentState(
+                hasNoEditableProfile: noProfile, isConfigured: configured, loadState: load
+            )
+        }
+        XCTAssertEqual(state(.loading), .loading)
+        XCTAssertEqual(state(.failed("x")), .failed("x"))
+        XCTAssertEqual(state(.loaded), .editor)
+        XCTAssertEqual(state(.failed("x"), noProfile: true), .selectAthlete)
+        XCTAssertEqual(state(.loaded, configured: false), .unconfigured)
+        XCTAssertEqual(state(.failed("x"), configured: false), .unconfigured)
+    }
+
+    func testParentWithNoSelectedAthleteSeesSelectAthleteContent() {
+        let vm = makeVM(MockPublicProfileManaging(), userId: "parent-1", role: .parent, target: nil)
+        XCTAssertEqual(vm.contentState, .selectAthlete)
+    }
+
+    func testFailedLoadNeverMapsToEditorContent() async {
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = PublicProfileAPIError.server(500)
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        XCTAssertNotEqual(vm.contentState, .editor)
+    }
+
+    func testFlushAfterFailedLoadSendsNothing() async {
+        let mock = MockPublicProfileManaging()
+        mock.errorToThrow = PublicProfileAPIError.server(500)
+        let vm = PublicProfileViewModel(service: mock, authManager: MockAuthManager())
+        await vm.load()
+        vm.scheduleDebouncedSave(.bio, delay: .seconds(60))
+        await vm.flushPendingSaves()
+        XCTAssertTrue(mock.attemptedPayloads.isEmpty)
     }
 
     func testSaveSurfacesServerErrorMessage() async {
@@ -363,5 +569,170 @@ final class PublicProfileViewModelTests: XCTestCase {
         await vm.refreshGuardianStatus()
 
         XCTAssertFalse(vm.isGuardianPending, "A failed status check must never fabricate a publish lock")
+    }
+
+    // MARK: - Parent edits the selected athlete (ios#360)
+
+    private func authManager(userId: String, role: UserRole?) -> MockAuthManager {
+        let mgr = MockAuthManager()
+        mgr.setMockUser(User(
+            id: userId, email: "x@example.com", emailConfirmedAt: nil, fullName: "X",
+            createdAt: "", updatedAt: "", role: role, dateOfBirth: nil
+        ))
+        mgr.setMockSession(Session(
+            accessToken: "tok", tokenType: "bearer", expiresIn: 3600,
+            expiresAt: Int(Date().timeIntervalSince1970) + 3600, refreshToken: "r",
+            user: User(id: userId, email: "x@example.com", emailConfirmedAt: nil, fullName: "X",
+                       createdAt: "", updatedAt: "", role: role, dateOfBirth: nil)))
+        return mgr
+    }
+
+    private func makeVM(
+        _ mock: MockPublicProfileManaging, userId: String, role: UserRole?, target: String?
+    ) -> PublicProfileViewModel {
+        PublicProfileViewModel(
+            service: mock, authManager: authManager(userId: userId, role: role), targetUserId: target
+        )
+    }
+
+    func testParentLoadAndSaveSendSelectedAthleteId() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        let vm = makeVM(mock, userId: "parent-1", role: .parent, target: "athlete-A")
+        await vm.load()
+        await vm.save()
+        XCTAssertEqual(mock.fetchedAthleteIds, ["athlete-A"])
+        XCTAssertEqual(mock.updatedPayloads.first?.athleteId, "athlete-A")
+    }
+
+    func testParentLoadRetryAfterTokenRefreshStillSendsSelectedAthleteId() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        mock.errorToThrowOnce = PublicProfileAPIError.unauthorized
+        let vm = makeVM(mock, userId: "parent-1", role: .parent, target: "athlete-A")
+        await vm.load()
+        XCTAssertEqual(mock.fetchedAthleteIds, ["athlete-A", "athlete-A"])
+    }
+
+    func testParentSaveRetryAfterTokenRefreshStillSendsSelectedAthleteId() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        let vm = makeVM(mock, userId: "parent-1", role: .parent, target: "athlete-A")
+        await vm.load()
+        mock.errorToThrowOnce = PublicProfileAPIError.unauthorized
+        await vm.save()
+        XCTAssertEqual(mock.attemptedPayloads.map(\.athleteId), ["athlete-A", "athlete-A"])
+        XCTAssertEqual(mock.updatedPayloads.map(\.athleteId), ["athlete-A"])
+    }
+
+    func testEditsStayPinnedToTheAthleteTheyWereMadeFor() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        let vmA = makeVM(mock, userId: "parent-1", role: .parent, target: "athlete-A")
+        let vmB = makeVM(mock, userId: "parent-1", role: .parent, target: "athlete-B")
+        await vmA.load()
+        vmA.bio = "edited for A"
+        await vmB.load()  // switcher moves to B before A's debounced save fires
+        await vmA.save()
+        XCTAssertEqual(mock.updatedPayloads.map(\.athleteId), ["athlete-A"])
+    }
+
+    func testPlayerOmitsAthleteId() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        let vm = makeVM(mock, userId: "u1", role: .player, target: "u1")
+        await vm.load()
+        await vm.save()
+        XCTAssertEqual(mock.fetchedAthleteIds, [nil])
+        XCTAssertNil(mock.updatedPayloads.first?.athleteId)
+    }
+
+    func testParentWithoutSelectedAthleteNeverTouchesOwnRow() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        let vm = makeVM(mock, userId: "parent-1", role: .parent, target: "parent-1")
+        await vm.load()
+        await vm.save()
+        XCTAssertTrue(mock.fetchedAthleteIds.isEmpty)
+        XCTAssertTrue(mock.updatedPayloads.isEmpty)
+        XCTAssertNotNil(vm.saveError)
+    }
+
+    func testSaveShowsServerMessage() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        let vm = makeVM(mock, userId: "parent-1", role: .parent, target: "athlete-A")
+        await vm.load()
+        mock.errorToThrow = PublicProfileAPIError.serverMessage("Not authorized to edit this athlete's profile")
+        await vm.save()
+        XCTAssertEqual(vm.saveError, "Not authorized to edit this athlete's profile")
+    }
+
+    func testParentWithoutSelectedAthleteHasNoEditableProfile() {
+        let mock = MockPublicProfileManaging()
+        XCTAssertTrue(makeVM(mock, userId: "p", role: .parent, target: nil).hasNoEditableProfile)
+        XCTAssertTrue(makeVM(mock, userId: "p", role: .parent, target: "p").hasNoEditableProfile)
+        XCTAssertFalse(makeVM(mock, userId: "p", role: .parent, target: "a").hasNoEditableProfile)
+        XCTAssertFalse(makeVM(mock, userId: "u", role: .player, target: "u").hasNoEditableProfile)
+    }
+
+    func testDebouncedSaveClearsItselfAfterFiring() async throws {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        let vm = makeVM(mock, userId: "parent-1", role: .parent, target: "athlete-A")
+        await vm.load()
+        vm.scheduleDebouncedSave(.bio, delay: .milliseconds(10))
+        XCTAssertTrue(vm.hasPendingDebouncedSave)
+        try await Task.sleep(for: .milliseconds(300))
+        XCTAssertFalse(vm.hasPendingDebouncedSave)
+        XCTAssertEqual(mock.updatedPayloads.count, 1)
+        await vm.flushPendingSaves()
+        XCTAssertEqual(mock.updatedPayloads.count, 1, "flush after a fired save must not re-send")
+    }
+
+    func testFlushSavesPendingEditToPinnedAthlete() async {
+        let mock = MockPublicProfileManaging()
+        mock.stubProfile = makeProfile()
+        let vm = makeVM(mock, userId: "parent-1", role: .parent, target: "athlete-A")
+        await vm.load()
+        vm.scheduleDebouncedSave(.lookingFor, delay: .seconds(60))
+        await vm.flushPendingSaves()
+        XCTAssertEqual(mock.updatedPayloads.map(\.athleteId), ["athlete-A"])
+        XCTAssertFalse(vm.hasPendingDebouncedSave)
+    }
+}
+
+/// Fails the first fetch; a later fetch can be held in flight until `release()`.
+private final class GatedProfileService: PublicProfileManaging, @unchecked Sendable {
+    private let stub: PlayerProfile
+    private var calls = 0
+    private var continuation: CheckedContinuation<Void, Never>?
+    var holdNextFetch = false
+    private(set) var isHolding = false
+
+    init(stub: PlayerProfile) { self.stub = stub }
+
+    func fetchProfile(athleteId: String?, accessToken: String?) async throws -> PlayerProfile? {
+        calls += 1
+        if calls == 1 { throw PublicProfileAPIError.server(500) }
+        if holdNextFetch {
+            await withCheckedContinuation {
+                continuation = $0
+                isHolding = true
+            }
+        }
+        return stub
+    }
+
+    func release() { continuation?.resume(); continuation = nil }
+
+    func updateProfile(_ payload: UpdateProfilePayload, accessToken: String?) async throws {}
+    func fetchTrackingLink(
+        coachId: String, athleteId: String?, accessToken: String?
+    ) async throws -> ProfileTrackingLink? { nil }
+    func createTrackingLink(
+        coachId: String, athleteId: String?, accessToken: String?
+    ) async throws -> ProfileTrackingLink {
+        throw PublicProfileAPIError.notConfigured
     }
 }

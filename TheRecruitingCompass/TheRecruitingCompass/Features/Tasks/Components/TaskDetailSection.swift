@@ -8,31 +8,31 @@ struct TaskDetailSection: View {
       if let why = task.whyItMatters, !why.isEmpty {
         VStack(alignment: .leading, spacing: 4) {
           Text("Why It Matters")
-            .font(.caption.weight(.semibold))
+            .font(.brand(.caption, weight: .semibold))
             .foregroundStyle(.secondary)
           Text(why)
-            .font(.body)
+            .font(.brand(.body))
         }
       }
 
       if let risk = task.failureRisk, !risk.isEmpty {
         VStack(alignment: .leading, spacing: 4) {
           Text("What Can Go Wrong")
-            .font(.caption.weight(.semibold))
+            .font(.brand(.caption, weight: .semibold))
             .foregroundStyle(.secondary)
           Text(risk)
-            .font(.body)
+            .font(.brand(.body))
         }
       }
 
       if task.isLocked, !task.prerequisiteTasks.isEmpty {
         VStack(alignment: .leading, spacing: 6) {
           Text("Complete These First")
-            .font(.caption.weight(.semibold))
+            .font(.brand(.caption, weight: .semibold))
             .foregroundStyle(.primary)
           ForEach(task.prerequisiteTasks) { pre in
             Text("• \(pre.title)")
-              .font(.subheadline)
+              .font(.brand(.subheadline))
           }
         }
         .padding(10)

@@ -81,7 +81,7 @@ enum AuthError: LocalizedError {
     case .passwordsDoNotMatch:
       return "Passwords do not match"
     case .invalidFamilyCode:
-      return "Invalid family code format or code not found"
+      return "Invalid Family Code format or code not found"
     case .termsNotAccepted:
       return "You must accept the terms and conditions"
     case .invalidResetToken:
@@ -128,7 +128,7 @@ enum AuthError: LocalizedError {
     case .passwordsDoNotMatch:
       return "Make sure both passwords are identical."
     case .invalidFamilyCode:
-      return "Check the family code format or confirm it with the family administrator."
+      return "Check the Family Code format or confirm it with the family administrator."
     case .termsNotAccepted:
       return "Please accept the terms and conditions to continue."
     case .invalidResetToken:

@@ -15,7 +15,7 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   // MARK: - Call Counts
 
   var fetchFamilyMembersCallCount = 0
-  var getCurrentMemberCallCount = 0
+  var getMembershipsCallCount = 0
   var getFamilyUnitCallCount = 0
   var createFamilyCallCount = 0
   var regenerateCodeCallCount = 0
@@ -28,6 +28,7 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   var stubbedCurrentMember: FamilyMember?
   var stubbedFamilyMembers: [FamilyMember] = []
   var stubbedFamilyUnit: FamilyUnit?
+  var stubbedJoinResponse: JoinFamilyResponse?
   var familyUnitIdsToFail: Set<String> = []
   var membersByFamilyUnitId: [String: [FamilyMember]] = [:]
   var mockCreateFamilyResponse = CreateFamilyResponse(
@@ -36,6 +37,8 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     familyId: "family-1",
     familyName: "Test Family"
   )
+  /// Fails only regenerateCode (shouldSucceed fails every call).
+  var regenerateCodeError: Error?
   var mockRegenerateCodeResponse = RegenerateFamilyCodeResponse(
     familyCode: "FAM-XYZ789"
   )
@@ -53,6 +56,7 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   // MARK: - FamilyManaging Implementation
 
   func fetchFamilyMembers(familyUnitId: String) async throws -> [FamilyMember] {
+    await fetchFamilyMembersGate?(familyUnitId)
     lock.lock()
     fetchFamilyMembersCallCount += 1
     lastFamilyUnitIdFetched = familyUnitId
@@ -67,19 +71,39 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     return result
   }
 
-  /// Awaited inside `getCurrentMember` so tests can hold a load in flight.
-  var getCurrentMemberGate: (@Sendable () async -> Void)?
+  /// Awaited inside `getMemberships` so tests can hold a load in flight.
+  var getMembershipsGate: (@Sendable () async -> Void)?
+  /// Most recently joined first. Defaults to the single `stubbedCurrentMember`.
+  var stubbedMemberships: [FamilyMember]?
+  var familyPlayersStub: [FamilyPlayer] = []
+  /// Awaited inside `fetchFamilyMembers` with the family id so a test can hold one family's load in flight.
+  var fetchFamilyMembersGate: (@Sendable (String) async -> Void)?
+  var unitsById: [String: FamilyUnit] = [:]
 
-  func getCurrentMember(userId: String) async throws -> FamilyMember? {
-    getCurrentMemberCallCount += 1
+  func getMemberships(userId: String) async throws -> [FamilyMember] {
+    getMembershipsCallCount += 1
     lastUserIdFetched = userId
-    await getCurrentMemberGate?()
+    await getMembershipsGate?()
 
     if !shouldSucceed {
       throw mockError
     }
 
-    return stubbedCurrentMember
+    return stubbedMemberships ?? stubbedCurrentMember.map { [$0] } ?? []
+  }
+
+  func familyPlayers(among familyUnitIds: [String]) async throws -> [FamilyPlayer] {
+    if !shouldSucceed {
+      throw mockError
+    }
+    return familyPlayersStub.filter { familyUnitIds.contains($0.familyUnitId) }
+  }
+
+  func getFamilyUnit(id: String) async throws -> FamilyUnit? {
+    if !shouldSucceed {
+      throw mockError
+    }
+    return unitsById[id] ?? stubbedFamilyUnit
   }
 
   func getFamilyUnit(forUserId userId: String) async throws -> FamilyUnit? {
@@ -107,12 +131,41 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   func regenerateCode(familyId: String) async throws -> RegenerateFamilyCodeResponse {
     regenerateCodeCallCount += 1
     lastFamilyIdRegenerated = familyId
+    if let regenerateCodeError { throw regenerateCodeError }
 
     if !shouldSucceed {
       throw mockError
     }
 
     return mockRegenerateCodeResponse
+  }
+
+  var stubbedDetailByFamilyId: [String: FamilyMembersDetail] = [:]
+  var detailError: Error?
+  var fetchFamilyDetailCallCount = 0
+
+  func fetchFamilyDetail(familyUnitId: String) async throws -> FamilyMembersDetail {
+    lock.lock()
+    fetchFamilyDetailCallCount += 1
+    fetchFamilyMembersCallCount += 1
+    lastFamilyUnitIdFetched = familyUnitId
+    let detail = stubbedDetailByFamilyId[familyUnitId]
+    let fallback = membersByFamilyUnitId[familyUnitId] ?? stubbedFamilyMembers
+    let shouldThrow = !shouldSucceed || familyUnitIdsToFail.contains(familyUnitId)
+    let error = detailError ?? mockError
+    lock.unlock()
+    if detailError != nil || shouldThrow { throw error }
+    return detail ?? FamilyMembersDetail(members: fallback)
+  }
+
+  /// Each call pops the next entry; the last one repeats. An Error entry throws.
+  var leaveResults: [Result<FamilyLeaveOutcome, Error>] = [.success(.left)]
+  var leaveCalls: [(familyId: String, confirm: Bool)] = []
+
+  func leaveFamily(familyId: String, confirmDeleteFamily: Bool) async throws -> FamilyLeaveOutcome {
+    leaveCalls.append((familyId, confirmDeleteFamily))
+    let result = leaveResults.count > 1 ? leaveResults.removeFirst() : leaveResults[0]
+    return try result.get()
   }
 
   func removeFamilyMember(memberId: String) async throws {
@@ -124,13 +177,14 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     }
   }
 
-  func joinFamilyWithCode(familyCode: String) async throws {
+  func joinFamilyWithCode(familyCode: String) async throws -> JoinFamilyResponse? {
     joinFamilyWithCodeCallCount += 1
     lastFamilyCodeJoined = familyCode
 
     if !shouldSucceed {
       throw mockError
     }
+    return stubbedJoinResponse
   }
 
   func getParentFamilies() async throws -> [ParentFamilyData] {
@@ -148,6 +202,8 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   var lookupInviteCallCount = 0
   var acceptInviteCallCount = 0
   var lastInviteEmail: String?
+  var lastInviteRole: String?
+  var lastInviteFamilyUnitId: String?
   var lastRevokedInvitationId: String?
   var lastLookedUpToken: String?
   var lastAcceptedToken: String?
@@ -160,8 +216,7 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     familyName: "Test Family",
     inviterName: "Test Player",
     emailExists: false,
-    prefill: nil,
-    emailMismatch: nil
+    prefill: nil
   )
   var declineInviteCallCount = 0
   var lastDeclinedToken: String?
@@ -169,10 +224,18 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   var lastResendId: String?
   var lastResendEmail: String?
   var lastResendRole: String?
+  var lastResendFamilyUnitId: String?
 
-  func sendEmailInvite(email: String, role: String, pendingPlayerDetails: PendingPlayerDetails? = nil) async throws {
+  func sendEmailInvite(
+    email: String,
+    role: String,
+    pendingPlayerDetails: PendingPlayerDetails? = nil,
+    familyUnitId: String? = nil
+  ) async throws {
     sendEmailInviteCallCount += 1
+    lastInviteFamilyUnitId = familyUnitId
     lastInviteEmail = email
+    lastInviteRole = role
     if !shouldSucceed { throw mockError }
   }
 
@@ -190,6 +253,16 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   func fetchPendingInvitations() async throws -> [FamilyInvitation] {
     if !shouldSucceed { throw mockError }
     return stubbedPendingInvitations
+  }
+
+  var stubbedAddressedInvitations: [FamilyInvitation] = []
+  var addressedInvitationsError: Error?
+  var lastAddressedEmail: String?
+
+  func fetchInvitationsAddressed(toEmail email: String) async throws -> [FamilyInvitation] {
+    lastAddressedEmail = email
+    if let addressedInvitationsError { throw addressedInvitationsError }
+    return stubbedAddressedInvitations
   }
 
   func revokeInvitation(id: String) async throws {
@@ -226,8 +299,9 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     if !shouldSucceed { throw mockError }
   }
 
-  func resendInvitation(id: String, email: String, role: String) async throws {
+  func resendInvitation(id: String, email: String, role: String, familyUnitId: String? = nil) async throws {
     resendInvitationCallCount += 1
+    lastResendFamilyUnitId = familyUnitId
     lastResendId = id
     lastResendEmail = email
     lastResendRole = role
@@ -241,7 +315,7 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     mockError = FamilyError.serverError("Mock error")
 
     fetchFamilyMembersCallCount = 0
-    getCurrentMemberCallCount = 0
+    getMembershipsCallCount = 0
     getFamilyUnitCallCount = 0
     createFamilyCallCount = 0
     regenerateCodeCallCount = 0
@@ -277,6 +351,7 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
     lookupInviteCallCount = 0
     acceptInviteCallCount = 0
     lastInviteEmail = nil
+    lastInviteRole = nil
     lastRevokedInvitationId = nil
     lastLookedUpToken = nil
     lastAcceptedToken = nil

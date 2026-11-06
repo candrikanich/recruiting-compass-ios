@@ -9,7 +9,7 @@ struct TemplateCardView: View {
       HStack(alignment: .top) {
         VStack(alignment: .leading, spacing: 6) {
           Text(template.name)
-            .font(.headline)
+            .font(.brand(.headline))
             .foregroundStyle(.primary)
             .lineLimit(1)
 
@@ -17,7 +17,7 @@ struct TemplateCardView: View {
             TypeBadgeView(type: template.type)
 
             Text(template.formattedDate)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.secondary)
           }
         }
@@ -28,8 +28,8 @@ struct TemplateCardView: View {
           onEdit()
         } label: {
           Image(systemName: "pencil")
-            .font(.body)
-            .foregroundStyle(Color.accentBlue)
+            .font(.brand(.body))
+            .foregroundStyle(Color.accentPrimary)
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
@@ -39,7 +39,7 @@ struct TemplateCardView: View {
       }
 
       Text(template.bodyPreview)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .lineLimit(3)
     }

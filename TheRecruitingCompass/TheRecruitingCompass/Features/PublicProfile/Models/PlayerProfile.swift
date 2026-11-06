@@ -37,12 +37,26 @@ enum DefaultSectionOrder {
 }
 
 enum CommitmentStatus: String, Codable, CaseIterable, Equatable, Sendable {
-    case uncommitted, committed
+    case uncommitted, committed, unknown
+
+    /// Raw value safe to send to the server; nil for the decode-only `unknown` fallback so the key is omitted.
+    var serverValue: String? { self == .unknown ? nil : rawValue }
+
+    init(from decoder: Decoder) throws {
+      let rawValue = try decoder.singleValueContainer().decode(String.self)
+      self = CommitmentStatus(rawValue: rawValue) ?? .unknown
+    }
+
+    /// User-selectable values. Excludes `unknown`: a decode-only fallback for server values this build lacks.
+    static var selectableCases: [CommitmentStatus] {
+      allCases.filter { $0 != .unknown }
+    }
 
     var label: String {
         switch self {
         case .uncommitted: return String(localized: "Uncommitted")
         case .committed: return String(localized: "Committed")
+        case .unknown: return String(localized: "Unknown")
         }
     }
 }
@@ -243,6 +257,8 @@ struct UpdateProfilePayload: Encodable, Equatable {
     var commitmentStatus: CommitmentStatus?
     var committedSchoolId: String??
     var sectionConfig: [ProfileSection]?
+    /// Parent delegate writes: the athlete whose row to update. nil = the caller's own row (player accounts).
+    var athleteId: String?
 
     init(
         bio: String?? = nil, isPublished: Bool? = nil,
@@ -250,7 +266,7 @@ struct UpdateProfilePayload: Encodable, Equatable {
         bannerUrl: String?? = nil, lookingFor: String?? = nil,
         valuesTags: [String]? = nil, awards: [ProfileAward]? = nil,
         commitmentStatus: CommitmentStatus? = nil, committedSchoolId: String?? = nil,
-        sectionConfig: [ProfileSection]? = nil
+        sectionConfig: [ProfileSection]? = nil, athleteId: String? = nil
     ) {
         self.bio = bio
         self.isPublished = isPublished
@@ -263,6 +279,7 @@ struct UpdateProfilePayload: Encodable, Equatable {
         self.commitmentStatus = commitmentStatus
         self.committedSchoolId = committedSchoolId
         self.sectionConfig = sectionConfig
+        self.athleteId = athleteId
     }
 
     enum CodingKeys: String, CodingKey {
@@ -277,6 +294,7 @@ struct UpdateProfilePayload: Encodable, Equatable {
         case commitmentStatus = "commitment_status"
         case committedSchoolId = "committed_school_id"
         case sectionConfig = "section_config"
+        case athleteId
     }
 
     func encode(to encoder: Encoder) throws {
@@ -290,8 +308,9 @@ struct UpdateProfilePayload: Encodable, Equatable {
         if let lookingFor { try container.encode(lookingFor, forKey: .lookingFor) }
         try container.encodeIfPresent(valuesTags, forKey: .valuesTags)
         try container.encodeIfPresent(awards, forKey: .awards)
-        try container.encodeIfPresent(commitmentStatus, forKey: .commitmentStatus)
+        try container.encodeIfPresent(commitmentStatus?.serverValue, forKey: .commitmentStatus)
         if let committedSchoolId { try container.encode(committedSchoolId, forKey: .committedSchoolId) }
         try container.encodeIfPresent(sectionConfig, forKey: .sectionConfig)
+        try container.encodeIfPresent(athleteId, forKey: .athleteId)
     }
 }

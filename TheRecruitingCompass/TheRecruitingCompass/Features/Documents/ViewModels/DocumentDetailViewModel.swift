@@ -380,6 +380,11 @@ final class DocumentDetailViewModel {
       return
     }
 
+    guard let familyUnitId = familyManager.resolvedFamilyUnitId else {
+      errorMessage = FamilyUnitID.MissingError.missing.errorDescription
+      return
+    }
+
     isUploadingNewVersion = true
     uploadProgress = 0
     defer {
@@ -402,7 +407,8 @@ final class DocumentDetailViewModel {
         title: doc.title,
         description: doc.description,
         schoolId: doc.schoolId,
-        version: newVersion
+        version: newVersion,
+        familyUnitId: familyUnitId
       )
       uploadProgress = 1
       document = newDoc

@@ -8,13 +8,13 @@ struct MetricCard: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text(value)
-        .font(.title.weight(.bold))
+        .font(.brand(.title, weight: .bold))
         .foregroundStyle(color)
         .lineLimit(1)
         .minimumScaleFactor(0.7)
 
       Text(title)
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(Color.secondaryText)
         .lineLimit(2)
         .fixedSize(horizontal: false, vertical: true)

@@ -17,10 +17,10 @@ struct NotificationEmptyState: View {
         .accessibilityHidden(true)
 
       Text("No notifications")
-        .font(.title3.weight(.semibold))
+        .font(.brand(.title3, weight: .semibold))
 
       Text("You're all caught up!")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)

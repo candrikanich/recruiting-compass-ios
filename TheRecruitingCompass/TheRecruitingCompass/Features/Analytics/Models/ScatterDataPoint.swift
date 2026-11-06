@@ -7,7 +7,7 @@ struct ScatterDataPoint: Identifiable, Equatable, Sendable {
   let label: String
   let color: Color
 
-  init(id: UUID = UUID(), x: Double, y: Double, label: String, color: Color = .accentBlue) {
+  init(id: UUID = UUID(), x: Double, y: Double, label: String, color: Color = .accentPrimary) {
     self.id = id
     self.x = x
     self.y = y

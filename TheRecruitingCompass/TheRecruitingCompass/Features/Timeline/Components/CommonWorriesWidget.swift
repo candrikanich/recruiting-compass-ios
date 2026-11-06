@@ -15,12 +15,12 @@ struct CommonWorriesWidget: View {
     let worries = ParentWorry.forPhase(phase)
     VStack(alignment: .leading, spacing: 12) {
       Text(String(localized: "Questions other parents ask at this stage"))
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(Color.secondaryText)
 
       if worries.isEmpty {
         Text(String(localized: "No common worries at this stage."))
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(Color.secondaryText)
       } else {
         ForEach(worries) { worry in
@@ -53,12 +53,12 @@ private struct WorryCard: View {
       Button(action: onToggle) {
         HStack {
           Text(worry.question)
-            .font(.subheadline.weight(.medium))
+            .font(.brand(.subheadline, weight: .medium))
             .multilineTextAlignment(.leading)
             .frame(maxWidth: .infinity, alignment: .leading)
 
           Image(systemName: "chevron.right")
-            .font(.caption.weight(.semibold))
+            .font(.brand(.caption, weight: .semibold))
             .foregroundStyle(Color.secondaryText)
             .rotationEffect(.degrees(isExpanded ? 90 : 0))
         }
@@ -67,7 +67,7 @@ private struct WorryCard: View {
 
       if isExpanded {
         Text(worry.answer)
-          .font(.body)
+          .font(.brand(.body))
           .multilineTextAlignment(.leading)
           .frame(maxWidth: .infinity, alignment: .leading)
           .transition(.opacity.combined(with: .move(edge: .top)))

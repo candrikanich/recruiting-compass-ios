@@ -10,22 +10,22 @@ struct DocumentHeaderCard: View {
     VStack(alignment: .leading, spacing: 12) {
       HStack(alignment: .top) {
         VStack(alignment: .leading, spacing: 8) {
-          Text("\(document.typeEmoji) \(document.typeLabel)")
-            .font(.caption)
+          Label(document.typeLabel, systemImage: document.typeSystemImage)
+            .font(.brand(.caption))
             .fontWeight(.semibold)
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
-            .background(Color.accentBlue.opacity(0.2))
+            .background(Color.accentPrimary.opacity(0.2))
             .foregroundStyle(.primary)
             .clipShape(.rect(cornerRadius: 6))
           Text(document.title)
-            .font(.title2)
+            .font(.brand(.title2))
             .bold()
             .lineLimit(2)
             .truncationMode(.tail)
           if let desc = document.description, !desc.isEmpty {
             Text(desc)
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .foregroundStyle(.secondary)
           }
         }
@@ -34,25 +34,25 @@ struct DocumentHeaderCard: View {
       HStack(spacing: 12) {
         Button(action: onEdit) {
           Label("Edit", systemImage: "pencil")
-            .font(.subheadline.weight(.medium))
+            .font(.brand(.subheadline, weight: .medium))
             .frame(minWidth: 88, minHeight: 44)
         }
         .buttonStyle(.borderedProminent)
-        .tint(.accentBlue)
+        .tint(.accentPrimary)
         .accessibilityLabel(String(localized: "Edit document metadata"))
 
         Button(action: onShare) {
           Label("Share", systemImage: "square.and.arrow.up")
-            .font(.subheadline.weight(.medium))
+            .font(.brand(.subheadline, weight: .medium))
             .frame(minWidth: 88, minHeight: 44)
         }
         .buttonStyle(.borderedProminent)
-        .tint(.primaryGreen)
+        .tint(Color.accentFill)
         .accessibilityLabel(String(localized: "Share document with schools"))
 
         Button(role: .destructive, action: onDelete) {
           Label("Delete", systemImage: "trash")
-            .font(.subheadline.weight(.medium))
+            .font(.brand(.subheadline, weight: .medium))
             .frame(minWidth: 88, minHeight: 44)
         }
         .buttonStyle(.borderedProminent)

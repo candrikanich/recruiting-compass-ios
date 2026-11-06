@@ -32,7 +32,7 @@ final class OfferStatusTests: XCTestCase {
   }
 
   func testStatusColor_Pending() {
-    assertColorMatches(OfferStatus.pending.statusColor, expected: .accentBlue)
+    assertColorMatches(OfferStatus.pending.statusColor, expected: .accentPrimary)
   }
 
   func testStatusColor_Declined() {

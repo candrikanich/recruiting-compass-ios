@@ -5,8 +5,8 @@ struct InteractionCreateRequest: Codable, Sendable {
   let schoolId: String?
   let coachId: String?
   let eventId: String?
-  let type: String
-  let direction: String
+  let type: String?
+  let direction: String?
   let occurredAt: String
   let subject: String?
   let content: String?
@@ -34,7 +34,7 @@ struct InteractionCreateRequest: Codable, Sendable {
     return f
   }()
 
-  /// Create a request from form state
+  /// Create a request from form state. Throws `FamilyUnitID.MissingError` rather than send a blank family id.
   init(
     schoolId: String?,
     coachId: String?,
@@ -46,14 +46,16 @@ struct InteractionCreateRequest: Codable, Sendable {
     content: String?,
     sentiment: Sentiment?,
     loggedBy: String,
-    familyUnitId: String
-  ) {
+    familyUnitId: String?
+  ) throws {
     self.schoolId = schoolId
     self.coachId = coachId
     self.eventId = eventId
-    self.type = type.rawValue
-    self.direction = direction.rawValue
-    self.sentiment = sentiment?.rawValue
+    assert(type != .unknown, "InteractionType.unknown is decode-only")
+    self.type = type.serverValue
+    assert(direction != .unknown, "Direction.unknown is decode-only")
+    self.direction = direction.serverValue
+    self.sentiment = sentiment?.serverValue
 
     // Convert date to UTC ISO8601 string
     self.occurredAt = Self.isoFormatter.string(from: occurredAt)
@@ -65,6 +67,6 @@ struct InteractionCreateRequest: Codable, Sendable {
     self.content = trimmedContent.flatMap { DataSanitizer.nilIfEmpty(DataSanitizer.stripHtmlTags($0)) }
 
     self.loggedBy = loggedBy
-    self.familyUnitId = familyUnitId
+    self.familyUnitId = try FamilyUnitID.require(familyUnitId)
   }
 }

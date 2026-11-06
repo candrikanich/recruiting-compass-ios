@@ -1,13 +1,14 @@
 import SwiftUI
 
 struct CoachFollowupWidget: View {
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
   let coaches: [Coach]
   /// All coaches tracked across the family's schools (unfiltered) — distinguishes
   /// "no coaches yet" from "caught up" for the empty-state CTA, mirroring web's
   /// `allCoachesData` (see `CoachFollowupWidget.vue`).
   let allCoaches: [Coach]
   let schools: [School]
-  var familyUnitId: String = ""
+  var familyUnitId: String?
   var userId: String = ""
   /// Reload the dashboard after a send so the just-contacted coach drops off this list.
   var onCoachContacted: (() -> Void)?
@@ -31,15 +32,15 @@ struct CoachFollowupWidget: View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
         Text("Coaches Needing Follow-up")
-          .font(.headline)
+          .font(.brand(.headline))
           .accessibilityAddTraits(.isHeader)
         Spacer()
         if !coaches.isEmpty {
           Text("\(coaches.count)")
-            .font(.caption.weight(.semibold))
+            .font(.brand(.caption, weight: .semibold))
             .padding(.horizontal, 8)
             .padding(.vertical, 2)
-            .background(Color.accentBlue.opacity(0.15))
+            .background(Color.accentPrimary.opacity(0.15))
             .clipShape(Capsule())
         }
       }
@@ -51,10 +52,10 @@ struct CoachFollowupWidget: View {
         onboardingCTA
       case .allCaughtUp:
         VStack(alignment: .leading, spacing: 2) {
-          Text("🎉 All caught up!")
-            .font(.subheadline.weight(.semibold))
+          Text("All caught up!")
+            .font(.brand(.subheadline, weight: .semibold))
           Text("No coaches need immediate follow-up")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
         }
         .padding(.vertical)
@@ -67,7 +68,8 @@ struct CoachFollowupWidget: View {
               schoolName: EntityNameLookup.schoolName(for: coach.schoolId, in: schoolNameMap),
               onEmail: { presentQuickComm(coach) },
               onText: { presentQuickComm(coach) },
-              onProfile: { profileCoachId = coach.id }
+              onProfile: { profileCoachId = coach.id },
+              showsOutreach: featureFlags.isEnabled(.athleteMessages)
             )
             if coach.id != visible.last?.id { Divider() }
           }
@@ -78,8 +80,8 @@ struct CoachFollowupWidget: View {
             isShowingAllCoaches = true
           } label: {
             Text("View all \(coaches.count) coaches")
-              .font(.caption)
-              .foregroundStyle(Color.accentBlue)
+              .font(.brand(.caption))
+              .foregroundStyle(Color.accentPrimary)
           }
           .frame(minHeight: 44)
         }
@@ -122,12 +124,12 @@ struct CoachFollowupWidget: View {
   @ViewBuilder
   private var onboardingCTA: some View {
     VStack(alignment: .leading, spacing: 8) {
-      Text(schools.isEmpty ? "🏫 Start tracking your recruiting" : "🎯 Add your first coach")
-        .font(.subheadline.weight(.semibold))
+      Text(schools.isEmpty ? "Start tracking your recruiting" : "Add your first coach")
+        .font(.brand(.subheadline, weight: .semibold))
       Text(schools.isEmpty
            ? "Follow a school to get coach follow-up reminders"
            : "Add a coach to start getting follow-up reminders")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(Color.secondaryText)
       Button {
         if schools.isEmpty {
@@ -137,7 +139,7 @@ struct CoachFollowupWidget: View {
         }
       } label: {
         Text(schools.isEmpty ? "Follow a School" : "Add a Coach")
-          .font(.caption.weight(.semibold))
+          .font(.brand(.caption, weight: .semibold))
       }
       .buttonStyle(.borderedProminent)
       .frame(minHeight: 44)
@@ -156,7 +158,7 @@ struct CoachFollowupWidget: View {
 /// Presents the Add School flow for the follow-up widget's empty-state CTA, mirroring
 /// `ActionItemAddSchoolSheet` (`ActionItemSheets.swift`).
 private struct CoachFollowupAddSchoolSheet: View {
-  let familyUnitId: String
+  let familyUnitId: String?
   let userId: String
 
   @State private var navigationPath = NavigationPath()
@@ -181,7 +183,7 @@ private struct CoachFollowupAddSchoolSheet: View {
 /// Presents the Add Coach flow for the follow-up widget's empty-state CTA, mirroring
 /// `CoachesListView`'s `.add` navigation destination.
 private struct CoachFollowupAddCoachSheet: View {
-  let familyUnitId: String
+  let familyUnitId: String?
   let userId: String
 
   @State private var navigationPath = NavigationPath()

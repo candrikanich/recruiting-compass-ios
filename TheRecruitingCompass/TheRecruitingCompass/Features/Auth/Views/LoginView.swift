@@ -17,7 +17,7 @@ struct LoginView: View {
 
   var body: some View {
     ZStack {
-      LinearGradient.primaryBackground
+      Color.Brand.forest600
       .ignoresSafeArea()
 
       VStack(spacing: 0) {
@@ -78,10 +78,10 @@ struct LoginView: View {
       Button(action: { dismiss() }) {
         HStack(spacing: 4) {
           Image(systemName: "arrow.left")
-            .font(.footnote.weight(.semibold))
+            .font(.brand(.footnote, weight: .semibold))
             .accessibilityHidden(true)
           Text("Back to Welcome")
-            .font(.footnote.weight(.semibold))
+            .font(.brand(.footnote, weight: .semibold))
         }
         .foregroundStyle(Color.darkSlate)
       }
@@ -175,11 +175,11 @@ struct LoginView: View {
       Button(action: { viewModel.rememberMe.toggle() }) {
         HStack(spacing: 6) {
           Image(systemName: viewModel.rememberMe ? "checkmark.square.fill" : "square")
-            .foregroundStyle(Color.accentBlue)
+            .foregroundStyle(Color.accentPrimary)
             .accessibilityHidden(true)
 
           Text("Remember me")
-            .font(.footnote)
+            .font(.brand(.footnote))
             .foregroundStyle(Color.primary)
         }
         .frame(minHeight: 44)
@@ -192,7 +192,7 @@ struct LoginView: View {
 
       Button(action: { showForgotPassword = true }) {
         Text("Forgot password?")
-          .font(.footnote)
+          .font(.brand(.footnote))
           .foregroundStyle(Color.primary)
           .frame(minHeight: 44)
           .contentShape(Rectangle())
@@ -231,23 +231,23 @@ struct LoginView: View {
     VStack(alignment: .leading, spacing: 8) {
       Text("New to The Recruiting Compass?")
         .padding(.top, 12)
-        .font(.footnote)
+        .font(.brand(.footnote))
         .foregroundStyle(Color.secondary)
 
       HStack(spacing: 4) {
         Text("Don't have an account?")
-          .font(.footnote)
+          .font(.brand(.footnote))
           .foregroundStyle(Color.secondary)
 
         Button(action: { showSignup = true }) {
           HStack(spacing: 4) {
             Text("Create one now")
-              .font(.footnote.weight(.semibold))
+              .font(.brand(.footnote, weight: .semibold))
             Image(systemName: "arrow.right")
-              .font(.caption.weight(.semibold))
+              .font(.brand(.caption, weight: .semibold))
               .accessibilityHidden(true)
           }
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
           .frame(minHeight: 44)
           .contentShape(Rectangle())
         }

@@ -15,6 +15,7 @@ struct MoreMenuView: View {
   var notificationsViewModel: NotificationsListViewModel
   @Environment(FamilyManager.self) private var familyManager
   @Environment(AuthManager.self) private var authManager
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
 
   init(notificationsViewModel: NotificationsListViewModel, path: Binding<[MorePath]>? = nil) {
     self.notificationsViewModel = notificationsViewModel
@@ -38,10 +39,18 @@ struct MoreMenuView: View {
     }
   }
 
+  private var recruitingItems: [MoreMenuSection] {
+    var items: [MoreMenuSection] = [
+      .timeline, .events, .deadlines, .documents, .offers, .performance, .analytics, .activity
+    ]
+    if featureFlags.isEnabled(.inboundDrafts) { items.append(.inboundDrafts) }
+    return items
+  }
+
   @ViewBuilder
   private var moreMenuList: some View {
     List {
-      menuSectionView("More Recruiting Resources", items: [.timeline, .events, .deadlines, .documents, .offers, .performance, .analytics, .activity, .inboundDrafts])
+      menuSectionView("More Recruiting Resources", items: recruitingItems)
       menuSectionView("Player Settings", items: [.settings, .notifications, .publicProfile])
       menuSectionView("Support", items: [.helpCenter])
     }
@@ -65,6 +74,8 @@ struct MoreMenuView: View {
       EventDetailView(eventId: eventId)
     case .offerDetail(let offerId):
       OfferDetailView(offerId: offerId)
+    case .familyManagement:
+      FamilyManagementView()
     case .helpSection(let slug):
       let helpSection = HelpSection(slug: slug) ?? .gettingStarted
       HelpSectionDetailView(section: helpSection)
@@ -96,7 +107,9 @@ struct MoreMenuView: View {
     case .helpCenter:
       HelpCenterView()
     case .publicProfile:
-      PublicTab(targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id)
+      PublicTab(targetUserId: PublicProfileTarget.userId(
+        user: authManager.user, selectedAthleteUserId: familyManager.selectedAthlete?.userId))
+        .id(familyManager.selectedAthleteId)
         .navigationTitle("Public Profile")
         .navigationBarTitleDisplayMode(.inline)
     case .notifications:
@@ -138,7 +151,7 @@ private struct MoreMenuRow: View {
   var body: some View {
     HStack(spacing: 12) {
       Image(systemName: icon)
-        .font(.title3)
+        .font(.brand(.title3))
         .foregroundStyle(.white)
         .frame(width: 36, height: 36)
         .background(color)
@@ -148,12 +161,12 @@ private struct MoreMenuRow: View {
       VStack(alignment: .leading, spacing: 4) {
         HStack {
           Text(title)
-            .font(.body)
+            .font(.brand(.body))
             .fontWeight(.medium)
             .foregroundStyle(.primary)
           if let count = badgeCount {
             Text("\(count)")
-              .font(.caption)
+              .font(.brand(.caption))
               .fontWeight(.semibold)
               .foregroundStyle(.white)
               .padding(.horizontal, 8)
@@ -163,7 +176,7 @@ private struct MoreMenuRow: View {
           }
         }
         Text(description)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
           .lineLimit(2)
       }

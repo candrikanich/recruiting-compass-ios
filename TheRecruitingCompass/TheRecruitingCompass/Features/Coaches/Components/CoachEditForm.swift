@@ -28,7 +28,7 @@ struct CoachEditForm: View {
 
           if let error = validationErrors["firstName"] {
             Text(error)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(Color.errorRed)
               .accessibilityLabel(String(localized: "First name error: \(error)"))
           }
@@ -41,7 +41,7 @@ struct CoachEditForm: View {
 
           if let error = validationErrors["lastName"] {
             Text(error)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(Color.errorRed)
               .accessibilityLabel(String(localized: "Last name error: \(error)"))
           }
@@ -65,7 +65,7 @@ struct CoachEditForm: View {
 
           if let error = validationErrors["email"] {
             Text(error)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(Color.errorRed)
               .accessibilityLabel(String(localized: "Email error: \(error)"))
           }
@@ -77,7 +77,7 @@ struct CoachEditForm: View {
 
           if let error = validationErrors["phone"] {
             Text(error)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(Color.errorRed)
               .accessibilityLabel(String(localized: "Phone error: \(error)"))
           }
@@ -92,7 +92,7 @@ struct CoachEditForm: View {
 
           if let error = validationErrors["twitterHandle"] {
             Text(error)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(Color.errorRed)
               .accessibilityLabel(String(localized: "Twitter error: \(error)"))
           }
@@ -105,7 +105,7 @@ struct CoachEditForm: View {
 
           if let error = validationErrors["instagramHandle"] {
             Text(error)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(Color.errorRed)
               .accessibilityLabel(String(localized: "Instagram error: \(error)"))
           }
@@ -118,7 +118,7 @@ struct CoachEditForm: View {
 
           VStack(alignment: .leading, spacing: 8) {
             Text("Tags")
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.secondary)
             CoachTagsCard(
               tags: editedCoach.tags,

@@ -365,8 +365,16 @@ struct CreateEventView: View {
       .buttonStyle(.borderedProminent)
       .disabled(viewModel.isSubmitDisabled)
       .accessibilityLabel(viewModel.isSaving ? String(localized: "Creating event") : String(localized: "Create event"))
-      .accessibilityHint(viewModel.isSubmitDisabled ? "Complete all required fields first" : "Saves the event")
+      .accessibilityHint(viewModel.submitHint ?? String(localized: "Saves the event"))
       .accessibilityIdentifier("create-event-button")
+
+      if let hint = viewModel.submitHint {
+        Text(hint)
+          .font(.brand(.footnote))
+          .foregroundStyle(.secondary)
+          .multilineTextAlignment(.center)
+          .accessibilityIdentifier("create-event-required-hint")
+      }
 
       Button {
         if hasUnsavedChanges {
@@ -393,7 +401,7 @@ struct CreateEventView: View {
   private func validationMessage(for field: String) -> some View {
     if let message = viewModel.validationErrors[field] {
       Text(message)
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.red)
         .accessibilityLabel(String(localized: "Error: \(message)"))
     }

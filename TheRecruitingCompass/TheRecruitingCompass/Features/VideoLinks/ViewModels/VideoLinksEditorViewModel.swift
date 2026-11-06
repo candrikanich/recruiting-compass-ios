@@ -27,7 +27,7 @@ final class VideoLinksEditorViewModel {
        familyUnitId: String?, isReadOnly: Bool) {
     self.service = service
     self.athleteUserId = athleteUserId
-    self.familyUnitId = familyUnitId
+    self.familyUnitId = FamilyUnitID.normalized(familyUnitId)
     self.isReadOnly = isReadOnly
   }
 
@@ -42,6 +42,14 @@ final class VideoLinksEditorViewModel {
       errorMessage = isReadOnly
         ? String(localized: "Only the player can edit video links.")
         : String(localized: "You can add up to 5 video links.")
+      return false
+    }
+    guard let familyUnitId else {
+      errorMessage = FamilyUnitID.MissingError.missing.errorDescription
+      return false
+    }
+    guard let url = HTTPURL.cleaned(url) else {
+      errorMessage = HTTPURL.invalidMessage
       return false
     }
     isSubmitting = true; defer { isSubmitting = false }
@@ -61,6 +69,10 @@ final class VideoLinksEditorViewModel {
   func updateLink(id: String, platform: VideoLinkPlatform, url: String, title: String?) async -> Bool {
     guard !isReadOnly else {
       errorMessage = String(localized: "Only the player can edit video links.")
+      return false
+    }
+    guard let url = HTTPURL.cleaned(url) else {
+      errorMessage = HTTPURL.invalidMessage
       return false
     }
     isSubmitting = true; defer { isSubmitting = false }

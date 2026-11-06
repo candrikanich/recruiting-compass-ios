@@ -7,7 +7,7 @@ final class SendProfileViewModelTests: XCTestCase {
 
     // MARK: - Fixtures
 
-    private func makeProfile(userId: String = "u1", isPublished: Bool = true) -> PlayerProfile {
+    func makeProfile(userId: String = "u1", isPublished: Bool = true) -> PlayerProfile {
         PlayerProfile(
             id: "p1", userId: userId, familyUnitId: "f1", hashSlug: "ab12cd",
             vanitySlug: "owen", isPublished: isPublished, bio: nil, headerColor: "slate",
@@ -16,7 +16,7 @@ final class SendProfileViewModelTests: XCTestCase {
         )
     }
 
-    private func makeCoach(email: String? = nil, phone: String? = nil) -> Coach {
+    func makeCoach(email: String? = nil, phone: String? = nil) -> Coach {
         Coach(
             id: "c1", firstName: "Jane", lastName: "Smith",
             email: email, phone: phone, schoolId: "s1",
@@ -24,20 +24,22 @@ final class SendProfileViewModelTests: XCTestCase {
         )
     }
 
-    private func makeVM(
+    func makeVM(
         service: MockPublicProfileManaging,
         authManager: MockAuthManager,
         preference: MockPreferenceService = MockPreferenceService(),
         photo: MockProfilePhotoService = MockProfilePhotoService(),
-        interactions: MockInteractionsService = MockInteractionsService()
+        interactions: MockInteractionsService = MockInteractionsService(),
+        familyManager: FamilyManager? = nil
     ) -> SendProfileViewModel {
         SendProfileViewModel(
             service: service, authManager: authManager,
-            preferenceService: preference, photoService: photo, interactionsService: interactions
+            preferenceService: preference, photoService: photo, interactionsService: interactions,
+            familyManager: familyManager ?? FamilyManager(familyService: MockFamilyService(), authManager: authManager)
         )
     }
 
-    private func selfAuth(userId: String = "u1", fullName: String = "Owen Andrikanich") -> MockAuthManager {
+    func selfAuth(userId: String = "u1", fullName: String = "Owen Andrikanich") -> MockAuthManager {
         let auth = MockAuthManager()
         auth.setMockUser(User(
             id: userId, email: "o@x.com", emailConfirmedAt: nil,
@@ -132,41 +134,20 @@ final class SendProfileViewModelTests: XCTestCase {
 
     func testPrepareParentUsesPhotoServiceNameForAthlete() async {
         let service = MockPublicProfileManaging()
-        service.stubProfile = makeProfile(userId: "athlete-9")   // not the signed-in user
+        service.stubProfile = makeProfile(userId: ParentViewingAthleteFixture.athleteUserId)
         let photo = MockProfilePhotoService()
         photo.stubbedFullName = "Athlete Smith"
-        // parent is signed in
-        let auth = selfAuth(userId: "parent-1", fullName: "Parent Smith")
-        let vm = makeVM(service: service, authManager: auth, photo: photo)
+        let auth = MockAuthManager()
+        let family = ParentViewingAthleteFixture.makeFamilyManager(authManager: auth)
+        let vm = makeVM(service: service, authManager: auth, photo: photo, familyManager: family)
 
         let result = await vm.prepare(for: makeCoach(email: "coach@x.edu"))
 
+        XCTAssertEqual(auth.user?.fullName, "Parent Smith")
         guard case let .email(message) = result else { return XCTFail("expected .email") }
-        XCTAssertEqual(photo.lastFullNameUserId, "athlete-9")
+        XCTAssertEqual(photo.lastFullNameUserId, ParentViewingAthleteFixture.athleteUserId)
         XCTAssertTrue(message.subject.contains("Athlete Smith"), message.subject)
         XCTAssertFalse(message.subject.contains("Parent Smith"), message.subject)
-    }
-
-    // MARK: - loadPublishState (button visibility)
-
-    func testLoadPublishStateReflectsPublishedProfile() async {
-        let service = MockPublicProfileManaging()
-        service.stubProfile = makeProfile(isPublished: true)
-        let vm = makeVM(service: service, authManager: selfAuth())
-
-        await vm.loadPublishState()
-
-        XCTAssertTrue(vm.isPublished)
-    }
-
-    func testLoadPublishStateFalseWhenUnpublished() async {
-        let service = MockPublicProfileManaging()
-        service.stubProfile = makeProfile(isPublished: false)
-        let vm = makeVM(service: service, authManager: selfAuth())
-
-        await vm.loadPublishState()
-
-        XCTAssertFalse(vm.isPublished)
     }
 
     // MARK: - loadTrackingInfo (copy-link + view stats, web parity)
@@ -200,6 +181,84 @@ final class SendProfileViewModelTests: XCTestCase {
         XCTAssertTrue(vm.isPublished)
         XCTAssertNil(vm.trackingURL)
         XCTAssertNil(vm.viewCount)
+    }
+
+    // MARK: - athlete targeting (#422)
+
+    let athleteUserId = ParentViewingAthleteFixture.athleteUserId
+
+    func parentVM(service: MockPublicProfileManaging) -> SendProfileViewModel {
+        let auth = MockAuthManager()
+        let family = ParentViewingAthleteFixture.makeFamilyManager(authManager: auth)
+        let photo = MockProfilePhotoService()
+        photo.stubbedFullName = "Athlete Smith"
+        return makeVM(service: service, authManager: auth, photo: photo, familyManager: family)
+    }
+
+    func testParentLoadTrackingInfoSendsAthleteIdOnProfileAndLink() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile(userId: athleteUserId)
+
+        await parentVM(service: service).loadTrackingInfo(for: "c1")
+
+        XCTAssertEqual(service.fetchedAthleteIds, [athleteUserId])
+        XCTAssertEqual(service.fetchedTrackingAthleteIds, [athleteUserId])
+    }
+
+    func testParentPrepareSendsAthleteIdOnProfileAndTrackingLink() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile(userId: athleteUserId)
+
+        let result = await parentVM(service: service).prepare(for: makeCoach(email: "coach@x.edu"))
+
+        guard case .email = result else { return XCTFail("expected .email, got \(result)") }
+        XCTAssertEqual(service.fetchedAthleteIds, [athleteUserId])
+        XCTAssertEqual(service.createdTrackingAthleteIds, [athleteUserId])
+    }
+
+    func testPlayerPrepareSendsNoAthleteId() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile()
+
+        _ = await makeVM(service: service, authManager: selfAuth()).prepare(for: makeCoach(email: "coach@x.edu"))
+
+        XCTAssertEqual(service.fetchedAthleteIds, [nil])
+        XCTAssertEqual(service.createdTrackingAthleteIds, [nil])
+    }
+
+    func testPlayerLoadTrackingInfoSendsNoAthleteId() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile()
+
+        await makeVM(service: service, authManager: selfAuth()).loadTrackingInfo(for: "c1")
+
+        XCTAssertEqual(service.fetchedAthleteIds, [nil])
+        XCTAssertEqual(service.fetchedTrackingAthleteIds, [nil])
+    }
+
+    func testParentWithoutSelectedAthleteNeverCallsServiceAndFails() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile(userId: "someone-else")
+        let auth = MockAuthManager()
+        let family = ParentViewingAthleteFixture.makeFamilyManager(authManager: auth)
+        family.selectedAthleteId = nil
+        let vm = makeVM(service: service, authManager: auth, familyManager: family)
+
+        let result = await vm.prepare(for: makeCoach(email: "coach@x.edu"))
+
+        guard case .failed = result else { return XCTFail("expected .failed, got \(result)") }
+        XCTAssertTrue(service.fetchedAthleteIds.isEmpty)
+        XCTAssertTrue(service.createdTrackingAthleteIds.isEmpty)
+    }
+
+    func testParentNeverSendsProfileOfADifferentAthleteThanSelected() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile(userId: "other-athlete")   // server returned a different athlete's row
+
+        let result = await parentVM(service: service).prepare(for: makeCoach(email: "coach@x.edu"))
+
+        guard case .failed = result else { return XCTFail("expected .failed, got \(result)") }
+        XCTAssertTrue(service.createdTrackingAthleteIds.isEmpty)
     }
 
     // MARK: - logSend (interaction logging on confirmed send only)

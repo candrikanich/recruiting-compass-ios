@@ -29,11 +29,11 @@ struct ProfileCompletenessCard: View {
 
         VStack(alignment: .leading, spacing: 4) {
           Text("Complete Your Profile")
-            .font(.headline)
+            .font(.brand(.headline))
             .accessibilityAddTraits(.isHeader)
 
           Text("A complete profile helps coaches find you")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
         }
       }
@@ -48,18 +48,18 @@ struct ProfileCompletenessCard: View {
             } label: {
               HStack(spacing: 10) {
                 Image(systemName: field.icon)
-                  .foregroundStyle(Color.accentBlue)
+                  .foregroundStyle(Color.accentPrimary)
                   .frame(width: 20)
                   .accessibilityHidden(true)
 
                 Text(field.label)
-                  .font(.subheadline)
+                  .font(.brand(.subheadline))
                   .foregroundStyle(.primary)
 
                 Spacer()
 
                 Image(systemName: "chevron.right")
-                  .font(.caption2)
+                  .font(.brand(.caption2))
                   .foregroundStyle(Color.secondaryText)
                   .accessibilityHidden(true)
               }
@@ -95,7 +95,7 @@ struct ProfileCompletenessCard: View {
         .animation(.easeInOut(duration: 0.5), value: percentage)
 
       Text("\(Int(percentage * 100))%")
-        .font(.caption.bold())
+        .font(.brand(.caption, weight: .bold))
         .foregroundStyle(ringColor)
     }
     .frame(width: 56, height: 56)
@@ -105,7 +105,7 @@ struct ProfileCompletenessCard: View {
   private var ringColor: Color {
     if percentage >= 0.80 { return Color.successGreen }
     if percentage >= 0.50 { return Color.amberGold }
-    return Color.Brand.blue600
+    return Color.accentPrimary
   }
 
   // MARK: - Compact Bar (>= 80%)
@@ -119,10 +119,10 @@ struct ProfileCompletenessCard: View {
 
       VStack(alignment: .leading, spacing: 4) {
         Text("Profile \(Int(percentage * 100))% Complete")
-          .font(.subheadline.weight(.semibold))
+          .font(.brand(.subheadline, weight: .semibold))
 
         Text("Great progress!")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
       }
 
@@ -151,10 +151,10 @@ struct ProfileCompletenessCard: View {
 
       VStack(alignment: .leading, spacing: 4) {
         Text("100% Complete")
-          .font(.subheadline.weight(.semibold))
+          .font(.brand(.subheadline, weight: .semibold))
 
         Text("Your profile is fully set up!")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
       }
 

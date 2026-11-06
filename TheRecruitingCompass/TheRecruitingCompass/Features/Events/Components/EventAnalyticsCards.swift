@@ -15,8 +15,8 @@ struct EventAnalyticsCards: View {
         title: "Total Events",
         value: analytics.totalCount,
         icon: "calendar.circle.fill",
-        backgroundColor: Color.blue.opacity(0.1),
-        iconColor: .blue,
+        backgroundColor: Color.accentPrimary.opacity(0.1),
+        iconColor: Color.accentPrimary,
         accessibilityLabelOverride: analytics.totalCount == 1
           ? "1 total event"
           : "\(analytics.totalCount) total events"
@@ -26,8 +26,8 @@ struct EventAnalyticsCards: View {
         title: "Upcoming",
         value: analytics.upcomingCount,
         icon: "arrow.right.circle.fill",
-        backgroundColor: Color.purple.opacity(0.1),
-        iconColor: .purple,
+        backgroundColor: Color.Category.gold.opacity(0.1),
+        iconColor: Color.Category.gold,
         accessibilityLabelOverride: analytics.upcomingCount == 1
           ? "1 upcoming event"
           : "\(analytics.upcomingCount) upcoming events"

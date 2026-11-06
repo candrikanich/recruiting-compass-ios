@@ -8,6 +8,10 @@ final class MockActivityFeedService: ActivityFeedManaging, @unchecked Sendable {
   var mockStatusChanges: [SchoolStatusHistory] = []
   var mockDocuments: [DocumentRecord] = []
   var mockSchoolNames: [String: String] = [:]
+  /// Takes precedence over `mockInteractions` for a family.
+  var interactionsByFamily: [String: [Interaction]] = [:]
+  /// Awaited at the start of `fetchInteractions`, so a test can hold one family's fetch open.
+  var beforeFetchInteractions: (@Sendable (String) async -> Void)?
 
   // MARK: - Error Flags
 
@@ -25,16 +29,17 @@ final class MockActivityFeedService: ActivityFeedManaging, @unchecked Sendable {
 
   // MARK: - Captured Arguments
 
-  var lastFetchInteractionsUserId: String?
-  var lastFetchStatusChangesUserId: String?
-  var lastFetchDocumentsUserId: String?
+  var lastFetchInteractionsFamilyUnitId: String?
+  var lastFetchStatusChangesFamilyUnitId: String?
+  var lastFetchDocumentsFamilyUnitId: String?
   var lastFetchSchoolNamesIds: [String]?
 
   // MARK: - ActivityFeedManaging
 
-  func fetchInteractions(userId: String) async throws -> [Interaction] {
+  func fetchInteractions(familyUnitId: String) async throws -> [Interaction] {
     fetchInteractionsCallCount += 1
-    lastFetchInteractionsUserId = userId
+    lastFetchInteractionsFamilyUnitId = familyUnitId
+    await beforeFetchInteractions?(familyUnitId)
     if shouldThrowOnInteractions {
       throw NSError(
         domain: "MockActivityFeed",
@@ -42,12 +47,12 @@ final class MockActivityFeedService: ActivityFeedManaging, @unchecked Sendable {
         userInfo: [NSLocalizedDescriptionKey: "Mock interactions fetch error"]
       )
     }
-    return mockInteractions
+    return interactionsByFamily[familyUnitId] ?? mockInteractions
   }
 
-  func fetchStatusChanges(userId: String) async throws -> [SchoolStatusHistory] {
+  func fetchStatusChanges(familyUnitId: String) async throws -> [SchoolStatusHistory] {
     fetchStatusChangesCallCount += 1
-    lastFetchStatusChangesUserId = userId
+    lastFetchStatusChangesFamilyUnitId = familyUnitId
     if shouldThrowOnStatusChanges {
       throw NSError(
         domain: "MockActivityFeed",
@@ -58,9 +63,9 @@ final class MockActivityFeedService: ActivityFeedManaging, @unchecked Sendable {
     return mockStatusChanges
   }
 
-  func fetchDocuments(userId: String) async throws -> [DocumentRecord] {
+  func fetchDocuments(familyUnitId: String) async throws -> [DocumentRecord] {
     fetchDocumentsCallCount += 1
-    lastFetchDocumentsUserId = userId
+    lastFetchDocumentsFamilyUnitId = familyUnitId
     if shouldThrowOnDocuments {
       throw NSError(
         domain: "MockActivityFeed",
@@ -99,9 +104,9 @@ final class MockActivityFeedService: ActivityFeedManaging, @unchecked Sendable {
     fetchStatusChangesCallCount = 0
     fetchDocumentsCallCount = 0
     fetchSchoolNamesCallCount = 0
-    lastFetchInteractionsUserId = nil
-    lastFetchStatusChangesUserId = nil
-    lastFetchDocumentsUserId = nil
+    lastFetchInteractionsFamilyUnitId = nil
+    lastFetchStatusChangesFamilyUnitId = nil
+    lastFetchDocumentsFamilyUnitId = nil
     lastFetchSchoolNamesIds = nil
   }
 }

@@ -13,7 +13,7 @@ final class AppStoreScreenshotTests: XCTestCase {
       "Set CAPTURE_SCREENSHOTS=1 to capture App Store screenshots"
     )
     app = XCUIApplication()
-    E2ETestEnvironment.configure(app)
+    E2ETestEnvironment.configure(app, animated: true)
     app.launchArguments.append("--local-captcha-bypass")
     // Timeline and Action Items are served by the web API; run it locally (`nuxi dev` on :3003).
     app.launchEnvironment["API_BASE_URL"] =

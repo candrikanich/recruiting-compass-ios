@@ -11,12 +11,12 @@ struct InboundDraftCard: View {
       header
       if let subject = draft.subject, !subject.isEmpty {
         Text(subject)
-          .font(.subheadline.weight(.semibold))
+          .font(.brand(.subheadline, weight: .semibold))
       }
       if let body = draft.bodyText, !body.isEmpty {
         Text(body)
           // web renders `whitespace-pre-line` — preserve line breaks, no HTML.
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
           .lineLimit(6)
       }
@@ -31,9 +31,9 @@ struct InboundDraftCard: View {
   private var header: some View {
     VStack(alignment: .leading, spacing: 2) {
       Text(senderLine)
-        .font(.subheadline.weight(.medium))
+        .font(.brand(.subheadline, weight: .medium))
       Text(draft.occurredAtDate, style: .date)
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
     }
   }

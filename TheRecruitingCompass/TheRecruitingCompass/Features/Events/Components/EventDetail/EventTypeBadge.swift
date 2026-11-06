@@ -11,10 +11,10 @@ struct EventTypeBadge: View {
 
   private var badgeColor: Color {
     switch eventType {
-    case .showcase: return .purple
+    case .showcase: return Color.Category.gold
     case .camp: return .green
-    case .officialVisit: return .blue
-    case .unofficialVisit: return .cyan
+    case .officialVisit: return Color.accentPrimary
+    case .unofficialVisit: return Color.Category.clay
     case .game: return .orange
     case nil: return .gray
     }

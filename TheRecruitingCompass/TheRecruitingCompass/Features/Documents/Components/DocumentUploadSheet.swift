@@ -20,7 +20,7 @@ struct DocumentUploadSheet: View {
           )) {
             Text("Select Type").tag(nil as DocumentType?)
             ForEach(DocumentType.uploadableCases, id: \.self) { type in
-              Text("\(type.typeEmoji) \(type.label)").tag(type as DocumentType?)
+              Label(type.label, systemImage: type.systemImage).tag(type as DocumentType?)
             }
           }
           .accessibilityLabel(String(localized: "Document type"))
@@ -69,7 +69,7 @@ struct DocumentUploadSheet: View {
 
           if let type = viewModel.uploadType {
             Text("Allowed: \(type.allowedExtensions.joined(separator: ", "))")
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.secondary)
           }
 
@@ -77,21 +77,21 @@ struct DocumentUploadSheet: View {
             VStack(alignment: .leading, spacing: 8) {
               if viewModel.uploadProgress > 0 && viewModel.uploadProgress < 1 {
                 ProgressView(value: viewModel.uploadProgress)
-                  .tint(.blue)
+                  .tint(Color.accentPrimary)
               } else {
                 ProgressView()
               }
               Text(viewModel.uploadProgress > 0 && viewModel.uploadProgress < 1
                 ? "\(Int(viewModel.uploadProgress * 100))%"
                 : String(localized: "Uploading..."))
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
             }
           }
 
           if let uploadError = viewModel.uploadError {
             Text(uploadError)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.red)
           }
         } header: {

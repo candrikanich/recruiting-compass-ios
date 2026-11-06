@@ -17,6 +17,68 @@ final class VideoLinksEditorViewModelTests: XCTestCase {
       healthStatus: .unknown, lastHealthCheck: nil, createdAt: nil, updatedAt: nil)
   }
 
+  func test_addLink_blankFamilyUnitId_refusesToInsert() async {
+    let mock = MockVideoLinksService()
+    let vm = VideoLinksEditorViewModel(service: mock, athleteUserId: "u1", familyUnitId: "  ", isReadOnly: false)
+
+    let ok = await vm.addLink(platform: .youtube, url: "https://youtu.be/x", title: nil)
+
+    XCTAssertFalse(ok)
+    XCTAssertTrue(mock.links.isEmpty)
+    XCTAssertNotNil(vm.errorMessage)
+  }
+
+  func test_addLink_nonHttpURL_refusesToInsert() async {
+    let (vm, mock) = makeVM()
+    for bad in ["javascript:alert(1)", "ftp://x.com/a", "hudl.com/x", "data:text/html,hi", "file:///x"] {
+      let ok = await vm.addLink(platform: .hudl, url: bad, title: nil)
+      XCTAssertFalse(ok, bad)
+    }
+    XCTAssertTrue(mock.links.isEmpty)
+    XCTAssertNotNil(vm.errorMessage)
+  }
+
+  func test_updateLink_nonHttpURL_refusesToSend() async {
+    let (vm, mock) = makeVM(seed: [link("a", 0)])
+    await vm.load()
+    let ok = await vm.updateLink(id: "a", platform: .hudl, url: "javascript:alert(1)", title: nil)
+    XCTAssertFalse(ok)
+    XCTAssertEqual(mock.links.first?.url, "https://hudl.com/a")
+    XCTAssertNotNil(vm.errorMessage)
+  }
+
+  func test_addLink_trailingSpaceSavesAsCleanURL() async {
+    let (vm, mock) = makeVM()
+    let ok = await vm.addLink(platform: .hudl, url: "https://hudl.com/x ", title: nil)
+    XCTAssertTrue(ok)
+    XCTAssertEqual(mock.links.first?.url, "https://hudl.com/x")
+  }
+
+  func test_updateLink_trailingSpaceSavesAsCleanURL() async {
+    let (vm, mock) = makeVM(seed: [link("a", 0)])
+    await vm.load()
+    let ok = await vm.updateLink(id: "a", platform: .hudl, url: "https://hudl.com/y\n", title: nil)
+    XCTAssertTrue(ok)
+    XCTAssertEqual(mock.links.first?.url, "https://hudl.com/y")
+  }
+
+  func test_addLink_hostlessURLRefusesToInsert() async {
+    let (vm, mock) = makeVM()
+    for bad in ["https://", "http://", "https:///etc/passwd", "https:hudl.com"] {
+      let ok = await vm.addLink(platform: .hudl, url: bad, title: nil)
+      XCTAssertFalse(ok, bad)
+    }
+    XCTAssertTrue(mock.links.isEmpty)
+    XCTAssertEqual(vm.errorMessage, HTTPURL.invalidMessage)
+  }
+
+  func test_addLink_mixedCaseHttpsStillSaves() async {
+    let (vm, mock) = makeVM()
+    let ok = await vm.addLink(platform: .hudl, url: "HTTPS://hudl.com/x", title: nil)
+    XCTAssertTrue(ok)
+    XCTAssertEqual(mock.links.count, 1)
+  }
+
   func test_loadPopulatesLinks() async {
     let (vm, _) = makeVM(seed: [link("a", 0), link("b", 1)])
     await vm.load()

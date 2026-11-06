@@ -168,7 +168,7 @@ struct RecruitingCalendarWidget: View {
     VStack(alignment: .leading, spacing: 12) {
       if showHeader {
         Text("Recruiting Calendar")
-          .font(.headline)
+          .font(.brand(.headline))
           .accessibilityAddTraits(.isHeader)
 
         Divider()
@@ -198,7 +198,7 @@ struct RecruitingCalendarWidget: View {
             .foregroundStyle(Color.orange)
             .accessibilityHidden(true)
           Text("This calendar is for the \(RecruitingCalendarData.season) season, which has ended. Dates for the next season have not been verified yet.")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
         }
         .padding(.vertical, 4)
@@ -207,24 +207,24 @@ struct RecruitingCalendarWidget: View {
       if let current {
         VStack(alignment: .leading, spacing: 4) {
           Text("Right now")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
           Text(periodLabel(for: current.type))
-            .font(.subheadline.weight(.semibold))
+            .font(.brand(.subheadline, weight: .semibold))
           Text(current.description)
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
         }
       } else {
         Text("No recruiting-period data available for today")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
           .padding(.vertical)
       }
 
       VStack(alignment: .leading, spacing: 6) {
         Text("Upcoming")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.secondaryText)
         UpcomingMilestonesWidget(milestones: upcomingMilestones)
       }
@@ -233,11 +233,11 @@ struct RecruitingCalendarWidget: View {
 
       VStack(alignment: .leading, spacing: 4) {
         Text("Based on NCAA \(RecruitingCalendarData.season), verified \(calendar.verifiedOn) — confirm with your compliance office")
-          .font(.caption2)
+          .font(.brand(.caption2))
           .foregroundStyle(Color.secondaryText)
         if let sourceURL = URL(string: calendar.source) {
           Link(String(localized: "View source"), destination: sourceURL)
-            .font(.caption2)
+            .font(.brand(.caption2))
         }
       }
     }

@@ -11,8 +11,6 @@ import UIKit
 /// (reorder + eye toggle), Recruitment Status, then a live preview + QR code.
 struct PublicTab: View {
     @State private var vm: PublicProfileViewModel
-    @State private var bioSaveTask: Task<Void, Never>?
-    @State private var lookingForSaveTask: Task<Void, Never>?
     @State private var exportedPDF: ExportedProfilePDF?
     @State private var isExporting = false
     @State private var isShowingShareSheet = false
@@ -41,9 +39,18 @@ struct PublicTab: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                if !vm.isConfigured {
+                switch vm.contentState {
+                case .selectAthlete:
+                    selectAthleteNotice
+                case .unconfigured:
                     unconfiguredNotice
-                } else {
+                case .failed(let message):
+                    loadFailedNotice(message)
+                case .loading:
+                    ProgressView()
+                        .frame(maxWidth: .infinity, minHeight: 120)
+                        .accessibilityLabel(String(localized: "Loading public profile"))
+                case .editor:
                     workspaceBar
                     shareCard
                     appearanceCard
@@ -53,7 +60,7 @@ struct PublicTab: View {
 
                     if let saveError = vm.saveError {
                         Text(saveError)
-                            .font(.caption)
+                            .font(.brand(.caption))
                             .foregroundStyle(.red)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .accessibilityLabel(Text(saveError))
@@ -68,6 +75,10 @@ struct PublicTab: View {
             await vm.load()
             await vm.assembleCard()
             await vm.refreshGuardianStatus()
+        }
+        .onDisappear {
+            let capturedVM = vm
+            Task { await capturedVM.flushPendingSaves() }
         }
         .sheet(item: $exportedPDF) { pdf in
             ActivityShareSheet(activityItems: [pdf.url])
@@ -85,7 +96,7 @@ struct PublicTab: View {
     private var workspaceBar: some View {
         HStack {
             Label(String(localized: "RecruitingCompass Workspace"), systemImage: "viewfinder.circle")
-                .font(.subheadline.weight(.semibold))
+                .font(.brand(.subheadline, weight: .semibold))
             Spacer()
             HStack(spacing: 8) {
                 statusPill
@@ -103,7 +114,7 @@ struct PublicTab: View {
 
         if vm.isGuardianPending && !vm.isPublished {
             Text("Publishing is locked until your guardian confirms your account.")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, 16)
         }
@@ -114,7 +125,7 @@ struct PublicTab: View {
         Text(vm.isPublished
              ? String(localized: "Your profile is live & public")
              : String(localized: "Not published"))
-        .font(.caption.weight(.medium))
+        .font(.brand(.caption, weight: .medium))
         .padding(.horizontal, 10)
         .padding(.vertical, 4)
         .background(vm.isPublished ? Color.green.opacity(0.15) : Color.Surface.muted)
@@ -149,7 +160,7 @@ struct PublicTab: View {
     private var vanitySlugField: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(String(localized: "Custom URL (optional)"))
-                .font(.subheadline)
+                .font(.brand(.subheadline))
             TextField(String(localized: "your-name"), text: $vm.vanitySlug)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
@@ -158,7 +169,7 @@ struct PublicTab: View {
                 .onSubmit { commit() }
             if let slugError = vm.slugError {
                 Text(slugError)
-                    .font(.caption)
+                    .font(.brand(.caption))
                     .foregroundStyle(.red)
             }
         }
@@ -170,7 +181,7 @@ struct PublicTab: View {
     private var appearanceCard: some View {
         boxedCard(title: String(localized: "1. Appearance Settings")) {
             Text(String(localized: "Hero Background Color Theme"))
-                .font(.subheadline)
+                .font(.brand(.subheadline))
             HeaderColorPicker(selection: $vm.headerColor)
                 .onChange(of: vm.headerColor) { _, _ in commit() }
 
@@ -178,10 +189,10 @@ struct PublicTab: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Label(String(localized: "Upload Custom Banner"), systemImage: "photo")
-                    .font(.footnote.weight(.medium))
+                    .font(.brand(.footnote, weight: .medium))
                     .foregroundStyle(Color.Text.muted)
                 Text(String(localized: "Recommended: 1200×400 JPG or PNG"))
-                    .font(.caption2)
+                    .font(.brand(.caption2))
                     .foregroundStyle(Color.Text.muted)
                 // Parity note: web doesn't render the banner on the public hero yet
                 // either (§7 of the handoff spec) — this control round-trips
@@ -209,7 +220,7 @@ struct PublicTab: View {
     private var bioField: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(String(localized: "Bio"))
-                .font(.subheadline)
+                .font(.brand(.subheadline))
             TextEditor(text: $vm.bio)
                 .frame(minHeight: 100)
                 .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.Surface.border, lineWidth: 1))
@@ -217,10 +228,10 @@ struct PublicTab: View {
                     if newValue.count > bioCharacterLimit {
                         vm.bio = String(newValue.prefix(bioCharacterLimit))
                     }
-                    scheduleDebouncedSave(&bioSaveTask)
+                    vm.scheduleDebouncedSave(.bio)
                 }
             Text("\(vm.bio.count)/\(bioCharacterLimit)")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
         }
     }
@@ -229,7 +240,7 @@ struct PublicTab: View {
     private var lookingForField: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(String(localized: "What I'm Looking For"))
-                .font(.subheadline)
+                .font(.brand(.subheadline))
             TextEditor(text: $vm.lookingFor)
                 .frame(minHeight: 80)
                 .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.Surface.border, lineWidth: 1))
@@ -237,10 +248,10 @@ struct PublicTab: View {
                     if newValue.count > lookingForCharacterLimit {
                         vm.lookingFor = String(newValue.prefix(lookingForCharacterLimit))
                     }
-                    scheduleDebouncedSave(&lookingForSaveTask)
+                    vm.scheduleDebouncedSave(.lookingFor)
                 }
             Text("\(vm.lookingFor.count)/\(lookingForCharacterLimit)")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
         }
     }
@@ -249,7 +260,7 @@ struct PublicTab: View {
     private var valuesTagsEditor: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(String(localized: "Values"))
-                .font(.subheadline)
+                .font(.brand(.subheadline))
             if !vm.valuesTags.isEmpty {
                 FlowChips(chips: vm.valuesTags.map { "\($0)  ×" })
                     // Tap targets: a chip-per-tag remove list, mirroring web's
@@ -258,7 +269,7 @@ struct PublicTab: View {
                 VStack(alignment: .leading, spacing: 4) {
                     ForEach(vm.valuesTags, id: \.self) { tag in
                         HStack {
-                            Text(tag).font(.footnote)
+                            Text(tag).font(.brand(.footnote))
                             Spacer()
                             Button {
                                 vm.removeValueTag(tag)
@@ -282,7 +293,7 @@ struct PublicTab: View {
                 .disabled(newValueTag.trimmingCharacters(in: .whitespaces).isEmpty || vm.valuesTags.count >= 12)
             }
             Text(String(localized: "\(vm.valuesTags.count)/12"))
-                .font(.caption2)
+                .font(.brand(.caption2))
                 .foregroundStyle(.secondary)
         }
     }
@@ -291,11 +302,11 @@ struct PublicTab: View {
     private var awardsEditor: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(String(localized: "Awards"))
-                .font(.subheadline)
+                .font(.brand(.subheadline))
             ForEach(vm.awards) { award in
                 HStack {
                     Text(award.year.map { "\(award.title) · \($0)" } ?? award.title)
-                        .font(.footnote)
+                        .font(.brand(.footnote))
                     Spacer()
                     Button {
                         vm.removeAward(award)
@@ -358,11 +369,11 @@ struct PublicTab: View {
                 }
                 .disabled(index == vm.sections.count - 1)
             }
-            .font(.caption)
+            .font(.brand(.caption))
             .accessibilityLabel(String(localized: "Reorder \(section.key.label)"))
 
             Text(section.key.label)
-                .font(.footnote)
+                .font(.brand(.footnote))
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             Button {
@@ -384,7 +395,7 @@ struct PublicTab: View {
     private var recruitmentStatusCard: some View {
         boxedCard(title: String(localized: "4. Recruitment Status")) {
             Picker(String(localized: "Commitment Status"), selection: $vm.commitmentStatus) {
-                ForEach(CommitmentStatus.allCases, id: \.self) { status in
+                ForEach(CommitmentStatus.selectableCases, id: \.self) { status in
                     Text(status.label).tag(status)
                 }
             }
@@ -392,7 +403,7 @@ struct PublicTab: View {
             .onChange(of: vm.commitmentStatus) { _, _ in commit() }
 
             Text(String(localized: "Updating this adds a status tag to your live page"))
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(Color.Text.muted)
 
             if vm.commitmentStatus == .committed {
@@ -413,7 +424,7 @@ struct PublicTab: View {
     private var livePreview: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text(String(localized: "What coaches see"))
-                .font(.headline)
+                .font(.brand(.headline))
             if let card = vm.cardData {
                 PublicProfileCard(data: card)
                 downloadPDFButton(card: card)
@@ -436,7 +447,7 @@ struct PublicTab: View {
                     Image(systemName: "arrow.down.doc").accessibilityHidden(true)
                 }
                 Text(String(localized: "Download as PDF"))
-                    .font(.callout.weight(.semibold))
+                    .font(.brand(.callout, weight: .semibold))
             }
             .frame(maxWidth: .infinity)
             .frame(minHeight: 44)
@@ -464,14 +475,51 @@ struct PublicTab: View {
     }
 
     @ViewBuilder
+    private var selectAthleteNotice: some View {
+        Text(String(localized: "Select an athlete to edit their public profile."))
+            .font(.brand(.subheadline))
+            .foregroundStyle(.secondary)
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.Surface.card)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    @ViewBuilder
+    private func loadFailedNotice(_ message: String) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(String(localized: "Public profile didn't load"))
+                .font(.brand(.headline))
+            Text(message)
+                .font(.brand(.subheadline))
+                .foregroundStyle(.secondary)
+            Button {
+                Task {
+                    await vm.load()
+                    await vm.assembleCard()
+                }
+            } label: {
+                Label(String(localized: "Retry"), systemImage: "arrow.clockwise")
+                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: 44)
+            }
+            .buttonStyle(.bordered)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.Surface.card)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    @ViewBuilder
     private var unconfiguredNotice: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(String(localized: "Public profile not available"))
-                .font(.headline)
+                .font(.brand(.headline))
             Text(String(
                 localized: "Set up your public profile on the web to share a coach-facing link."
             ))
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
         }
         .padding()
@@ -483,7 +531,7 @@ struct PublicTab: View {
     @ViewBuilder
     private func boxedCard<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(title).font(.subheadline.weight(.semibold))
+            Text(title).font(.brand(.subheadline, weight: .semibold))
             content()
         }
         .padding(16)
@@ -496,20 +544,6 @@ struct PublicTab: View {
         Task {
             await vm.save()
             await vm.assembleCard()
-        }
-    }
-
-    /// Debounced auto-save, since `TextEditor` has no reliable commit event
-    /// (`.onSubmit` never fires for multi-line text) and would otherwise lose
-    /// edits unless another control happens to be touched afterward.
-    private func scheduleDebouncedSave(_ task: inout Task<Void, Never>?) {
-        task?.cancel()
-        let capturedVM = vm
-        task = Task {
-            try? await Task.sleep(nanoseconds: 700_000_000)
-            if Task.isCancelled { return }
-            await capturedVM.save()
-            await capturedVM.assembleCard()
         }
     }
 }

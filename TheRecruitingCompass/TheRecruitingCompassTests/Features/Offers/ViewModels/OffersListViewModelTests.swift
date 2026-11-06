@@ -29,6 +29,10 @@ final class OffersListViewModelTests: XCTestCase {
       familyService: mockFamilyService,
       authManager: mockAuthManager
     )
+    familyManager.currentMember = FamilyMember(
+      id: "member-1", userId: "test-user-id", familyUnitId: "family-1", role: "athlete",
+      addedAt: "2025-01-01T00:00:00Z", user: nil
+    )
     viewModel = OffersListViewModel(
       offersService: mockService,
       familyManager: familyManager,

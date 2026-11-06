@@ -28,6 +28,178 @@ final class FamilyManagementViewModelTests: XCTestCase {
     mockInboundDraftsService = nil
   }
 
+  // MARK: - sendEmailInvite errors
+
+  func testSendEmailInvite_serverRejection_showsServerMessage() async {
+    let message = "This person is already a member of your family"
+    mockFamilyService.shouldSucceed = false
+    mockFamilyService.mockError = FamilyError.serverError(message)
+    sut.inviteEmail = "member@example.com"
+
+    await sut.sendEmailInvite()
+
+    XCTAssertEqual(sut.errorMessage, message)
+  }
+
+  func testSendEmailInvite_nonServerError_usesGenericMessage() async {
+    mockFamilyService.shouldSucceed = false
+    mockFamilyService.mockError = URLError(.notConnectedToInternet)
+    sut.inviteEmail = "member@example.com"
+
+    await sut.sendEmailInvite()
+
+    XCTAssertEqual(sut.errorMessage, "Failed to send invite. Please try again.")
+  }
+
+  func testSendEmailInvite_parentWhoseFamilyHasPlayer_invitesWithParentRole() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    var family = ParentFamilyData(
+      familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith Family", codeGeneratedAt: "x"
+    )
+    family.members = [makeFamilyMember(id: "m1", userId: "user-1", role: "parent"),
+                      makeFamilyMember(id: "m2", userId: "user-2", role: "player")]
+    sut.parentFamilies = [family]
+    sut.inviteEmail = "grandma@example.com"
+
+    await sut.sendEmailInvite()
+
+    XCTAssertEqual(mockFamilyService.sendEmailInviteCallCount, 1)
+    XCTAssertEqual(mockFamilyService.lastInviteRole, "parent")
+  }
+
+  func testSendEmailInvite_sendsSelectedFamilyId() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    sut.parentFamilies = [
+      ParentFamilyData(familyId: "family-A", familyCode: "A", familyName: "A", codeGeneratedAt: "x"),
+      ParentFamilyData(familyId: "family-B", familyCode: "B", familyName: "B", codeGeneratedAt: "x")
+    ]
+    sut.selectedFamilyId = "family-B"
+    sut.inviteEmail = "grandma@example.com"
+
+    await sut.sendEmailInvite()
+
+    XCTAssertEqual(mockFamilyService.lastInviteFamilyUnitId, "family-B")
+  }
+
+  func testRoleChoice_followsSelectedFamilyNotAnyFamily() {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    var withPlayer = ParentFamilyData(familyId: "family-A", familyCode: "A", familyName: "A", codeGeneratedAt: "x")
+    withPlayer.members = [makeFamilyMember(id: "m2", userId: "user-2", role: "player")]
+    let withoutPlayer = ParentFamilyData(familyId: "family-B", familyCode: "B", familyName: "B", codeGeneratedAt: "x")
+    sut.parentFamilies = [withPlayer, withoutPlayer]
+
+    sut.selectedFamilyId = "family-B"
+    XCTAssertTrue(sut.offersInviteRoleChoice)
+
+    sut.selectedFamilyId = "family-A"
+    XCTAssertFalse(sut.offersInviteRoleChoice)
+  }
+
+  func testInviteRequestBody_encodesFamilyUnitIdAndParentRole() throws {
+    let body = FamilyServiceImpl.InviteRequestBody(
+      email: "mom@example.com", role: "parent", pendingPlayerDetails: nil, familyUnitId: "family-B"
+    )
+    let json = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: JSONEncoder().encode(body)) as? [String: Any]
+    )
+    XCTAssertEqual(json["family_unit_id"] as? String, "family-B")
+    XCTAssertEqual(json["role"] as? String, "parent")
+  }
+
+  func testInviteRequestBody_omitsFamilyUnitIdWhenNil() throws {
+    let body = FamilyServiceImpl.InviteRequestBody(
+      email: "mom@example.com", role: "parent", pendingPlayerDetails: nil, familyUnitId: nil
+    )
+    let json = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: JSONEncoder().encode(body)) as? [String: Any]
+    )
+    XCTAssertNil(json["family_unit_id"])
+  }
+
+  func testSendEmailInvite_parentWhoseFamilyHasNoPlayer_invitesWithPlayerRole() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    sut.inviteEmail = "kid@example.com"
+
+    await sut.sendEmailInvite()
+
+    XCTAssertEqual(mockFamilyService.sendEmailInviteCallCount, 1)
+    XCTAssertEqual(mockFamilyService.lastInviteRole, "player")
+  }
+
+  func testSendEmailInvite_parentWithNoPlayer_choosingParentInvitesWithParentRole() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    sut.inviteRole = .parent
+    sut.inviteEmail = "coparent@example.com"
+
+    await sut.sendEmailInvite()
+
+    XCTAssertEqual(mockFamilyService.lastInviteRole, "parent")
+  }
+
+  func testSendEmailInvite_parentWithNoPlayer_choosingPlayerInvitesWithPlayerRole() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    sut.inviteRole = .player
+    sut.inviteEmail = "kid@example.com"
+
+    await sut.sendEmailInvite()
+
+    XCTAssertEqual(mockFamilyService.lastInviteRole, "player")
+  }
+
+  func testSendEmailInvite_player_neverInvitesPlayerEvenIfChoiceIsPlayer() async {
+    mockAuthManager.setMockUser(makeUser(role: .player))
+    sut.inviteRole = .player
+    sut.inviteEmail = "mom@example.com"
+
+    await sut.sendEmailInvite()
+
+    XCTAssertEqual(mockFamilyService.lastInviteRole, "parent")
+  }
+
+  func testSendEmailInvite_parentWhoseFamilyHasPlayer_neverInvitesPlayerEvenIfChoiceIsPlayer() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    var family = ParentFamilyData(
+      familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith Family", codeGeneratedAt: "x"
+    )
+    family.members = [makeFamilyMember(id: "m2", userId: "user-2", role: "player")]
+    sut.parentFamilies = [family]
+    sut.inviteRole = .player
+    sut.inviteEmail = "grandma@example.com"
+
+    await sut.sendEmailInvite()
+
+    XCTAssertEqual(mockFamilyService.lastInviteRole, "parent")
+  }
+
+  func testOffersInviteRoleChoice_onlyForParentWithNoPlayer() {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    XCTAssertTrue(sut.offersInviteRoleChoice)
+
+    var family = ParentFamilyData(
+      familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith Family", codeGeneratedAt: "x"
+    )
+    family.members = [makeFamilyMember(id: "m2", userId: "user-2", role: "player")]
+    sut.parentFamilies = [family]
+    XCTAssertFalse(sut.offersInviteRoleChoice)
+
+    mockAuthManager.setMockUser(makeUser(role: .player))
+    sut.parentFamilies = []
+    XCTAssertFalse(sut.offersInviteRoleChoice)
+  }
+
+  func testInviteCardTitle_dependsOnWhetherFamilyHasPlayer() {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    XCTAssertEqual(sut.inviteCardTitle, "Invite a Family Member")
+    XCTAssertNotEqual(sut.inviteCardTitle, "Invite Player by Email")
+
+    var family = ParentFamilyData(
+      familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith Family", codeGeneratedAt: "x"
+    )
+    family.members = [makeFamilyMember(id: "m2", userId: "user-2", role: "player")]
+    sut.parentFamilies = [family]
+    XCTAssertEqual(sut.inviteCardTitle, "Invite Family to Follow Along")
+  }
+
   // MARK: - Test Helpers
 
   private func makeUser(id: String = "user-1", role: UserRole = .player) -> User {
@@ -135,17 +307,28 @@ final class FamilyManagementViewModelTests: XCTestCase {
     XCTAssertFalse(sut.isLoading)
   }
 
-  func testLoadData_asPlayer_noFamilyUnit_createsFamily() async {
+  func testLoadData_asPlayer_noFamilyUnit_neverCreatesOne() async {
     mockAuthManager.setMockUser(makeUser(role: .player))
     mockFamilyService.stubbedFamilyUnit = nil
 
     await sut.loadData()
 
     XCTAssertEqual(mockFamilyService.getFamilyUnitCallCount, 1)
-    XCTAssertEqual(mockFamilyService.createFamilyCallCount, 1)
-    XCTAssertEqual(sut.familyCode, "FAM-ABC123")
-    XCTAssertNotNil(sut.familyId)
+    XCTAssertEqual(mockFamilyService.createFamilyCallCount, 0)
+    XCTAssertNil(sut.familyId)
+    XCTAssertNotNil(sut.errorMessage)
     XCTAssertFalse(sut.isLoading)
+  }
+
+  func testLoadData_asParent_leftLastFamily_neverCreatesOne() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    mockFamilyService.mockParentFamilies = []
+
+    await sut.loadData()
+
+    XCTAssertEqual(mockFamilyService.createFamilyCallCount, 0)
+    XCTAssertEqual(mockFamilyService.getParentFamiliesCallCount, 1)
+    XCTAssertTrue(sut.parentFamilies.isEmpty)
   }
 
   func testLoadData_asPlayer_noUserId_setsError() async {
@@ -189,33 +372,6 @@ final class FamilyManagementViewModelTests: XCTestCase {
 
   // MARK: - Player Actions Tests
 
-  func testCreateFamily_success_setsState() async {
-    await sut.createFamily()
-
-    XCTAssertEqual(mockFamilyService.createFamilyCallCount, 1)
-    XCTAssertEqual(sut.familyCode, "FAM-ABC123")
-    XCTAssertEqual(sut.familyId, "family-1")
-    XCTAssertEqual(sut.familyName, "Test Family")
-    XCTAssertNotNil(sut.codeGeneratedAt)
-    XCTAssertTrue(sut.familyMembers.isEmpty)
-    XCTAssertTrue(sut.showSuccessToast)
-    XCTAssertEqual(sut.successMessage, "Family created successfully!")
-    XCTAssertFalse(sut.isLoading)
-  }
-
-  func testCreateFamily_error_setsError() async {
-    mockFamilyService.shouldSucceed = false
-    // Mock throws FamilyError.serverError("Mock error"); ViewModel shows error's description
-    mockFamilyService.mockError = FamilyError.serverError("Mock error")
-
-    await sut.createFamily()
-
-    XCTAssertNotNil(sut.errorMessage)
-    XCTAssertEqual(sut.errorMessage, "Mock error")
-    XCTAssertNil(sut.familyCode)
-    XCTAssertFalse(sut.isLoading)
-  }
-
   func testCopyCodeToClipboard_copiesCode() {
     sut.familyCode = "FAM-ABC123"
 
@@ -223,7 +379,7 @@ final class FamilyManagementViewModelTests: XCTestCase {
 
     XCTAssertEqual(UIPasteboard.general.string, "FAM-ABC123")
     XCTAssertTrue(sut.showSuccessToast)
-    XCTAssertEqual(sut.successMessage, "Family code copied to clipboard!")
+    XCTAssertEqual(sut.successMessage, "Family Code copied to clipboard!")
   }
 
   // MARK: - Inbound Address Tests
@@ -271,6 +427,80 @@ final class FamilyManagementViewModelTests: XCTestCase {
     XCTAssertEqual(sut.inboundAddresses.map(\.familyUnitId), ["family-1", "family-2"])
   }
 
+  func testDisplayLabel_parentFamily_usesServerLabelFromInboundAddress() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    mockFamilyService.mockParentFamilies = [
+      ParentFamilyData(familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith Family", codeGeneratedAt: "x"),
+      ParentFamilyData(familyId: "family-2", familyCode: "FAM-XYZ456", familyName: "Jones Family", codeGeneratedAt: "x")
+    ]
+    mockInboundDraftsService.addressesToReturn = [
+      InboundFamilyAddress(familyUnitId: "family-1", familyName: "Smith Family", familyLabel: "Alex's Family", address: "a@b.c")
+    ]
+
+    await sut.loadData()
+
+    XCTAssertEqual(sut.displayLabel(for: sut.parentFamilies[0]), "Alex's Family")
+    // No label for family-2 (old API or fetch gap): keep the stored name, never compute one.
+    XCTAssertEqual(sut.displayLabel(for: sut.parentFamilies[1]), "Jones Family")
+  }
+
+  func testParentFamilyHasPlayer_falseUntilAFamilyHasAPlayer() {
+    XCTAssertFalse(sut.parentFamilyHasPlayer)
+
+    var family = ParentFamilyData(familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith Family", codeGeneratedAt: "x")
+    family.members = [makeFamilyMember(id: "m1", role: "parent")]
+    sut.parentFamilies = [family]
+    XCTAssertFalse(sut.parentFamilyHasPlayer)
+
+    sut.parentFamilies[0].members.append(makeFamilyMember(id: "m2", userId: "user-2", role: "player"))
+    XCTAssertTrue(sut.parentFamilyHasPlayer)
+  }
+
+  func testSendEmailInvite_asParent_invitesPlayerUntilFamilyHasOne() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    var family = ParentFamilyData(familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith Family", codeGeneratedAt: "x")
+    family.members = [makeFamilyMember(id: "m1", role: "parent")]
+    sut.parentFamilies = [family]
+
+    sut.inviteEmail = "kid@example.com"
+    await sut.sendEmailInvite()
+    XCTAssertEqual(mockFamilyService.lastInviteRole, "player")
+
+    sut.parentFamilies[0].members.append(makeFamilyMember(id: "m2", userId: "user-2", role: "player"))
+    sut.inviteEmail = "grandma@example.com"
+    await sut.sendEmailInvite()
+    XCTAssertEqual(mockFamilyService.lastInviteRole, "parent")
+    XCTAssertEqual(mockFamilyService.sendEmailInviteCallCount, 2)
+  }
+
+  func testPlayerFamilyCodeHeading_usesServerLabelElseGenericHeading() async {
+    mockAuthManager.setMockUser(makeUser(role: .player))
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit(familyName: "My Family")
+    mockInboundDraftsService.addressesToReturn = [
+      InboundFamilyAddress(familyUnitId: "family-1", familyName: "My Family", familyLabel: "Alex's Family", address: "a@b.c")
+    ]
+    await sut.loadData()
+    XCTAssertEqual(sut.playerFamilyCodeHeading, "Alex's Family Code")
+
+    // Old prod: no label, stored name is the generic default; heading must not change.
+    mockInboundDraftsService.addressesToReturn = [
+      InboundFamilyAddress(familyUnitId: "family-1", familyName: "My Family", address: "a@b.c")
+    ]
+    await sut.loadData()
+    XCTAssertEqual(sut.playerFamilyCodeHeading, "Your Family Code")
+  }
+
+  func testJoinFamily_successMessageUsesServerLabel() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    sut.codeInput = "FAM-ABC123"
+    mockFamilyService.mockParentFamilies = []
+    mockFamilyService.stubbedJoinResponse = JoinFamilyResponse(familyId: "f", familyName: "Smith Family", familyLabel: "Alex's Family")
+
+    await sut.joinFamily()
+
+    XCTAssertEqual(sut.successMessage, "Successfully joined Alex's Family!")
+  }
+
   func testLoadData_inboundAddressFetchFailure_doesNotSetErrorOrFailLoad() async {
     mockAuthManager.setMockUser(makeUser(role: .player))
     mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
@@ -309,7 +539,7 @@ final class FamilyManagementViewModelTests: XCTestCase {
     XCTAssertNotNil(sut.codeGeneratedAt)
     XCTAssertFalse(sut.showRegenerateConfirmation)
     XCTAssertTrue(sut.showSuccessToast)
-    XCTAssertEqual(sut.successMessage, "Family code regenerated successfully!")
+    XCTAssertEqual(sut.successMessage, "Family Code regenerated successfully!")
     XCTAssertFalse(sut.isLoading)
   }
 
@@ -326,11 +556,11 @@ final class FamilyManagementViewModelTests: XCTestCase {
   func testRegenerateCode_error_setsError() async {
     sut.familyId = "family-1"
     mockFamilyService.shouldSucceed = false
+    mockFamilyService.mockError = FamilyError.serverError("Only the family owner can regenerate the code")
 
     await sut.regenerateCode()
 
-    XCTAssertNotNil(sut.errorMessage)
-    XCTAssertEqual(sut.errorMessage, "Failed to regenerate code. Please try again.")
+    XCTAssertEqual(sut.errorMessage, "Only the family owner can regenerate the code")
     XCTAssertFalse(sut.isLoading)
   }
 
@@ -366,11 +596,11 @@ final class FamilyManagementViewModelTests: XCTestCase {
     sut.memberToRemove = member
     sut.familyMembers = [member]
     mockFamilyService.shouldSucceed = false
+    mockFamilyService.mockError = FamilyError.serverError("Only the family owner can remove members")
 
     await sut.removeMember()
 
-    XCTAssertNotNil(sut.errorMessage)
-    XCTAssertEqual(sut.errorMessage, "Failed to remove family member. Please try again.")
+    XCTAssertEqual(sut.errorMessage, "Only the family owner can remove members")
     XCTAssertEqual(sut.familyMembers.count, 1) // Not removed
     XCTAssertFalse(sut.isLoading)
   }
@@ -454,8 +684,8 @@ final class FamilyManagementViewModelTests: XCTestCase {
 
     XCTAssertEqual(mockFamilyService.joinFamilyWithCodeCallCount, 1)
     XCTAssertEqual(mockFamilyService.lastFamilyCodeJoined, "FAM-ABC123")
-    // loadParentData() calls getParentFamilies(); if empty then createFamily() then getParentFamilies() again
-    XCTAssertEqual(mockFamilyService.getParentFamiliesCallCount, 2)
+    XCTAssertEqual(mockFamilyService.createFamilyCallCount, 0)
+    XCTAssertEqual(mockFamilyService.getParentFamiliesCallCount, 1)
     XCTAssertEqual(sut.codeInput, "")
     XCTAssertTrue(sut.showSuccessToast)
     XCTAssertEqual(sut.successMessage, "Successfully joined family!")
@@ -468,7 +698,7 @@ final class FamilyManagementViewModelTests: XCTestCase {
     await sut.joinFamily()
 
     XCTAssertNotNil(sut.errorMessage)
-    XCTAssertEqual(sut.errorMessage, "Invalid family code format. Codes look like FAM-XXXXXX")
+    XCTAssertEqual(sut.errorMessage, "Invalid Family Code format. Codes look like FAM-XXXXXX")
     XCTAssertEqual(mockFamilyService.joinFamilyWithCodeCallCount, 0)
   }
 
@@ -493,7 +723,7 @@ final class FamilyManagementViewModelTests: XCTestCase {
 
     await sut.joinFamily()
 
-    XCTAssertEqual(sut.errorMessage, "Invalid family code format. Codes look like FAM-XXXXXX")
+    XCTAssertEqual(sut.errorMessage, "Invalid Family Code format. Codes look like FAM-XXXXXX")
     XCTAssertFalse(sut.isLoading)
   }
 
@@ -511,5 +741,165 @@ final class FamilyManagementViewModelTests: XCTestCase {
     sut.clearError()
 
     XCTAssertNil(sut.errorMessage)
+  }
+
+  // MARK: - Leave flow & server-driven gating (ios#365)
+
+  private func parentFamily(canLeave: Bool? = true, reason: String? = nil) -> ParentFamilyData {
+    var family = ParentFamilyData(
+      familyId: "family-1", familyCode: "FAM-ABC123", familyName: "Smith", codeGeneratedAt: "x"
+    )
+    family.canLeave = canLeave
+    family.leaveBlockedReason = reason
+    return family
+  }
+
+  func testLoadData_asParent_carriesServerLeaveVerdictAndMemberRules() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    mockFamilyService.mockParentFamilies = [parentFamily(canLeave: nil)]
+    var blocked = makeFamilyMember(id: "m1", role: "parent")
+    blocked.canRemove = false
+    blocked.removeBlockedReason = "Only guardian."
+    mockFamilyService.stubbedDetailByFamilyId["family-1"] = FamilyMembersDetail(
+      members: [blocked], canLeave: false, leaveBlockedReason: "Invite another guardian first."
+    )
+
+    await sut.loadData()
+
+    XCTAssertEqual(sut.parentFamilies.first?.canLeave, false)
+    XCTAssertEqual(sut.parentFamilies.first?.leaveBlockedReason, "Invite another guardian first.")
+    XCTAssertEqual(sut.parentFamilies.first?.members.first?.removeBlockedReason, "Only guardian.")
+  }
+
+  func testLoadData_detailEndpointDown_fallsBackToDirectReadWithNoRuleVerdicts() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    mockFamilyService.mockParentFamilies = [parentFamily(canLeave: nil)]
+    mockFamilyService.detailError = FamilyError.serverError("down")
+    mockFamilyService.stubbedFamilyMembers = [makeFamilyMember(id: "m1")]
+
+    await sut.loadData()
+
+    XCTAssertEqual(sut.parentFamilies.first?.members.count, 1)
+    XCTAssertNil(sut.parentFamilies.first?.canLeave, "no verdict means no Leave button")
+    XCTAssertNil(sut.parentFamilies.first?.members.first?.canRemove)
+  }
+
+  func testLeave_success_sendsUnconfirmed_dropsFamily_andRefreshesContext() async {
+    sut.parentFamilies = [parentFamily()]
+    var refreshed = false
+    sut.onMembershipChanged = { refreshed = true }
+    sut.confirmLeave(sut.parentFamilies[0])
+
+    await sut.leaveFamily()
+
+    XCTAssertEqual(mockFamilyService.leaveCalls.map(\.familyId), ["family-1"])
+    XCTAssertEqual(mockFamilyService.leaveCalls.map(\.confirm), [false])
+    XCTAssertTrue(sut.parentFamilies.isEmpty)
+    XCTAssertTrue(refreshed)
+    XCTAssertEqual(sut.successMessage, "You left the family.")
+    XCTAssertNil(sut.errorMessage)
+  }
+
+  func testLeave_lastMember_asksForConfirmation_thenResendsWithConfirmDeleteFamily() async {
+    sut.parentFamilies = [parentFamily()]
+    mockFamilyService.leaveResults = [
+      .failure(FamilyError.lastMemberConfirmationRequired("Leaving deletes the family and all of its data.")),
+      .success(.familyDeleted)
+    ]
+    sut.confirmLeave(sut.parentFamilies[0])
+
+    await sut.leaveFamily()
+
+    XCTAssertTrue(sut.showLastMemberConfirmation)
+    XCTAssertEqual(sut.lastMemberLeaveWarning, "Leaving deletes the family and all of its data.")
+    XCTAssertEqual(sut.parentFamilies.count, 1, "nothing removed until the user confirms")
+    XCTAssertNil(sut.errorMessage, "the confirmation prompt is not an error")
+
+    await sut.leaveFamily(confirmDeleteFamily: true)
+
+    XCTAssertEqual(mockFamilyService.leaveCalls.map(\.confirm), [false, true])
+    XCTAssertTrue(sut.parentFamilies.isEmpty)
+    XCTAssertEqual(sut.successMessage, "Family deleted.")
+  }
+
+  func testLeave_cancelAtLastMemberPrompt_neverSendsConfirm() async {
+    sut.parentFamilies = [parentFamily()]
+    mockFamilyService.leaveResults = [.failure(FamilyError.lastMemberConfirmationRequired("warn"))]
+    sut.confirmLeave(sut.parentFamilies[0])
+    await sut.leaveFamily()
+
+    sut.cancelLeave()
+
+    XCTAssertEqual(mockFamilyService.leaveCalls.count, 1)
+    XCTAssertFalse(sut.showLastMemberConfirmation)
+    XCTAssertEqual(sut.parentFamilies.count, 1)
+  }
+
+  func testLeave_serverRefusal_showsServerMessage_andKeepsFamily() async {
+    sut.parentFamilies = [parentFamily()]
+    mockFamilyService.leaveResults = [
+      .failure(FamilyError.serverError("You're the player's only guardian, so you can leave once they turn 18."))
+    ]
+    sut.confirmLeave(sut.parentFamilies[0])
+
+    await sut.leaveFamily()
+
+    XCTAssertEqual(sut.errorMessage, "You're the player's only guardian, so you can leave once they turn 18.")
+    XCTAssertEqual(sut.parentFamilies.count, 1)
+  }
+
+  func testLeave_busyRetryError_showsRetryableServerMessage() async {
+    sut.parentFamilies = [parentFamily()]
+    mockFamilyService.leaveResults = [
+      .failure(FamilyError.busyRetry("Someone else just changed this family. Please try again."))
+    ]
+    sut.confirmLeave(sut.parentFamilies[0])
+
+    await sut.leaveFamily()
+
+    XCTAssertEqual(sut.errorMessage, "Someone else just changed this family. Please try again.")
+    XCTAssertEqual(sut.parentFamilies.count, 1)
+  }
+
+  func testRemoveMember_refreshesParentFamilyRulesAfterSuccess() async {
+    mockAuthManager.setMockUser(makeUser(role: .parent))
+    var family = parentFamily()
+    let member = makeFamilyMember(id: "m2", role: "parent")
+    family.members = [member]
+    sut.parentFamilies = [family]
+    mockFamilyService.stubbedDetailByFamilyId["family-1"] = FamilyMembersDetail(members: [], canLeave: false,
+                                                                                leaveBlockedReason: "Only member.")
+    sut.confirmRemoveMember(member)
+
+    await sut.removeMember()
+
+    XCTAssertEqual(sut.parentFamilies.first?.members.count, 0)
+    XCTAssertEqual(sut.parentFamilies.first?.leaveBlockedReason, "Only member.")
+  }
+
+  func testRemoveMember_success_refreshesAppWideFamilyContext() async {
+    let member = makeFamilyMember(id: "m1")
+    sut.familyMembers = [member]
+    sut.memberToRemove = member
+    var refreshed = false
+    sut.onMembershipChanged = { refreshed = true }
+
+    await sut.removeMember()
+
+    XCTAssertTrue(refreshed)
+  }
+
+  func testMemberCard_disabledRemoveShowsServerReason_andUnknownVerdictShowsNothing() {
+    var blocked = makeFamilyMember()
+    blocked.canRemove = false
+    blocked.removeBlockedReason = "Only guardian."
+    XCTAssertEqual(FamilyMemberCard(member: blocked, onRemove: {}).blockedReason, "Only guardian.")
+
+    var allowed = makeFamilyMember()
+    allowed.canRemove = true
+    allowed.removeBlockedReason = "stale"
+    XCTAssertNil(FamilyMemberCard(member: allowed, onRemove: {}).blockedReason)
+
+    XCTAssertNil(FamilyMemberCard(member: makeFamilyMember(), onRemove: {}).blockedReason)
   }
 }

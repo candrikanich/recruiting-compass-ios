@@ -18,12 +18,13 @@ extension SchoolCreateRequest {
   ///   - userId: The current user ID
   ///   - familyUnitId: The family unit ID
   /// - Returns: SchoolCreateRequest ready for API submission
+  /// - Throws: `FamilyUnitID.MissingError` when there is no family to stamp
   static func from(
     form: SchoolFormState,
     scorecardData: CollegeDataResult? = nil,
     userId: String,
-    familyUnitId: String
-  ) -> SchoolCreateRequest {
+    familyUnitId: String?
+  ) throws -> SchoolCreateRequest {
     // Required: name (trim whitespace)
     let name = form.name.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -73,7 +74,7 @@ extension SchoolCreateRequest {
       scorecardData: scorecardData
     )
 
-    return SchoolCreateRequest(
+    return try SchoolCreateRequest(
       userId: userId,
       familyUnitId: familyUnitId,
       name: name,
@@ -122,6 +123,32 @@ extension SchoolCreateRequest {
       tuitionOutOfState: scorecardData.tuitionOutOfState,
       admissionRate: scorecardData.admissionRate,
       distanceFromHome: nil
+    )
+  }
+
+  /// Creates a SchoolCreateRequest for a school added from the dashboard recommendations.
+  static func from(
+    recommendation: SchoolRecommendation,
+    userId: String,
+    familyUnitId: String?
+  ) throws -> SchoolCreateRequest {
+    try SchoolCreateRequest(
+      userId: userId,
+      familyUnitId: familyUnitId,
+      name: recommendation.name,
+      location: nil,
+      city: nil,
+      state: recommendation.state,
+      division: recommendation.division,
+      conference: recommendation.conference,
+      website: nil,
+      twitterHandle: nil,
+      instagramHandle: nil,
+      ncaaId: nil,
+      notes: nil,
+      status: SchoolStatus.researching.rawValue,
+      academicInfo: nil,
+      faviconUrl: nil
     )
   }
 }

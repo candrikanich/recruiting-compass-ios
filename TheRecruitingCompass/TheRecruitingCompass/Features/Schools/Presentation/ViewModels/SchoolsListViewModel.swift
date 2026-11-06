@@ -82,9 +82,6 @@ final class SchoolsListViewModel {
   /// stat (activity-derived, matching the dashboard's interaction count — NOT the
   /// `status` field). Populated alongside `visitedSchoolIds` in `loadSchools()`.
   private(set) var contactedSchoolIds: Set<String> = []
-  /// Family-scoped interaction list from the most recent `loadSchools()` — reused by
-  /// `prepareSchoolExport()` for per-school interaction counts without a second fetch.
-  private var lastInteractions: [Interaction] = []
   private var distanceCache: [String: Double] = [:]
   private var distanceCacheOrderedKeys: [String] = []
   private static let maxDistanceCacheEntries = 300
@@ -248,21 +245,19 @@ final class SchoolsListViewModel {
   /// - `visitedSchoolIds`: a visit-type interaction OR a past-dated visit event.
   ///   Status is deliberately NOT a visit signal (invited/scheduled ≠ visited).
   private func refreshInteractionDerivedIds(familyUnitId: String) async {
-    async let interactions = fetchVisitInteractions(familyUnitId: familyUnitId)
-    async let events = fetchVisitEvents(userId: familyManager.selectedAthlete?.userId)
+    async let contactSignals = fetchContactSignals(familyUnitId: familyUnitId)
+    async let visitEvents = fetchVisitEvents(userId: familyManager.selectedAthlete?.userId)
 
     var visited: Set<String> = []
     var contacted: Set<String> = []
-    for interaction in await interactions {
-      guard let schoolId = interaction.schoolId else { continue }
+    for signal in await contactSignals {
+      guard let schoolId = signal.schoolId else { continue }
       contacted.insert(schoolId)
-      if interaction.type == .inPersonVisit { visited.insert(schoolId) }
+      if signal.type == .inPersonVisit { visited.insert(schoolId) }
     }
     let now = Date()
-    for event in await events {
-      guard event.type == EventType.officialVisit.rawValue
-        || event.type == EventType.unofficialVisit.rawValue,
-        let schoolId = event.schoolId,
+    for event in await visitEvents {
+      guard let schoolId = event.schoolId,
         let start = Self.parseDate(event.startDate), start <= now
       else { continue }
       visited.insert(schoolId)
@@ -272,21 +267,19 @@ final class SchoolsListViewModel {
     recomputeAnalytics()
   }
 
-  private func fetchVisitInteractions(familyUnitId: String) async -> [Interaction] {
+  private func fetchContactSignals(familyUnitId: String) async -> [SchoolContactSignal] {
     do {
-      let interactions = try await interactionsService.fetchInteractions(familyUnitId: familyUnitId)
-      lastInteractions = interactions
-      return interactions
+      return try await interactionsService.fetchSchoolContactSignals(familyUnitId: familyUnitId)
     } catch {
       logger.debug("Could not load interactions for visit signal: \(error.localizedDescription)")
       return []
     }
   }
 
-  private func fetchVisitEvents(userId: String?) async -> [FullEvent] {
+  private func fetchVisitEvents(userId: String?) async -> [SchoolVisitEvent] {
     guard let userId else { return [] }
     do {
-      return try await eventsService.fetchEvents(userId: userId)
+      return try await eventsService.fetchVisitEvents(userId: userId)
     } catch {
       logger.debug("Could not load events for visit signal: \(error.localizedDescription)")
       return []
@@ -458,8 +451,8 @@ final class SchoolsListViewModel {
     }
   }
 
-  /// Fetched fresh (not `lastInteractions`) so a family switch, or an interaction logged/deleted
-  /// since the list last loaded, is reflected in the export rather than a stale cached snapshot.
+  /// Fetched at export time so a family switch, or an interaction logged/deleted since the list
+  /// last loaded, is reflected in the export. The list itself loads only contact signals.
   private func fetchInteractionsForExport(familyUnitId: String?) async -> ExportFetchResult<Interaction> {
     guard let familyUnitId else { return ExportFetchResult(items: [], succeeded: true) }
     do {

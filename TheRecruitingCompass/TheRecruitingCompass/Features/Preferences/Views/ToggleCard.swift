@@ -15,11 +15,11 @@ struct ToggleCard: View {
     } label: {
       VStack(spacing: 8) {
         Image(systemName: icon)
-          .font(.title2)
-          .foregroundStyle(isComingSoon ? Color.gray.opacity(0.4) : (isOn ? Color.blue : Color.gray))
+          .font(.brand(.title2))
+          .foregroundStyle(isComingSoon ? Color.gray.opacity(0.4) : (isOn ? Color.accentPrimary : Color.gray))
 
         Text(label)
-          .font(.caption)
+          .font(.brand(.caption))
           .fontWeight(.medium)
           .foregroundStyle(isComingSoon ? Color.secondary.opacity(0.5) : Color.primary)
           .multilineTextAlignment(.center)
@@ -27,7 +27,7 @@ struct ToggleCard: View {
 
         if isComingSoon {
           Text("Coming Soon")
-            .font(.caption2.weight(.semibold))
+            .font(.brand(.caption2, weight: .semibold))
             .foregroundStyle(.secondary)
             .padding(.horizontal, 4)
             .padding(.vertical, 2)
@@ -35,11 +35,11 @@ struct ToggleCard: View {
             .clipShape(.rect(cornerRadius: 4))
         } else if isOn {
           Image(systemName: "checkmark.circle.fill")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.green)
         } else {
           Image(systemName: "circle")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.gray)
         }
       }
@@ -47,11 +47,13 @@ struct ToggleCard: View {
       .padding(.vertical, 12)
       .background(
         RoundedRectangle(cornerRadius: 8)
-          .fill(isComingSoon ? Color(.systemGray6).opacity(0.5) : (isOn ? Color.blue.opacity(0.1) : Color(.systemGray6)))
+          .fill(isComingSoon
+                ? Color(.systemGray6).opacity(0.5)
+                : (isOn ? Color.accentPrimary.opacity(0.1) : Color(.systemGray6)))
       )
       .overlay(
         RoundedRectangle(cornerRadius: 8)
-          .stroke(isOn && !isComingSoon ? Color.blue : Color.clear, lineWidth: 3)
+          .stroke(isOn && !isComingSoon ? Color.accentPrimary : Color.clear, lineWidth: 3)
       )
       .scaleEffect(isOn && !isComingSoon ? 1.0 : 0.98)
     }

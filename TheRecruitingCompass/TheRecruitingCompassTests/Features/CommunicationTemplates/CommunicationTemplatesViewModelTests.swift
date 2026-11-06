@@ -325,6 +325,50 @@ final class CommunicationTemplatesViewModelTests: XCTestCase {
     XCTAssertEqual(viewModel.activeTab, .list)
   }
 
+  func testStartEditing_PredefinedUnknownType_DefaultsToKnownTypeAndCreatesWithIt() async {
+    let predefined = CommunicationTemplate(
+      id: "pre-2", userId: "", name: "Future", type: .unknown,
+      body: "Hello coach", variables: nil,
+      createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z",
+      isPredefined: true
+    )
+
+    viewModel.startEditing(template: predefined)
+    XCTAssertNotEqual(viewModel.formData.type, .unknown)
+
+    await viewModel.saveTemplate()
+
+    XCTAssertEqual(mockService.createTemplateCallCount, 1)
+    XCTAssertNotEqual(mockService.lastCreateFormData?.type, .unknown)
+  }
+
+  func testEditOwnedUnknownTypeTemplate_canSaveAndUpdatePayloadOmitsType() async throws {
+    let owned = makeTemplate(id: "own-u", name: "Mine", type: .unknown)
+    viewModel.startEditing(template: owned)
+    viewModel.formData.body = "edited body"
+    XCTAssertTrue(viewModel.canSave)
+
+    await viewModel.saveTemplate()
+
+    XCTAssertEqual(mockService.updateTemplateCallCount, 1)
+    let update = try XCTUnwrap(mockService.lastUpdateFormData)
+    let payload = CommunicationTemplatesServiceImpl.updatePayload(from: update)
+    let object = try JSONSerialization.jsonObject(with: JSONEncoder().encode(payload)) as? [String: Any]
+    XCTAssertNil(object?["type"])
+    XCTAssertNotNil(object?["body"])
+  }
+
+  func testCreateWithUnknownType_cannotSave() async {
+    viewModel.formData.name = "n"
+    viewModel.formData.body = "b"
+    viewModel.formData.type = .unknown
+    XCTAssertFalse(viewModel.canSave)
+
+    await viewModel.saveTemplate()
+
+    XCTAssertEqual(mockService.createTemplateCallCount, 0)
+  }
+
   func testStartEditing_OwnedTemplate_EditsInPlace() {
     let owned = makeTemplate(id: "own-1", name: "My Template")
 

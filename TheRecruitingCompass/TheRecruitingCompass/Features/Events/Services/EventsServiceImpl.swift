@@ -57,6 +57,18 @@ final class EventsServiceImpl: EventsManaging, Sendable {
     }
   }
 
+  func fetchVisitEvents(userId: String) async throws -> [SchoolVisitEvent] {
+    try await logger.fetch("visit events") {
+      try await supabaseManager.client
+        .from("events")
+        .select("school_id, start_date")
+        .eq("user_id", value: userId)
+        .in("type", values: [EventType.officialVisit.rawValue, EventType.unofficialVisit.rawValue])
+        .execute()
+        .value
+    }
+  }
+
   func fetchSchools(familyUnitId: String) async throws -> [SchoolSummary] {
     try await logger.fetch("schools") {
       try await supabaseManager.client
@@ -101,6 +113,19 @@ final class EventsServiceImpl: EventsManaging, Sendable {
       logger.error("deleteEvent \(id) failed: \(error.localizedDescription)")
       throw error
     }
+  }
+
+  func fetchSchoolName(schoolId: String) async throws -> String? {
+    let rows: [SchoolNameRow] = try await logger.fetch("school name") {
+      try await supabaseManager.client
+        .from("schools")
+        .select("id, name")
+        .eq("id", value: schoolId)
+        .limit(1)
+        .execute()
+        .value
+    }
+    return rows.first?.name
   }
 
   func fetchCoaches(schoolId: String, userId: String) async throws -> [Coach] {
@@ -173,28 +198,19 @@ final class EventsServiceImpl: EventsManaging, Sendable {
     }
   }
 
-  func createSchool(name: String, location: String?, userId: String, familyUnitId: String) async throws -> SchoolSummary {
+  func createSchool(
+    name: String,
+    location: String?,
+    userId: String,
+    familyUnitId: String?
+  ) async throws -> SchoolSummary {
     logger.debug("Creating school: \(name)")
-
-    struct CreateSchoolRequest: Encodable {
-      let name: String
-      let location: String?
-      let userId: String
-      let familyUnitId: String
-      let status: String
-
-      enum CodingKeys: String, CodingKey {
-        case name, location, status
-        case userId = "user_id"
-        case familyUnitId = "family_unit_id"
-      }
-    }
 
     let request = CreateSchoolRequest(
       name: name,
       location: location,
       userId: userId,
-      familyUnitId: familyUnitId,
+      familyUnitId: try FamilyUnitID.require(familyUnitId),
       status: SchoolStatus.researching.rawValue
     )
     do {

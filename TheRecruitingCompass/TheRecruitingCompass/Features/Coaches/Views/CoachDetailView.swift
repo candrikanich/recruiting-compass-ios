@@ -21,30 +21,40 @@ struct CoachDetailView: View {
 
   @State private var viewModel: CoachDetailViewModel
   @State private var quickCommunicationContext: QuickCommunicationContext?
-  @State private var sendProfileVM = SendProfileViewModel(
-    service: PublicProfileServiceImpl(),
-    authManager: AuthManager.shared
-  )
+  @State private var sendProfileVM: SendProfileViewModel
   @State private var shareItem: ShareURL?
   @State private var profileComposer: ProfileComposerContext?
   @State private var pendingChannelChoice: SendProfileMessage?
-  @State private var linkCopied = false
   @State private var showLogInteraction = false
   @State private var showSocialDMConfirm = false
-  @State private var realtimeService: CoachDetailRealtimeService?
+  @State private var realtimeService: (any CoachDetailRealtimeManaging)?
+  private let makeRealtimeService: @Sendable () -> any CoachDetailRealtimeManaging
   @Environment(\.sizeCategory) private var sizeCategory
   @Environment(\.dismiss) private var dismiss
   @Environment(\.openURL) private var openURL
   @Environment(\.scenePhase) private var scenePhase
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
 
-  init(coachId: String, allCoaches: [Coach] = [], allSchools: [School] = []) {
+  init(
+    coachId: String,
+    allCoaches: [Coach] = [],
+    allSchools: [School] = [],
+    viewModel: CoachDetailViewModel? = nil,
+    sendProfileViewModel: SendProfileViewModel? = nil,
+    makeRealtimeService: @escaping @Sendable () -> any CoachDetailRealtimeManaging = { CoachDetailRealtimeService() }
+  ) {
+    self.makeRealtimeService = makeRealtimeService
     self.coachId = coachId
     self.allCoaches = allCoaches
     self.allSchools = allSchools
-    _viewModel = State(initialValue: CoachDetailViewModel(
+    _viewModel = State(initialValue: viewModel ?? CoachDetailViewModel(
       coachId: coachId,
       allCoaches: allCoaches,
       allSchools: allSchools
+    ))
+    _sendProfileVM = State(initialValue: sendProfileViewModel ?? SendProfileViewModel(
+      service: PublicProfileServiceImpl(),
+      authManager: AuthManager.shared
     ))
   }
 
@@ -78,17 +88,19 @@ struct CoachDetailView: View {
       }
       ToolbarItem(placement: .primaryAction) {
         Menu {
-          Button {
-            if let coach = viewModel.coach {
-              quickCommunicationContext = QuickCommunicationContext(
-                coach: coach,
-                schoolName: viewModel.school?.name
-              )
+          if featureFlags.isEnabled(.athleteMessages) {
+            Button {
+              if let coach = viewModel.coach {
+                quickCommunicationContext = QuickCommunicationContext(
+                  coach: coach,
+                  schoolName: viewModel.school?.name
+                )
+              }
+            } label: {
+              Label("Quick Communication", systemImage: "envelope.badge")
             }
-          } label: {
-            Label("Quick Communication", systemImage: "envelope.badge")
+            .disabled(viewModel.isLoading || viewModel.coach == nil)
           }
-          .disabled(viewModel.isLoading || viewModel.coach == nil)
 
           Button {
             viewModel.startEditing()
@@ -167,6 +179,11 @@ struct CoachDetailView: View {
       } message: {
         Text("Sending your profile to coaches stays locked until your guardian confirms your account.")
       }
+      .alert("Send Profile", isPresented: sendProfileErrorBinding) {
+        Button("OK") { sendProfileVM.errorMessage = nil }
+      } message: {
+        Text(sendProfileVM.errorMessage ?? "")
+      }
       .confirmationDialog("Delete Coach", isPresented: $viewModel.showDeleteConfirmation, titleVisibility: .visible) {
         Button("Delete", role: .destructive) {
           Task {
@@ -211,9 +228,9 @@ struct CoachDetailView: View {
       .task {
         await viewModel.loadCoach()
         await viewModel.loadDetails()
-        await sendProfileVM.loadTrackingInfo(for: coachId)
         await subscribeRealtime()
       }
+      .modifier(SendProfileLoadModifier(viewModel: sendProfileVM, coachId: coachId))
       .onDisappear {
         let service = realtimeService
         realtimeService = nil
@@ -232,7 +249,7 @@ struct CoachDetailView: View {
 
   private func subscribeRealtime() async {
     guard realtimeService == nil else { return }
-    let service = CoachDetailRealtimeService()
+    let service = makeRealtimeService()
     realtimeService = service
     do {
       try await service.subscribe(coachId: coachId) { [viewModel] in
@@ -325,16 +342,22 @@ struct CoachDetailView: View {
   /// nothing shareable, so the action is hidden rather than shown-then-blocked.
   /// Once a link exists for this coach, also offers copy-link + view stats
   /// (parity with the web coach page).
+  /// Send Profile composes outreach addressed to the coach, so it follows the `athlete_messages` switch.
+  @MainActor
+  static func allowsSendProfile(isPublished: Bool, flags: FeatureFlagStore?) -> Bool {
+    isPublished && flags.isEnabled(.athleteMessages)
+  }
+
   @ViewBuilder
   private func sendProfileSection(coach: Coach) -> some View {
-    if sendProfileVM.isPublished {
+    if Self.allowsSendProfile(isPublished: sendProfileVM.isPublished, flags: featureFlags) {
       SectionCard(label: "Send Recruiting Profile") {
         VStack(alignment: .leading, spacing: 8) {
           Button {
             startSendProfile(coach: coach)
           } label: {
             Label("Send Profile", systemImage: "square.and.arrow.up")
-              .font(.body)
+              .font(.brand(.body))
           }
           .buttonStyle(.bordered)
           .accessibilityLabel(String(localized: "Send Profile"))
@@ -351,25 +374,27 @@ struct CoachDetailView: View {
   private var profileLinkStats: some View {
     if let count = sendProfileVM.viewCount {
       Text("Viewed \(count) \(count == 1 ? "time" : "times")")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
     }
     Button {
       sendProfileVM.copyTrackingLink()
-      linkCopied = true
-      Task {
-        try? await Task.sleep(for: .seconds(2))
-        linkCopied = false
-      }
     } label: {
       Label(
-        linkCopied ? "Copied" : "Copy Link",
-        systemImage: linkCopied ? "checkmark" : "doc.on.doc"
+        sendProfileVM.linkCopied ? "Copied" : "Copy Link",
+        systemImage: sendProfileVM.linkCopied ? "checkmark" : "doc.on.doc"
       )
-      .font(.caption)
+      .font(.brand(.caption))
     }
     .buttonStyle(.borderless)
     .accessibilityLabel(String(localized: "Copy profile link"))
+  }
+
+  private var sendProfileErrorBinding: Binding<Bool> {
+    Binding(
+      get: { sendProfileVM.errorMessage != nil },
+      set: { if !$0 { sendProfileVM.errorMessage = nil } }
+    )
   }
 
   private var channelChoiceBinding: Binding<Bool> {
@@ -381,6 +406,7 @@ struct CoachDetailView: View {
 
   /// Resolve the profile URL + boilerplate, then route to the matching channel.
   private func startSendProfile(coach: Coach) {
+    guard featureFlags.isEnabled(.athleteMessages) else { return }
     Task {
       switch await sendProfileVM.prepare(for: coach) {
       case let .email(message): presentComposer(.email, message)
@@ -395,6 +421,7 @@ struct CoachDetailView: View {
   /// Present the in-app composer when the device can send; otherwise fall back to
   /// the system share sheet (and log nothing — an external hand-off can't confirm).
   private func presentComposer(_ channel: SendProfileChannel, _ message: SendProfileMessage) {
+    guard featureFlags.isEnabled(.athleteMessages) else { return }
     switch channel {
     case .email:
       if MFMailComposeViewController.canSendMail() {

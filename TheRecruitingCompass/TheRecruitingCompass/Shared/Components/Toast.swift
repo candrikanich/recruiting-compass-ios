@@ -10,14 +10,15 @@ struct Toast: View {
   var body: some View {
     HStack(spacing: 12) {
       Image(systemName: type.iconName)
-        .font(.body)
+        .font(.brand(.body))
         .foregroundStyle(type.iconColor)
         .accessibilityHidden(true)
 
       Text(message)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.primary)
         .multilineTextAlignment(.leading)
+        .accessibilityLabel(type.announcement(for: message))
 
       Spacer()
 
@@ -25,7 +26,7 @@ struct Toast: View {
         onDismiss()
       } label: {
         Image(systemName: "xmark")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
           .frame(minWidth: 44, minHeight: 44)
           .contentShape(Rectangle())
@@ -36,9 +37,6 @@ struct Toast: View {
     .background(Color.Surface.card, in: RoundedRectangle(cornerRadius: 12))
     .brandShadowMd()
     .padding(.horizontal, 16)
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(message)
-    .accessibilityAddTraits(.updatesFrequently)
   }
 }
 

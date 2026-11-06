@@ -7,48 +7,69 @@ import OSLog
 extension FamilyServiceImpl {
   // Surfaces the h3 `createError` body (`{statusCode, statusMessage}`) from the invite API
   // so the UI shows the real reason (e.g. "already a member") instead of a generic string.
-  static func serverErrorMessage(from data: Data, statusCode: Int) -> String {
+  static func serverErrorMessage(
+    from data: Data,
+    statusCode: Int,
+    fallback: String = "Failed to send invite"
+  ) -> String {
     struct ServerError: Decodable { let statusMessage: String? }
     if let decoded = try? JSONDecoder().decode(ServerError.self, from: data),
        let message = decoded.statusMessage, !message.isEmpty {
       return message
     }
-    return "Failed to send invite (status \(statusCode))"
+    return "\(fallback) (status \(statusCode))"
   }
 
-  func sendEmailInvite(email: String, role: String, pendingPlayerDetails: PendingPlayerDetails? = nil) async throws {
-    guard let baseURL = SupabaseConfig.apiBaseURL else {
+  /// Accept failures (403 wrong email, 409 used, 410 expired, one-player-per-family 409s) carry the
+  /// message web's join.vue shows; keep it instead of a generic string.
+  static func acceptInviteFailure(data: Data, statusCode: Int) -> FamilyError {
+    .serverError(serverErrorMessage(from: data, statusCode: statusCode, fallback: "Failed to accept invite"))
+  }
+
+  struct InviteRequestBody: Encodable {
+    let email: String
+    let role: String
+    let pendingPlayerDetails: PendingPlayerDetails?
+    let familyUnitId: String?
+
+    enum CodingKeys: String, CodingKey {
+      case email
+      case role
+      case pendingPlayerDetails = "pending_player_details"
+      case familyUnitId = "family_unit_id"
+    }
+  }
+
+  func sendEmailInvite(
+    email: String,
+    role: String,
+    pendingPlayerDetails: PendingPlayerDetails? = nil,
+    familyUnitId: String? = nil
+  ) async throws {
+    guard let baseURL = apiBaseURL else {
       familyServiceLogger.error("sendEmailInvite: API_BASE_URL not configured")
       throw FamilyError.serverError("API base URL not configured. Set API_BASE_URL for invite features.")
     }
     let inviteURL = baseURL.appendingPathComponent("api/family/invite")
     familyServiceLogger.info("sendEmailInvite: POST \(inviteURL.absoluteString, privacy: .public) email=\(email.prefix(3))*** role=\(role)")
 
-    let token = try await supabaseManager.client.auth.session.accessToken
-
-    struct Body: Encodable {
-      let email: String
-      let role: String
-      let pendingPlayerDetails: PendingPlayerDetails?
-
-      enum CodingKeys: String, CodingKey {
-        case email
-        case role
-        case pendingPlayerDetails = "pending_player_details"
-      }
-    }
+    let token = try await apiAccessToken()
 
     var request = URLRequest(url: baseURL.appendingPathComponent("api/family/invite"))
     request.addClientHeaders()
     request.httpMethod = "POST"
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.httpBody = try JSONEncoder().encode(Body(email: email, role: role, pendingPlayerDetails: pendingPlayerDetails))
+    request.httpBody = try JSONEncoder().encode(
+      InviteRequestBody(
+        email: email, role: role, pendingPlayerDetails: pendingPlayerDetails, familyUnitId: familyUnitId
+      )
+    )
 
     let data: Data
     let response: URLResponse
     do {
-      (data, response) = try await URLSession.shared.data(for: request)
+      (data, response) = try await apiSession.data(for: request)
     } catch {
       familyServiceLogger.error("sendEmailInvite network error: \(error.localizedDescription, privacy: .public)")
       throw FamilyError.serverError("Failed to send invite: \(error.localizedDescription)")
@@ -101,12 +122,23 @@ extension FamilyServiceImpl {
     }
   }
 
+  func fetchInvitationsAddressed(toEmail email: String) async throws -> [FamilyInvitation] {
+    try await supabaseManager.client
+      .from("family_invitations")
+      .select("id, family_unit_id, invited_email, role, status, expires_at")
+      .eq("status", value: FamilyInvitation.Status.pending.rawValue)
+      .eq("invited_email", value: email.lowercased())
+      .gt("expires_at", value: ISO8601DateFormatter().string(from: .now))
+      .execute()
+      .value
+  }
+
   func revokeInvitation(id: String) async throws {
     familyServiceLogger.debug("Revoking invitation: \(id, privacy: .private)")
-    guard let baseURL = SupabaseConfig.apiBaseURL else {
+    guard let baseURL = apiBaseURL else {
       throw FamilyError.serverError("API base URL not configured")
     }
-    let token = try await supabaseManager.client.auth.session.accessToken
+    let token = try await apiAccessToken()
 
     let safeId = id.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? id
     var request = URLRequest(
@@ -118,7 +150,7 @@ extension FamilyServiceImpl {
     request.httpMethod = "DELETE"
     request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
 
-    let (_, response) = try await URLSession.shared.data(for: request)
+    let (_, response) = try await apiSession.data(for: request)
     guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
       familyServiceLogger.error("revokeInvitation failed for: \(id, privacy: .private)")
       throw FamilyError.serverError("Failed to revoke invite")
@@ -136,7 +168,9 @@ extension FamilyServiceImpl {
     let url = baseURL
       .appendingPathComponent("api/family/invite")
       .appendingPathComponent(safeToken)
-    let (data, response) = try await URLSession.shared.data(from: url)
+    var request = URLRequest(url: url)
+    request.addClientHeaders()
+    let (data, response) = try await URLSession.shared.data(for: request)
 
     guard let http = response as? HTTPURLResponse else {
       throw FamilyError.serverError("Invalid response")
@@ -185,7 +219,7 @@ extension FamilyServiceImpl {
     let (data, response) = try await URLSession.shared.data(for: request)
     guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
       familyServiceLogger.error("acceptInvite failed: status=\((response as? HTTPURLResponse)?.statusCode ?? -1)")
-      throw FamilyError.serverError("Failed to accept invite")
+      throw Self.acceptInviteFailure(data: data, statusCode: (response as? HTTPURLResponse)?.statusCode ?? -1)
     }
     do {
       let decoded = try JSONDecoder().decode(AcceptInviteResponse.self, from: data)
@@ -225,12 +259,12 @@ extension FamilyServiceImpl {
     familyServiceLogger.info("Invite declined: status=\(http.statusCode)")
   }
 
-  func resendInvitation(id: String, email: String, role: String) async throws {
+  func resendInvitation(id: String, email: String, role: String, familyUnitId: String? = nil) async throws {
     familyServiceLogger.debug("Resending invitation to: \(email.prefix(3))***")
     try await revokeInvitation(id: id)
     // Brief delay so server can commit revoke before create (avoids soft-delete/race)
     try await Task.sleep(for: .milliseconds(500))
-    try await sendEmailInvite(email: email, role: role, pendingPlayerDetails: nil)
+    try await sendEmailInvite(email: email, role: role, pendingPlayerDetails: nil, familyUnitId: familyUnitId)
     familyServiceLogger.info("Invitation resent to: \(email.prefix(3))***")
   }
 }

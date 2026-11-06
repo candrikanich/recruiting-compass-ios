@@ -18,11 +18,11 @@ struct RoleSelectionCard: View {
 
           VStack(alignment: .leading, spacing: 4) {
             Text(role.displayName)
-              .font(.callout.weight(.semibold))
+              .font(.brand(.callout, weight: .semibold))
               .foregroundStyle(.white)
 
             Text(role.description)
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.white.opacity(0.85))
               .lineLimit(2)
           }
@@ -42,8 +42,8 @@ struct RoleSelectionCard: View {
       .padding(16)
       .background(
         isSelected
-          ? Color.primaryGreen
-          : Color.primaryGreen.opacity(0.85)
+          ? Color.accentFill
+          : Color.accentFill.opacity(0.85)
       )
       .clipShape(.rect(cornerRadius: 12))
     }

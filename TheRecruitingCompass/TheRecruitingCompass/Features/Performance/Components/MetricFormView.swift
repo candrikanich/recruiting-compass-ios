@@ -51,13 +51,13 @@ struct MetricFormView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 20) {
       Text(title)
-        .font(.title2)
+        .font(.brand(.title2))
         .bold()
 
       VStack(alignment: .leading, spacing: 16) {
         VStack(alignment: .leading, spacing: 4) {
           Text("Metric Type")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .fontWeight(.medium)
           Picker("Metric Type", selection: $formState.metricType) {
             Text("Select Metric").tag(nil as MetricType?)
@@ -73,7 +73,7 @@ struct MetricFormView: View {
 
         if formState.metricType == .other {
           VStack(alignment: .leading, spacing: 4) {
-            Text("Metric Name").font(.subheadline).fontWeight(.medium)
+            Text("Metric Name").font(.brand(.subheadline)).fontWeight(.medium)
             TextField("e.g. Vertical Jump", text: $formState.otherName)
               .textFieldStyle(.roundedBorder)
               .accessibilityLabel(String(localized: "Custom metric name"))
@@ -82,7 +82,7 @@ struct MetricFormView: View {
 
         VStack(alignment: .leading, spacing: 4) {
           Text("Value")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .fontWeight(.medium)
           TextField("0.00", text: $formState.value)
             .keyboardType(.decimalPad)
@@ -92,7 +92,7 @@ struct MetricFormView: View {
 
         VStack(alignment: .leading, spacing: 4) {
           Text("Date")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .fontWeight(.medium)
           DatePicker("Date", selection: $formState.recordedDate, displayedComponents: .date)
             .labelsHidden()
@@ -101,7 +101,7 @@ struct MetricFormView: View {
 
         VStack(alignment: .leading, spacing: 4) {
           Text("Unit")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .fontWeight(.medium)
           if let type = formState.metricType, !type.unitIsFixed {
             // "Other" — pick from the shared vocabulary.
@@ -129,12 +129,12 @@ struct MetricFormView: View {
         }
 
         Toggle("Verified by third party", isOn: $formState.verified)
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .accessibilityLabel(String(localized: "Verified by third party"))
 
         VStack(alignment: .leading, spacing: 4) {
           Text("Notes")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .fontWeight(.medium)
           TextField("Additional context...", text: $formState.notes, axis: .vertical)
             .lineLimit(3...5)

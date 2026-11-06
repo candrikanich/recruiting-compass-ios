@@ -35,7 +35,7 @@ private struct DocumentViewerIconButton: View {
   var body: some View {
     Button(action: action) {
       Image(systemName: systemName)
-        .font(.title2)
+        .font(.brand(.title2))
         .foregroundStyle(isEnabled ? .white : .gray)
         .frame(minWidth: DocumentViewerLayout.toolbarButtonMinSize, minHeight: DocumentViewerLayout.toolbarButtonMinSize)
         .contentShape(Rectangle())
@@ -69,10 +69,8 @@ struct DocumentViewerView: View {
 
       contentArea
 
-      if viewModel.isToolbarVisible {
-        topToolbar
-          .animation(.easeInOut(duration: DocumentViewerLayout.toolbarAnimationDuration), value: viewModel.isToolbarVisible)
-      }
+      topToolbar
+        .animation(.easeInOut(duration: DocumentViewerLayout.toolbarAnimationDuration), value: viewModel.isToolbarVisible)
 
       if viewModel.collection != nil && viewModel.isToolbarVisible {
         bottomNavigationBar
@@ -105,13 +103,14 @@ struct DocumentViewerView: View {
         }
     )
     .onTapGesture {
-      viewModel.cancelToolbarAutoHide()
       withAnimation(.easeInOut(duration: DocumentViewerLayout.toolbarAnimationDuration)) {
-        viewModel.isToolbarVisible.toggle()
+        viewModel.toggleToolbar()
       }
-      if viewModel.isToolbarVisible, viewModel.document?.isVideo == true {
-        viewModel.scheduleToolbarAutoHide()
-      }
+    }
+    .accessibilityAction(.escape) { dismiss() }
+    .accessibilityAction(named: Text("Show controls")) {
+      viewModel.isToolbarVisible = true
+      viewModel.scheduleToolbarAutoHide()
     }
     .onChange(of: viewModel.document?.id) { _, _ in
       viewModel.cancelToolbarAutoHide()
@@ -183,10 +182,12 @@ struct DocumentViewerView: View {
         Spacer()
 
         Text(viewModel.document?.title ?? String(localized: "Document"))
-          .font(.headline)
+          .font(.brand(.headline))
           .foregroundStyle(.white)
           .lineLimit(1)
           .truncationMode(.tail)
+          .opacity(viewModel.isToolbarVisible ? 1 : 0)
+          .accessibilityHidden(!viewModel.isToolbarVisible)
 
         Spacer()
 
@@ -195,8 +196,8 @@ struct DocumentViewerView: View {
             systemName: "square.and.arrow.up",
             accessibilityLabel: String(localized: "Share document"),
             accessibilityIdentifier: "document-viewer-share",
-            isEnabled: !viewModel.shareItems.isEmpty,
-            action: { viewModel.shareDocument() }
+            isEnabled: viewModel.document != nil && !viewModel.isDownloading,
+            action: { Task { await viewModel.shareDocument() } }
           )
 
           DocumentViewerIconButton(
@@ -207,9 +208,13 @@ struct DocumentViewerView: View {
             action: { Task { await viewModel.downloadDocument() } }
           )
         }
+        .opacity(viewModel.isToolbarVisible ? 1 : 0)
+        .allowsHitTesting(viewModel.isToolbarVisible)
+        .accessibilityHidden(!viewModel.isToolbarVisible)
       }
       .padding(.horizontal, 16)
       .padding(.vertical, 12)
+      .background(Color.black.opacity(viewModel.isToolbarVisible ? DocumentViewerLayout.overlayOpacity : 0))
 
       if viewModel.isDownloading {
         VStack(spacing: 4) {
@@ -218,7 +223,7 @@ struct DocumentViewerView: View {
             .tint(.white)
           if viewModel.downloadProgress > 0, viewModel.downloadProgress < 1 {
             Text("\(Int(viewModel.downloadProgress * 100))%")
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.white)
           }
         }
@@ -228,8 +233,6 @@ struct DocumentViewerView: View {
 
       Spacer()
     }
-    .background(Color.black.opacity(DocumentViewerLayout.overlayOpacity))
-    .transition(.opacity)
   }
 
   @ViewBuilder
@@ -248,7 +251,7 @@ struct DocumentViewerView: View {
           Spacer()
 
           Text("\(viewModel.currentIndex + 1) of \(coll.documents.count)")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.white)
             .accessibilityLabel(String(localized: "Document \(viewModel.currentIndex + 1) of \(coll.documents.count)"))
 
@@ -288,12 +291,12 @@ struct DocumentViewerView: View {
 
       VStack(spacing: 20) {
         Image(systemName: "exclamationmark.triangle")
-          .font(.largeTitle)
+          .font(.brand(.largeTitle))
           .foregroundStyle(.white)
           .accessibilityHidden(true)
 
         Text(viewModel.errorMessage ?? String(localized: "Something went wrong"))
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.white)
           .multilineTextAlignment(.center)
           .padding(.horizontal)
@@ -303,6 +306,7 @@ struct DocumentViewerView: View {
         }
         .buttonStyle(.borderedProminent)
         .tint(.white)
+        .foregroundStyle(.black)
         .frame(minWidth: 44, minHeight: 44)
         .contentShape(Rectangle())
         .accessibilityLabel(String(localized: "Retry loading document"))

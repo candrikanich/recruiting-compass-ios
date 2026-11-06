@@ -9,6 +9,9 @@ enum TemplateType: String, Codable, CaseIterable, Sendable {
   /// Types offered in pickers/filters. Excludes `.unknown` (decode-only fallback).
   static var selectable: [TemplateType] { [.email, .message, .social] }
 
+  /// Raw value safe to send to the server; nil for the decode-only `unknown` fallback so the key is omitted.
+  var serverValue: String? { self == .unknown ? nil : rawValue }
+
   /// Fail-soft decode: DB uses email/message/social; legacy iOS rows used text/twitter.
   /// Any unrecognized string becomes `.unknown` so one bad row can't throw the array decode.
   init(from decoder: Decoder) throws {
@@ -32,9 +35,9 @@ enum TemplateType: String, Codable, CaseIterable, Sendable {
 
   var color: Color {
     switch self {
-    case .email: return .accentBlue
+    case .email: return .accentPrimary
     case .message: return .successGreen
-    case .social: return .cyan
+    case .social: return Color.Category.clay
     case .unknown: return .gray
     }
   }

@@ -9,7 +9,7 @@ The workflow requires two secrets to be configured:
 | Secret Name | Description | Example Value |
 |-------------|-------------|---------------|
 | `SUPABASE_URL` | Your Supabase project URL | `https://your-project.supabase.co` |
-| `SUPABASE_ANON_KEY` | Your Supabase anonymous key | `eyJhbGciOiJIUzI1NiIsInR5cCI6...` |
+| `SUPABASE_ANON_KEY` | Your Supabase publishable key (legacy `anon` JWT also works) | `sb_publishable_...` |
 
 ## Setup Instructions
 

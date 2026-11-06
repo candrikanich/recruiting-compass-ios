@@ -31,13 +31,13 @@ struct FormFieldWrapper<Content: View>: View {
       // Label with required indicator
       HStack {
         Text(label)
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .fontWeight(.medium)
           .foregroundStyle(.secondary)
 
         if isRequired {
           Text("*")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.red)
             .accessibilityHidden(true)
         }

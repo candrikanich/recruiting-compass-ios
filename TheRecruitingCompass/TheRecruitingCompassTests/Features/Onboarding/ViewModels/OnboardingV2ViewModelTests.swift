@@ -423,21 +423,30 @@ private final class StubFamilyService: FamilyManaging, @unchecked Sendable {
   )
 
   func getFamilyUnit(forUserId userId: String) async throws -> FamilyUnit? { stubbedFamilyUnit }
+  func getFamilyUnit(id: String) async throws -> FamilyUnit? { stubbedFamilyUnit }
+  func getMemberships(userId: String) async throws -> [FamilyMember] { [] }
+  func familyPlayers(among familyUnitIds: [String]) async throws -> [FamilyPlayer] { [] }
   func fetchFamilyMembers(familyUnitId: String) async throws -> [FamilyMember] { [] }
-  func getCurrentMember(userId: String) async throws -> FamilyMember? { nil }
   func createFamily(role: UserRole) async throws -> CreateFamilyResponse {
     fatalError("Not used in onboarding v2 tests")
   }
   func regenerateCode(familyId: String) async throws -> RegenerateFamilyCodeResponse {
     fatalError("Not used in onboarding v2 tests")
   }
+  func fetchFamilyDetail(familyUnitId: String) async throws -> FamilyMembersDetail {
+    FamilyMembersDetail(members: [])
+  }
+  func leaveFamily(familyId: String, confirmDeleteFamily: Bool) async throws -> FamilyLeaveOutcome { .left }
   func removeFamilyMember(memberId: String) async throws {}
-  func joinFamilyWithCode(familyCode: String) async throws {}
+  func joinFamilyWithCode(familyCode: String) async throws -> JoinFamilyResponse? { nil }
   func getParentFamilies() async throws -> [ParentFamilyData] { [] }
-  func sendEmailInvite(email: String, role: String, pendingPlayerDetails: PendingPlayerDetails?) async throws {}
+  func sendEmailInvite(
+    email: String, role: String, pendingPlayerDetails: PendingPlayerDetails?, familyUnitId: String?
+  ) async throws {}
   func fetchPendingInvitations() async throws -> [FamilyInvitation] { [] }
+  func fetchInvitationsAddressed(toEmail email: String) async throws -> [FamilyInvitation] { [] }
   func revokeInvitation(id: String) async throws {}
-  func resendInvitation(id: String, email: String, role: String) async throws {}
+  func resendInvitation(id: String, email: String, role: String, familyUnitId: String?) async throws {}
   func lookupInviteByToken(_ token: String) async throws -> InviteDetails {
     fatalError("Not used in onboarding v2 tests")
   }

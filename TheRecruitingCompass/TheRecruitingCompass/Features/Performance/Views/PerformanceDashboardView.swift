@@ -180,7 +180,7 @@ private struct PerformanceChartSection: View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
         Text("Performance Trends")
-          .font(.title3)
+          .font(.brand(.title3))
           .bold()
         Spacer()
       }
@@ -210,7 +210,7 @@ private struct PerformanceTrendsSection: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Metric Trends")
-        .font(.title3)
+        .font(.brand(.title3))
         .bold()
 
       ForEach(metricTrends) { trend in
@@ -233,7 +233,7 @@ private struct PerformanceLatestMetricsSection: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Latest Metrics")
-        .font(.title3)
+        .font(.brand(.title3))
         .bold()
 
       LazyVGrid(columns: [
@@ -258,7 +258,7 @@ private struct PerformanceHistorySection: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Metric History")
-        .font(.title3)
+        .font(.brand(.title3))
         .bold()
 
       ForEach(sortedMetrics) { metric in

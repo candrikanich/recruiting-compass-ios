@@ -16,12 +16,13 @@ enum InterestLevel: String, Codable, Sendable {
     }
   }
 
-  var emoji: String {
+  /// SF Symbol for the level; `nil` when no interest has been set.
+  var systemImage: String? {
     switch self {
-    case .high: return "🔥"
-    case .medium: return "⚡"
-    case .low: return "❄️"
-    case .notSet: return "—"
+    case .high: return "flame"
+    case .medium: return "bolt"
+    case .low: return "chart.line.downtrend.xyaxis"
+    case .notSet: return nil
     }
   }
 

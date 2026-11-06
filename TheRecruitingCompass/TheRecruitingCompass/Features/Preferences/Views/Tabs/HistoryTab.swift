@@ -74,7 +74,7 @@ struct HistoryTab: View {
     private var travelTeamsCard: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Add each org you've played for — most recent shows on your profile.")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
                 .padding(.horizontal)
                 .padding(.vertical, 12)
@@ -83,7 +83,7 @@ struct HistoryTab: View {
             if teams.isEmpty {
                 Divider().padding(.leading)
                 Text("No travel teams added yet.")
-                    .font(.body)
+                    .font(.brand(.body))
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal)
@@ -100,7 +100,7 @@ struct HistoryTab: View {
                 viewModel.addTravelTeam()
             } label: {
                 Label("Add Travel Team", systemImage: "plus.circle.fill")
-                    .font(.body)
+                    .font(.brand(.body))
             }
             .padding(.horizontal)
             .padding(.vertical, 12)
@@ -114,7 +114,7 @@ struct HistoryTab: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text("Team \((currentIndex(of: teamId) ?? 0) + 1)")
-                    .font(.caption)
+                    .font(.brand(.caption))
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button(role: .destructive) {
@@ -150,7 +150,7 @@ struct HistoryTab: View {
 
     private func travelYearRow(teamId: TravelTeam.ID, fieldID: String) -> some View {
         HStack {
-            Text("Season Year").font(.body)
+            Text("Season Year").font(.brand(.body))
             Spacer()
             TextField(
                 "Season Year",
@@ -181,7 +181,7 @@ struct HistoryTab: View {
         fieldID: String
     ) -> some View {
         HStack {
-            Text(label).font(.body)
+            Text(label).font(.brand(.body))
             Spacer()
             TextField(label, text: Binding(
                 get: { team(withId: teamId)?[keyPath: field] ?? "" },
@@ -206,7 +206,7 @@ struct HistoryTab: View {
 
     private func textRow(_ label: String, keyPath: WritableKeyPath<PlayerDetails, String?>, fieldID: String) -> some View {
         HStack {
-            Text(label).font(.body)
+            Text(label).font(.brand(.body))
             Spacer()
             TextField(label, text: Binding(
                 get: { viewModel.details[keyPath: keyPath] ?? "" },
@@ -234,7 +234,7 @@ struct HistoryTab: View {
     ) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(label)
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
                 .padding(.horizontal)
                 .padding(.top, 10)
@@ -247,7 +247,7 @@ struct HistoryTab: View {
     private func cardSection<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(title)
-                .font(.footnote)
+                .font(.brand(.footnote))
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
                 .padding(.horizontal, 4)

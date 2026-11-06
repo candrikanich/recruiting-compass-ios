@@ -9,21 +9,23 @@ struct WhatNotToStressWidget: View {
     let items = ReassuranceMessage.forPhase(phase)
     VStack(alignment: .leading, spacing: 12) {
       Text(String(localized: "Things that don't matter as much as you might think"))
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(Color.secondaryText)
 
       if items.isEmpty {
         Text(String(localized: "No reassurance needed—you're doing great!"))
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(Color.secondaryText)
       } else {
         ForEach(items) { item in
           HStack(alignment: .top, spacing: 8) {
-            Text(item.icon)
+            Image(systemName: item.systemImage)
+              .foregroundStyle(Color.accentPrimary)
+              .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
-              Text(item.title).font(.subheadline.weight(.medium))
+              Text(item.title).font(.brand(.subheadline, weight: .medium))
               Text(item.message)
-                .font(.body)
+                .font(.brand(.body))
                 .foregroundStyle(Color.secondaryText)
             }
           }

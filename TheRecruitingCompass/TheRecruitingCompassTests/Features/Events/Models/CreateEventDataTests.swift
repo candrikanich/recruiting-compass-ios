@@ -71,7 +71,7 @@ final class CreateEventDataTests: XCTestCase {
     data.attended = false
     data.performanceNotes = "Good performance"
 
-    let request = CreateEventRequest.from(formData: data, userId: "user-1")
+    let request = CreateEventRequest.from(formData: data, userId: "user-1", familyUnitId: "family-1")
 
     XCTAssertEqual(request.type, "showcase")
     XCTAssertEqual(request.name, "Spring Showcase")
@@ -95,13 +95,38 @@ final class CreateEventDataTests: XCTestCase {
     XCTAssertEqual(request.userId, "user-1")
   }
 
+  func testCreateEventRequest_encodesFamilyUnitId() throws {
+    var data = CreateEventData()
+    data.type = .camp
+    data.name = "Test"
+    data.startDate = date("2026-06-01")
+
+    let request = CreateEventRequest.from(formData: data, userId: "athlete-1", familyUnitId: "family-9")
+    let json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(request)) as? [String: Any]
+
+    XCTAssertEqual(json?["family_unit_id"] as? String, "family-9")
+    XCTAssertEqual(json?["user_id"] as? String, "athlete-1")
+  }
+
+  func testCreateEventRequest_nilFamilyUnitId_omitsKey() throws {
+    var data = CreateEventData()
+    data.type = .camp
+    data.name = "Test"
+    data.startDate = date("2026-06-01")
+
+    let request = CreateEventRequest.from(formData: data, userId: "athlete-1", familyUnitId: nil)
+    let json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(request)) as? [String: Any]
+
+    XCTAssertFalse(json?.keys.contains("family_unit_id") ?? true)
+  }
+
   func testCreateEventRequest_from_emptyOptionals_convertToNil() {
     var data = CreateEventData()
     data.type = .camp
     data.name = "Test"
     data.startDate = date("2026-06-01")
 
-    let request = CreateEventRequest.from(formData: data, userId: "user-1")
+    let request = CreateEventRequest.from(formData: data, userId: "user-1", familyUnitId: "family-1")
 
     XCTAssertNil(request.endDate)
     XCTAssertNil(request.startTime)
@@ -125,7 +150,7 @@ final class CreateEventDataTests: XCTestCase {
     data.name = "  Game Day  "
     data.startDate = date("2026-09-01")
 
-    let request = CreateEventRequest.from(formData: data, userId: "user-1")
+    let request = CreateEventRequest.from(formData: data, userId: "user-1", familyUnitId: "family-1")
 
     XCTAssertEqual(request.name, "Game Day")
   }
@@ -137,7 +162,7 @@ final class CreateEventDataTests: XCTestCase {
     data.startDate = date("2026-04-15")
     data.state = "ga"
 
-    let request = CreateEventRequest.from(formData: data, userId: "user-1")
+    let request = CreateEventRequest.from(formData: data, userId: "user-1", familyUnitId: "family-1")
 
     XCTAssertEqual(request.state, "GA")
   }
@@ -149,7 +174,7 @@ final class CreateEventDataTests: XCTestCase {
     data.startDate = date("2026-04-15")
     data.cost = "not-a-number"
 
-    let request = CreateEventRequest.from(formData: data, userId: "user-1")
+    let request = CreateEventRequest.from(formData: data, userId: "user-1", familyUnitId: "family-1")
 
     XCTAssertNil(request.cost)
   }
@@ -161,7 +186,7 @@ final class CreateEventDataTests: XCTestCase {
     data.startDate = date("2026-04-15")
     data.cost = "0"
 
-    let request = CreateEventRequest.from(formData: data, userId: "user-1")
+    let request = CreateEventRequest.from(formData: data, userId: "user-1", familyUnitId: "family-1")
 
     XCTAssertEqual(request.cost, 0.0)
   }

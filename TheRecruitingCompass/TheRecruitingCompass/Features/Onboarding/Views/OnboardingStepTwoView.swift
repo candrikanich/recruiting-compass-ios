@@ -57,7 +57,7 @@ struct OnboardingStepTwoView: View {
   @ViewBuilder private var headerSection: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Based on your sport and location, here are some schools to get you started.")
-        .font(.body)
+        .font(.brand(.body))
         .foregroundStyle(.secondary)
     }
     .padding(.horizontal, 24)
@@ -69,7 +69,7 @@ struct OnboardingStepTwoView: View {
     VStack(spacing: 16) {
       ProgressView()
       Text("Finding schools for you...")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
     }
     .frame(maxWidth: .infinity)
@@ -85,10 +85,10 @@ struct OnboardingStepTwoView: View {
         .foregroundStyle(.tertiary)
 
       Text("No recommendations yet")
-        .font(.headline)
+        .font(.brand(.headline))
 
       Text("Continue to your dashboard to start adding schools manually.")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
     }
@@ -135,7 +135,7 @@ struct OnboardingStepTwoView: View {
       Image(systemName: "checkmark.circle.fill")
         .foregroundStyle(.green)
       Text("\(viewModel.schoolsAdded) school\(viewModel.schoolsAdded == 1 ? "" : "s") added to your list")
-        .font(.subheadline.weight(.medium))
+        .font(.brand(.subheadline, weight: .medium))
     }
     .padding(12)
     .frame(maxWidth: .infinity, alignment: .leading)
@@ -159,7 +159,7 @@ struct OnboardingStepTwoView: View {
           ProgressView().tint(.white)
         } else {
           Text("Go to Dashboard")
-            .font(.body.weight(.semibold))
+            .font(.brand(.body, weight: .semibold))
         }
       }
       .frame(maxWidth: .infinity)
@@ -183,14 +183,14 @@ private struct RecommendationCardView: View {
     VStack(alignment: .leading, spacing: 12) {
       // School name
       Text(recommendation.name)
-        .font(.headline)
+        .font(.brand(.headline))
         .lineLimit(2)
 
       // Division + State
       HStack(spacing: 8) {
         if let division = recommendation.division, !division.isEmpty {
           Text(division)
-            .font(.caption.weight(.semibold))
+            .font(.brand(.caption, weight: .semibold))
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(Color.accentColor.opacity(0.15))
@@ -199,7 +199,7 @@ private struct RecommendationCardView: View {
         }
         if let state = recommendation.state, !state.isEmpty {
           Text(state)
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.secondary)
         }
       }
@@ -209,7 +209,7 @@ private struct RecommendationCardView: View {
         FlowLayout(spacing: 6) {
           ForEach(recommendation.reasons.prefix(3), id: \.self) { reason in
             Text(reason)
-              .font(.caption2)
+              .font(.brand(.caption2))
               .padding(.horizontal, 8)
               .padding(.vertical, 4)
               .background(Color(uiColor: .tertiarySystemFill))
@@ -224,7 +224,7 @@ private struct RecommendationCardView: View {
       HStack(spacing: 12) {
         Button(action: onAdd) {
           Label("Add", systemImage: "plus")
-            .font(.subheadline.weight(.medium))
+            .font(.brand(.subheadline, weight: .medium))
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.borderedProminent)
@@ -232,7 +232,7 @@ private struct RecommendationCardView: View {
 
         Button(action: onDismiss) {
           Text("Not a fit")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.bordered)

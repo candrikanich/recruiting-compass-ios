@@ -20,6 +20,22 @@ enum NotificationDestinationParser {
         return destination(entityType: entityType, primaryId: entityId, fallbackId: nil)
     }
 
+    /// Push tap routing for payloads that may not name an entity. `family_update` rows carry only `action_url`
+    /// in the database and the APNs payload carries just `notification_id`, so look the row up. A tap that still
+    /// resolves to nothing opens the notifications list instead of doing nothing.
+    static func resolveDestination(
+        fromPayload payload: [AnyHashable: Any],
+        fetchNotification: (String) async -> AppNotification?
+    ) async -> NotificationDestination {
+        if let direct = destination(fromPayload: payload) { return direct }
+        if let id = payload["notification_id"] as? String,
+           let row = await fetchNotification(id),
+           let routed = destination(from: row) {
+            return routed
+        }
+        return .notificationsList
+    }
+
     // MARK: - Private
 
     private static func primaryId(for entityType: String, notification: AppNotification) -> String? {
@@ -56,6 +72,8 @@ enum NotificationDestinationParser {
         // Path-style /coaches/<id> is not a valid coach URL in this app.
         if url.contains("/inbox/inbound-drafts") {
             return .inboundDraftsList
+        } else if url.contains("/settings/family-management") {
+            return .familyManagement
         } else if url.contains("/coaches") {
             return extractId(from: url, pattern: "highlight=").map { .coachDetail(id: $0) }
         } else if url.contains("/schools/") {

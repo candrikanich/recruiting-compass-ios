@@ -11,7 +11,7 @@ struct OfferEditForm: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 20) {
       Text("Edit Offer")
-        .font(.headline)
+        .font(.brand(.headline))
 
       offerTypePicker
       statusPicker
@@ -37,11 +37,11 @@ struct OfferEditForm: View {
   private var offerTypePicker: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Offer Type")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
 
       Picker("Offer Type", selection: $editData.offerType) {
-        ForEach(OfferType.allCases, id: \.self) { type in
+        ForEach(OfferType.selectableCases, id: \.self) { type in
           Text(type.displayName).tag(type)
         }
       }
@@ -54,11 +54,11 @@ struct OfferEditForm: View {
   private var statusPicker: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Status")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
 
       Picker("Status", selection: $editData.status) {
-        ForEach(OfferStatus.allCases, id: \.self) { status in
+        ForEach(OfferStatus.selectableCases, id: \.self) { status in
           Text(status.displayName).tag(status)
         }
       }
@@ -71,7 +71,7 @@ struct OfferEditForm: View {
   private var amountField: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Scholarship Amount ($)")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
 
       TextField(
@@ -90,7 +90,7 @@ struct OfferEditForm: View {
   private var percentageField: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Scholarship Percentage (%)")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
 
       TextField(
@@ -109,7 +109,7 @@ struct OfferEditForm: View {
   private var offerDatePicker: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Offer Date")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
 
       DatePicker(
@@ -126,7 +126,7 @@ struct OfferEditForm: View {
   private var deadlineDatePicker: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Deadline Date")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
 
       HStack {
@@ -144,13 +144,13 @@ struct OfferEditForm: View {
           Button("Clear") {
             editData.deadlineDate = nil
           }
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.red)
         } else {
           Button("Set Deadline") {
             editData.deadlineDate = .now
           }
-          .font(.subheadline)
+          .font(.brand(.subheadline))
         }
       }
       .accessibilityLabel(String(localized: "Deadline date"))
@@ -161,7 +161,7 @@ struct OfferEditForm: View {
   private var conditionsField: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Conditions")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
 
       TextField("Conditions or requirements...", text: $editData.conditions, axis: .vertical)
@@ -178,7 +178,7 @@ struct OfferEditForm: View {
   private var notesField: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text("Notes")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
 
       TextField("Additional notes...", text: $editData.notes, axis: .vertical)

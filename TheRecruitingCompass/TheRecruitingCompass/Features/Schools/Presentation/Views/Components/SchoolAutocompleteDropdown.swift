@@ -63,7 +63,7 @@ struct SchoolAutocompleteDropdown: View {
         .accessibilityHidden(true)
 
       Text(message)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .fixedSize(horizontal: false, vertical: true)
     }
@@ -83,7 +83,7 @@ struct SchoolAutocompleteDropdown: View {
         .accessibilityHidden(true)
 
       Text("No colleges found. Try a different search or switch to manual entry.")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .fixedSize(horizontal: false, vertical: true)
     }
@@ -105,19 +105,19 @@ struct SchoolAutocompleteDropdown: View {
           HStack {
             VStack(alignment: .leading, spacing: 4) {
               Text(college.name)
-                .font(.body)
+                .font(.brand(.body))
                 .foregroundStyle(.primary)
                 .multilineTextAlignment(.leading)
 
               Text(college.location)
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
             }
 
             Spacer()
 
             Image(systemName: "chevron.right")
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.secondary)
               .accessibilityHidden(true)
           }

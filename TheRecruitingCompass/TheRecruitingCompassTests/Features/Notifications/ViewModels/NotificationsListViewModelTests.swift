@@ -627,7 +627,7 @@ final class NotificationsListViewModelTests: XCTestCase {
     await viewModel.fetchNotifications()
 
     // When
-    await viewModel.handleNotificationTap(notification)
+    await viewModel.handleNotificationTap(notification, flags: nil)
 
     // Then
     XCTAssertEqual(mockService.markAsReadCallCount, 1)
@@ -646,7 +646,7 @@ final class NotificationsListViewModelTests: XCTestCase {
     await viewModel.fetchNotifications()
 
     // When
-    await viewModel.handleNotificationTap(notification)
+    await viewModel.handleNotificationTap(notification, flags: nil)
 
     // Then
     XCTAssertEqual(viewModel.selectedDestination, .schoolDetail(id: "school-1"))
@@ -664,7 +664,7 @@ final class NotificationsListViewModelTests: XCTestCase {
     await viewModel.fetchNotifications()
 
     // When
-    await viewModel.handleNotificationTap(notification)
+    await viewModel.handleNotificationTap(notification, flags: nil)
 
     // Then
     XCTAssertEqual(viewModel.selectedDestination, .offerDetail(id: "offer-1"))
@@ -682,7 +682,7 @@ final class NotificationsListViewModelTests: XCTestCase {
     await viewModel.fetchNotifications()
 
     // When
-    await viewModel.handleNotificationTap(notification)
+    await viewModel.handleNotificationTap(notification, flags: nil)
 
     // Then
     XCTAssertEqual(viewModel.selectedDestination, .eventDetail(id: "event-1"))
@@ -700,7 +700,7 @@ final class NotificationsListViewModelTests: XCTestCase {
     await viewModel.fetchNotifications()
 
     // When
-    await viewModel.handleNotificationTap(notification)
+    await viewModel.handleNotificationTap(notification, flags: nil)
 
     // Then
     XCTAssertEqual(viewModel.selectedDestination, .interactionDetail(id: "interaction-1"))
@@ -718,7 +718,7 @@ final class NotificationsListViewModelTests: XCTestCase {
     await viewModel.fetchNotifications()
 
     // When
-    await viewModel.handleNotificationTap(notification)
+    await viewModel.handleNotificationTap(notification, flags: nil)
 
     // Then
     XCTAssertEqual(mockService.markAsReadCallCount, 0)
@@ -732,7 +732,7 @@ final class NotificationsListViewModelTests: XCTestCase {
     await viewModel.fetchNotifications()
 
     // When
-    await viewModel.handleNotificationTap(notification)
+    await viewModel.handleNotificationTap(notification, flags: nil)
 
     // Then
     XCTAssertEqual(mockService.markAsReadCallCount, 1)
@@ -751,7 +751,7 @@ final class NotificationsListViewModelTests: XCTestCase {
     await viewModel.fetchNotifications()
 
     // When
-    await viewModel.handleNotificationTap(notification)
+    await viewModel.handleNotificationTap(notification, flags: nil)
 
     // Then
     XCTAssertNil(viewModel.selectedDestination)
@@ -813,6 +813,35 @@ final class NotificationsListViewModelTests: XCTestCase {
     }
   }
 
+  func testHandleNotificationTap_DisabledDestination_NeverAssignsSelectedDestination() async {
+    let service = MockFeatureFlagService()
+    service.disabledKeys = ["inbound_drafts"]
+    let flags = FeatureFlagStore(
+      service: service,
+      defaults: UserDefaults(suiteName: "NotifTap-\(UUID().uuidString)")!
+    )
+    await flags.refresh()
+    let notification = makeNotification(
+      id: "1", type: .inboundInteraction, relatedEntityType: "inbound_email_draft", relatedEntityId: "d1"
+    )
+    // Any write to selectedDestination (even transient) would present the killed screen.
+    var wasWritten = false
+    withObservationTracking({ _ = self.viewModel.selectedDestination }, onChange: { wasWritten = true })
+
+    await viewModel.handleNotificationTap(notification, flags: flags)
+
+    XCTAssertFalse(wasWritten)
+    XCTAssertNil(viewModel.selectedDestination)
+  }
+
+  func testHandleNotificationTap_EnabledInboundDestination_StillNavigates() async {
+    let notification = makeNotification(
+      id: "1", type: .inboundInteraction, relatedEntityType: "inbound_email_draft", relatedEntityId: "d1"
+    )
+    await viewModel.handleNotificationTap(notification, flags: nil)
+    XCTAssertEqual(viewModel.selectedDestination, .inboundDraftsList)
+  }
+
   private func makeNotification(
     id: String,
     type: NotificationType = .followUpReminder,
@@ -850,5 +879,24 @@ final class NotificationsListViewModelTests: XCTestCase {
       createdAt: "2026-02-15T09:00:00Z",
       updatedAt: nil
     )
+  }
+
+  // MARK: - Cancellation (tapping a notification pushes a view and cancels the list's .task)
+
+  func testFetchNotifications_urlCancelled_showsNoError() async {
+    mockService.fetchError = URLError(.cancelled)
+
+    await viewModel.fetchNotifications()
+
+    XCTAssertNil(viewModel.errorMessage)
+    XCTAssertFalse(viewModel.isLoading)
+  }
+
+  func testFetchNotifications_swiftCancellation_showsNoError() async {
+    mockService.fetchError = CancellationError()
+
+    await viewModel.fetchNotifications()
+
+    XCTAssertNil(viewModel.errorMessage)
   }
 }

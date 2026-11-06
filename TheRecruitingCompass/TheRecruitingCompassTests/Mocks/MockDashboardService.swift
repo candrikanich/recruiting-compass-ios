@@ -8,6 +8,8 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
   var fetchSchoolsCallCount = 0
   var fetchCoachesCallCount = 0
   var fetchInteractionsCallCount = 0
+  var fetchInteractionsSinceCallCount = 0
+  var fetchLatestInteractionCallCount = 0
   var fetchOffersCallCount = 0
   var fetchEventsCallCount = 0
   var fetchMetricsCallCount = 0
@@ -19,12 +21,16 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
 
   var lastFetchStatsFamilyUnitId: String?
   var lastFetchStatsUserId: String?
+  var lastFetchInteractionsSinceFamilyUnitId: String?
+  var lastFetchLatestInteractionFamilyUnitId: String?
   var lastDismissedSuggestionId: String?
   var lastCompletedSuggestionId: String?
 
   // MARK: - Error Flags
 
   var shouldThrowFetchStats = false
+  /// Thrown by fetchStats when set (takes precedence over shouldThrowFetchStats).
+  var fetchStatsError: Error?
   var shouldThrowFetchSuggestions = false
   var shouldThrowFetchEvents = false
   var shouldThrowFetchMetrics = false
@@ -51,12 +57,15 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
   var stubbedSuggestions: [Suggestion] = []
   var stubbedSuggestionsPendingCount: Int = 0
 
+  var lastSuggestionsAthleteId: String?
+
   // MARK: - DashboardManaging
 
   func fetchStats(familyUnitId: String, userId: String) async throws -> DashboardStats {
     fetchStatsCallCount += 1
     lastFetchStatsFamilyUnitId = familyUnitId
     lastFetchStatsUserId = userId
+    if let fetchStatsError { throw fetchStatsError }
     if shouldThrowFetchStats {
       throw NSError(domain: "MockDashboard", code: 1, userInfo: [NSLocalizedDescriptionKey: "Mock fetch stats error"])
     }
@@ -73,12 +82,33 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
     return stubbedCoaches
   }
 
-  func fetchInteractions(userId: String, limit: Int?) async throws -> [Interaction] {
+  func fetchInteractions(familyUnitId: String, limit: Int?) async throws -> [Interaction] {
     fetchInteractionsCallCount += 1
     if shouldThrowFetchInteractions {
       throw NSError(domain: "MockDashboard", code: 6, userInfo: [NSLocalizedDescriptionKey: "Mock fetch interactions error"])
     }
     return stubbedInteractions
+  }
+
+  func fetchInteractions(familyUnitId: String, since: Date) async throws -> [Interaction] {
+    fetchInteractionsSinceCallCount += 1
+    lastFetchInteractionsSinceFamilyUnitId = familyUnitId
+    if shouldThrowFetchInteractions {
+      throw NSError(domain: "MockDashboard", code: 6, userInfo: [NSLocalizedDescriptionKey: "Mock fetch interactions error"])
+    }
+    return stubbedInteractions.filter { $0.familyUnitId == familyUnitId }
+  }
+
+  /// Mirrors the real query: newest `occurredAt` first, rows without one last.
+  func fetchLatestInteraction(familyUnitId: String) async throws -> Interaction? {
+    fetchLatestInteractionCallCount += 1
+    lastFetchLatestInteractionFamilyUnitId = familyUnitId
+    if shouldThrowFetchInteractions {
+      throw NSError(domain: "MockDashboard", code: 6, userInfo: [NSLocalizedDescriptionKey: "Mock fetch interactions error"])
+    }
+    return stubbedInteractions
+      .filter { $0.familyUnitId == familyUnitId }
+      .max { ($0.occurredAt ?? "") < ($1.occurredAt ?? "") }
   }
 
   func fetchOffers(userId: String) async throws -> [Offer] {
@@ -102,8 +132,9 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
     return stubbedMetrics
   }
 
-  func fetchSuggestions(location: String, accessToken: String?) async throws -> (suggestions: [Suggestion], pendingCount: Int) {
+  func fetchSuggestions(location: String, athleteId: String?, accessToken: String?) async throws -> (suggestions: [Suggestion], pendingCount: Int) {
     fetchSuggestionsCallCount += 1
+    lastSuggestionsAthleteId = athleteId
     if shouldThrowFetchSuggestions {
       throw NSError(domain: "MockDashboard", code: 2, userInfo: [NSLocalizedDescriptionKey: "Mock fetch suggestions error"])
     }

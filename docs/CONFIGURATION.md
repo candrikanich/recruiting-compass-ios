@@ -11,7 +11,7 @@ This document describes environment configuration and where to set it for develo
 | Variable | Description | Where to set |
 |----------|-------------|--------------|
 | `SUPABASE_URL` | Supabase project URL (e.g. `https://your-project.supabase.co`) | **Debug:** Scheme → Run → Arguments → Environment Variables. **Release/TestFlight:** `Release.xcconfig` (see below). |
-| `SUPABASE_ANON_KEY` | Supabase anonymous (public) key | Same as above. |
+| `SUPABASE_ANON_KEY` | Supabase client API key: the project's `sb_publishable_...` key (legacy `anon` JWT keys still work until they are disabled) | Same as above. |
 | `API_BASE_URL` | Web app base URL (e.g. `https://your-app.vercel.app`) | Same as above. |
 
 - **Debug:** If any of these are missing or set to the placeholder values, the app logs a warning and uses placeholders so previews and tests can run. Do not rely on placeholders for real auth or data.
@@ -35,7 +35,9 @@ This document describes environment configuration and where to set it for develo
 App Store Connect rejects builds made with a beta Xcode or beta SDK. The dev Mac runs a beta macOS and a beta Xcode, so **App Store builds are archived in Xcode Cloud** on a release Xcode.
 
 - `TheRecruitingCompass/ci_scripts/ci_post_clone.sh` writes `Release.xcconfig` from workflow environment variables: `SUPABASE_ANON_KEY`, `API_BASE_URL`, `POSTHOG_API_KEY`, and optionally `TURNSTILE_SITE_KEY`. Store them as **Secret** in the workflow's Environment settings. The script fails the build if a required variable is missing.
-- `SUPABASE_URL` is **not** a workflow variable. `project.pbxproj` pins it to the production project at the project level (Debug and Release), which overrides any xcconfig value. So `SUPABASE_ANON_KEY` must be the **production** anon key, or auth breaks.
+- `SUPABASE_URL` is **not** a workflow variable. `project.pbxproj` pins it to the production project at the project level (Debug and Release), which overrides any xcconfig value. So `SUPABASE_ANON_KEY` must be the **production** project's key, or auth breaks.
+- **Key format.** Use the production project's `sb_publishable_...` key (Supabase dashboard -> Project Settings -> API Keys). The variable keeps its `SUPABASE_ANON_KEY` name. Nothing in the app inspects the key's shape: it flows `Release.xcconfig` -> "Generate config" build phase -> `SupabaseConfig.anonKey` -> `SupabaseClient(supabaseKey:)`. supabase-swift 2.55.3 recognizes the `sb_` format (it omits the key as a Bearer token for Edge Functions). Auth, PostgREST, Storage and Realtime send it as `apikey` (and, before sign-in, also as `Authorization: Bearer`, which the gateway accepts); once signed in, they use the user's session token. Never roll or disable a legacy key as part of switching a build; that is tracked in web#1524 and web#1485.
+- **Verify an Xcode Cloud build.** The build log prints `Wrote Release.xcconfig (anon key length N, ...)`. A `sb_publishable_` key is 46 characters; a legacy JWT is about 200. Check that length in the archive build's `ci_post_clone` log.
 - Workflow environment: Xcode **Latest Release**. Action: **Archive** (iOS) with distribution to **App Store Connect**. Post-action: TestFlight internal testing.
 - Xcode Cloud numbers builds with its own counter. Set **Next Build Number** above the highest build already uploaded for the version, or the upload is rejected as a duplicate.
 - Local archives from the beta Xcode are still fine for TestFlight internal testing, but can't be submitted for review.
@@ -86,7 +88,7 @@ Serve this file at:
     "details": [
       {
         "appID": "G374A783RH.com.chrisandrikanich.TheRecruitingCompass",
-        "paths": ["/invite/*", "/join", "/guardian/claim/*"]
+        "paths": ["/join", "/guardian/claim/*"]
       }
     ]
   }
@@ -100,8 +102,9 @@ Serve this file at:
 
 Invitation emails must use links like:
 
-- `https://www.myrecruitingcompass.com/invite/TOKEN`
-- or `https://www.myrecruitingcompass.com/join?token=TOKEN`
+- `https://www.myrecruitingcompass.com/join?token=TOKEN`
+
+(The web app builds these in `server/utils/emailService.ts`. There is no `/invite/TOKEN` route on either platform.)
 
 When the app is installed, iOS opens it instead of Safari. The app presents `InviteJoinView` with the token.
 

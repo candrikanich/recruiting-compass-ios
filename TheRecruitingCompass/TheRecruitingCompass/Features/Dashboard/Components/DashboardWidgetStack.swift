@@ -8,13 +8,14 @@ struct DashboardWidgetStack: View {
   let visibility: WidgetVisibility
   let suggestions: [Suggestion]
   let pendingCount: Int
-  let familyUnitId: String
+  let familyUnitId: String?
   let userId: String
   let coachesNeedingFollowup: [Coach]
   let allCoaches: [Coach]
   let allSchools: [School]
   let events: [FullEvent]
   let interactionTrends: [InteractionTrend]
+  let interactionTrendsLastDate: Date?
   let metrics: [PerformanceMetric]
   let schoolsWithOffersPercentage: String
   let interactionsThisMonth: Int
@@ -82,7 +83,6 @@ struct DashboardWidgetStack: View {
       if visibility.eventsSummary {
         UpcomingEventsWidget(
           events: events,
-          familyUnitId: familyUnitId,
           userId: userId,
           onEventCreated: onEventCreated
         )
@@ -122,8 +122,8 @@ struct DashboardWidgetStack: View {
       }
 
     case .interactionTrends:
-      if visibility.interactionTrendChart && !interactionTrends.isEmpty {
-        InteractionTrendsChart(trends: interactionTrends)
+      if visibility.interactionTrendChart {
+        InteractionTrendsChart(trends: interactionTrends, lastInteractionDate: interactionTrendsLastDate)
       }
 
     case .recentActivity:

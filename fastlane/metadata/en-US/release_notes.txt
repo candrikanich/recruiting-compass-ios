@@ -1,1 +1,7 @@
+Recent Activity now shows your whole family's activity.
 
+• Recent Activity on your dashboard includes updates from everyone in your family, not just you.
+• Changing your email now tells you to open the confirmation link sent to each address.
+• Fixed Send Profile for parents: it now sends the selected athlete's profile.
+• Fixed the public profile editor saving over your profile when it hadn't loaded.
+• Video links now accept only web addresses that start with http:// or https://.

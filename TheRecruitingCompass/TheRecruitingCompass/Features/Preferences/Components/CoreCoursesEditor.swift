@@ -26,19 +26,19 @@ struct CoreCoursesEditor: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("AP, honors, or notable courses for your recruiting profile.")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
 
             if !courses.isEmpty {
                 WrapLayout(spacing: 8) {
                     ForEach(courses, id: \.self) { course in
                         HStack(spacing: 6) {
-                            Text(course).font(.subheadline)
+                            Text(course).font(.brand(.subheadline))
                             if !isDisabled {
                                 Button {
                                     courses.removeAll { $0 == course }
                                 } label: {
-                                    Image(systemName: "xmark").font(.caption2.weight(.bold))
+                                    Image(systemName: "xmark").font(.brand(.caption2, weight: .bold))
                                 }
                                 .buttonStyle(.plain)
                                 .accessibilityLabel("Remove \(course)")
@@ -64,7 +64,7 @@ struct CoreCoursesEditor: View {
                 }
             } else if courses.count >= Self.maxCourses {
                 Text("Maximum 20 courses added.")
-                    .font(.caption)
+                    .font(.brand(.caption))
                     .foregroundStyle(.secondary)
             }
         }

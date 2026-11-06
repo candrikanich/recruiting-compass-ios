@@ -12,7 +12,6 @@ import UserNotifications
 import os
 import PostHog
 
-@main
 struct TheRecruitingCompassApp: App {
   @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
   @State private var authManager = AuthManager.shared
@@ -22,6 +21,7 @@ struct TheRecruitingCompassApp: App {
   @State private var nuxProgressManager = NuxProgressManager.shared
   @State private var entitlementStore = EntitlementStore()
   @State private var appUpdateManager = AppUpdateManager()
+  @State private var featureFlagStore = FeatureFlagStore()
   @State private var showResetPassword = false
   @State private var showBiometricLock = false
   @State private var pendingResetPasswordFromDeepLink = false
@@ -33,6 +33,10 @@ struct TheRecruitingCompassApp: App {
   init() {
     CrashReporting.start()
     Analytics.setup()
+    BrandFont.configureNavigationBarAppearance()
+    if LaunchEnvironment.disablesAnimations(arguments: ProcessInfo.processInfo.arguments) {
+      UIView.setAnimationsEnabled(false)
+    }
   }
 
   var body: some Scene {
@@ -71,7 +75,15 @@ struct TheRecruitingCompassApp: App {
             Task { await PushNotificationManager.shared.syncBadgeCount() }
           }
           .onReceive(NotificationCenter.default.publisher(for: .pushNotificationTapped)) { notification in
-            pendingPushDestination = notification.userInfo?["destination"] as? NotificationDestination
+            guard let destination = notification.userInfo?["destination"] as? NotificationDestination else {
+              pendingPushDestination = nil
+              return
+            }
+            // A cold-launch tap arrives before the first flag refresh; wait for it (fails open on timeout).
+            Task {
+              await featureFlagStore.waitForInitialState()
+              pendingPushDestination = destination.gated(by: featureFlagStore)
+            }
           }
         } else {
           NavigationStack {
@@ -119,14 +131,13 @@ struct TheRecruitingCompassApp: App {
       }
       .overlay {
         if !authManager.isAuthenticated {
-          TurnstileWidgetView()
-            .frame(width: 1, height: 1)
-            .allowsHitTesting(false)
-            .accessibilityHidden(true)
+          TurnstileChallengeOverlay()
         }
       }
       .task {
+        async let flags: Void = featureFlagStore.refresh()
         await appUpdateManager.check()
+        await flags
       }
       .onChange(of: appUpdateManager.isUpdateRequired) { _, isRequired in
         guard isRequired else { return }
@@ -137,6 +148,7 @@ struct TheRecruitingCompassApp: App {
       }
       .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
         Task { await appUpdateManager.checkIfStale() }
+        Task { await featureFlagStore.refresh() }
       }
       .task {
         if authManager.isAuthenticated && authManager.biometricEnabled {
@@ -183,12 +195,16 @@ struct TheRecruitingCompassApp: App {
           }
         }
       )
-      .sheet(item: $pendingInvite) { pending in
-        InviteJoinView(viewModel: InviteJoinViewModel(token: pending.id))
-      }
-      .sheet(item: $pendingGuardianClaim) { pending in
-        GuardianClaimView(viewModel: GuardianClaimViewModel(token: pending.id))
-      }
+      .sheet(
+        item: $pendingInvite,
+        onDismiss: { Task { await familyManager.loadFamilyData() } },
+        content: { pending in InviteJoinView(viewModel: InviteJoinViewModel(token: pending.id)) }
+      )
+      .sheet(
+        item: $pendingGuardianClaim,
+        onDismiss: { Task { await familyManager.loadFamilyData() } },
+        content: { pending in GuardianClaimView(viewModel: GuardianClaimViewModel(token: pending.id)) }
+      )
       .environment(authManager)
       .environment(familyManager)
       .environment(networkMonitor)
@@ -196,6 +212,7 @@ struct TheRecruitingCompassApp: App {
       .environment(nuxProgressManager)
       .environment(entitlementStore)
       .environment(appUpdateManager)
+      .environment(featureFlagStore)
     }
   }
 
@@ -222,14 +239,30 @@ struct TheRecruitingCompassApp: App {
     guard !appUpdateManager.isUpdateRequired else { return }
     let route = DeepLinkHandler.parse(url)
     switch route {
+    case .joinInvite, .guardianClaim:
+      // Gated routes wait for the first flag refresh so a cold-launch link can't beat a kill switch.
+      Task {
+        await featureFlagStore.waitForInitialState()
+        guard !appUpdateManager.isUpdateRequired else { return }
+        presentRoute(route)
+      }
+    default:
+      presentRoute(route)
+    }
+  }
+
+  private func presentRoute(_ route: DeepLinkRoute) {
+    switch route {
     case .resetPassword:
       pendingResetPasswordFromDeepLink = true
       if !authManager.isCheckingSession, !authManager.isAuthenticated {
         showResetPassword = true
       }
     case .joinInvite(let token):
+      guard featureFlagStore.isEnabled(.familyInvites) else { return }
       pendingInvite = PendingInvite(id: token)
     case .guardianClaim(let token):
+      guard featureFlagStore.isEnabled(.guardianClaim) else { return }
       pendingGuardianClaim = PendingInvite(id: token)
     case .unknown:
       break
@@ -250,39 +283,69 @@ private struct AuthenticatedContent: View {
 
   var body: some View {
     ZStack(alignment: .top) {
-      // Precedence: full onboarding > sport-only gate > dashboard.
-      if onboardingManager.needsOnboarding == true {
-        OnboardingWrapperView(onComplete: {
-          Task { await familyManager.loadFamilyData() }
-        })
-      } else if onboardingManager.needsOnboarding == false {
-        if onboardingManager.needsSportOnly {
-          SportGateView(onComplete: {
-            Task { await onboardingManager.loadStatus() }
-          })
-        } else {
-          AdaptiveRootView(pendingPushDestination: $pendingPushDestination)
-            .task { appUpdateManager.evaluateWhatsNew() }
-            .sheet(item: whatsNewBinding) { release in
-              WhatsNewView(release: release, onDismiss: appUpdateManager.dismissWhatsNew)
-            }
-          if !networkMonitor.isConnected {
-            OfflineBanner()
-          }
-        }
-      } else {
+      switch FamilyGate.route(for: familyManager.membership) {
+      case .loading:
         SessionLoadingView()
+      case .retry:
+        FamilyLoadFailedView(retry: { await loadFamilyAndOnboarding() })
+      case .setup:
+        FamilySetupView(familyManager: familyManager)
+      case .passThrough:
+        appContent
       }
+    }
+    // A parent removed from (or a member of a deleted) family reaches the gate on the next foreground.
+    .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+      Task { await familyManager.loadFamilyData() }
+    }
+    // Joining or creating a family on the gate (or via an invite or claim sheet) must re-evaluate onboarding, or a
+    // parent who just joined would land in the wizard instead of the dashboard.
+    .onChange(of: familyManager.membership) { old, new in
+      guard FamilyGate.shouldReevaluateOnboarding(from: old, to: new) else { return }
+      Task { await onboardingManager.loadStatus(isInFamily: true) }
     }
     // Keyed by user id, not isAuthenticated: resetUserScopedState() puts onboarding back to
     // "loading", so any change of user must reload it or routing would stall.
     .task(id: authManager.user?.id) {
       if authManager.isAuthenticated {
-        await onboardingManager.loadStatus()
+        await loadFamilyAndOnboarding()
         if let userId = authManager.user?.id {
           await nuxProgressManager.load(userId: userId)
         }
       }
+    }
+  }
+
+  /// Family first: a parent in a family passes onboarding even if the best-effort completion flag is unset.
+  private func loadFamilyAndOnboarding() async {
+    await familyManager.loadFamilyData()
+    await onboardingManager.loadStatus(isInFamily: familyManager.membership == .member)
+  }
+
+  // Precedence: full onboarding > sport-only gate > dashboard.
+  @ViewBuilder
+  private var appContent: some View {
+    if onboardingManager.needsOnboarding == true {
+      OnboardingWrapperView(onComplete: {
+        Task { await familyManager.loadFamilyData() }
+      })
+    } else if onboardingManager.needsOnboarding == false {
+      if onboardingManager.needsSportOnly {
+        SportGateView(onComplete: {
+          Task { await onboardingManager.loadStatus(isInFamily: familyManager.membership == .member) }
+        })
+      } else {
+        AdaptiveRootView(pendingPushDestination: $pendingPushDestination)
+          .task { appUpdateManager.evaluateWhatsNew() }
+          .sheet(item: whatsNewBinding) { release in
+            WhatsNewView(release: release, onDismiss: appUpdateManager.dismissWhatsNew)
+          }
+        if !networkMonitor.isConnected {
+          OfflineBanner()
+        }
+      }
+    } else {
+      SessionLoadingView()
     }
   }
 
@@ -301,7 +364,7 @@ private struct AuthenticatedContent: View {
 private struct SessionLoadingView: View {
   var body: some View {
     ZStack {
-      LinearGradient.landingBackground
+      Color.Brand.forest600
         .ignoresSafeArea()
 
       CompassLoadingAnimation()

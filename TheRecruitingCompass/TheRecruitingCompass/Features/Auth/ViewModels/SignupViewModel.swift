@@ -12,7 +12,9 @@ final class SignupViewModel {
   nonisolated deinit {}
   // MARK: - Two-Step State
 
-  var selectedRole: UserRole?
+  var selectedRole: UserRole? {
+    didSet { if selectedRole != oldValue { marketingOptIn = false } }
+  }
   var showForm = false
 
   // MARK: - Form Fields
@@ -20,11 +22,16 @@ final class SignupViewModel {
   var firstName = ""
   var lastName = ""
   var email = ""
-  var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -15, to: .now) ?? .now
+  var dateOfBirth: Date = Calendar.current.date(byAdding: .year, value: -15, to: .now) ?? .now {
+    didSet { if dateOfBirth != oldValue { marketingOptIn = false } }
+  }
   var password = ""
   var confirmPassword = ""
   var familyCode = ""
   var termsAccepted = false
+  /// Marketing email consent (web #1066): optional, unchecked by default, and cleared whenever
+  /// role or DOB changes so a choice made under one eligibility state never carries to another.
+  var marketingOptIn = false
   /// Only shown for players aged 13-17 (see `isMinorSignup`) — optional. A
   /// player who leaves this blank can invite a guardian later from the
   /// dashboard (parity with web's guardian-optional signup wizard).
@@ -45,7 +52,6 @@ final class SignupViewModel {
   var shouldNavigateToVerifyEmail = false
 
   private let authManager: any AuthManaging
-  private let familyService: any FamilyManaging
   private let guardianService: any GuardianManaging
   private let turnstileTokenProvider: any TurnstileTokenProviding
   private let formValidator = FormValidator.self
@@ -73,11 +79,7 @@ final class SignupViewModel {
     }
   }
 
-  private static let dobFormatter: DateFormatter = {
-    let f = DateFormatter()
-    f.dateFormat = "yyyy-MM-dd"
-    return f
-  }()
+  private static let dobFormatter = COPPAHelper.makeDateOfBirthFormatter()
 
   private var dobString: String {
     Self.dobFormatter.string(from: dateOfBirth)
@@ -171,14 +173,22 @@ final class SignupViewModel {
     selectedRole == .player && COPPAHelper.requiresGuardianInvite(dobString)
   }
 
+  /// Parents always; players only when the entered DOB makes them 18+ (web #1066).
+  var isMarketingOptInVisible: Bool {
+    MarketingEligibility.isEligible(role: selectedRole, dateOfBirth: dateOfBirth)
+  }
+
+  /// nil (field omitted from the request) unless the user was actually offered the choice.
+  private var marketingEmailOptInForSignup: Bool? {
+    isMarketingOptInVisible ? marketingOptIn : nil
+  }
+
   init(
     authManager: (any AuthManaging)? = nil,
-    familyService: (any FamilyManaging)? = nil,
     guardianService: (any GuardianManaging)? = nil,
     turnstileTokenProvider: (any TurnstileTokenProviding)? = nil
   ) {
     self.authManager = authManager ?? AuthManager.shared
-    self.familyService = familyService ?? FamilyServiceImpl(supabaseManager: .shared)
     self.guardianService = guardianService ?? GuardianServiceImpl()
     self.turnstileTokenProvider = turnstileTokenProvider ?? TurnstileTokenProvider.shared
   }
@@ -204,6 +214,7 @@ final class SignupViewModel {
     confirmPassword = ""
     familyCode = ""
     termsAccepted = false
+    marketingOptIn = false
     graduationYear = nil
     primarySport = ""
     gender = ""
@@ -355,21 +366,12 @@ final class SignupViewModel {
         zipCode: draftsStep1 && !trimmedZipCode.isEmpty ? trimmedZipCode : nil,
         captchaToken: captchaToken,
         skipVerificationEmail: false,
+        marketingEmailOptIn: marketingEmailOptInForSignup,
         beforePublish: nil
       )
 
-      // Create family for both roles (mirrors web: POST /api/family/create)
-      if authManager.isAuthenticated {
-        do {
-          _ = try await familyService.createFamily(role: role)
-        } catch {
-          // intentionally silent: signup itself succeeded and must not be blocked.
-          // The dashboard onboarding banner detects the missing family and walks
-          // the user through creating one, so that is the recovery surface.
-          signupLogger.error("Family creation failed during signup: \(error.localizedDescription)")
-        }
-      }
-
+      // No client-side family creation: the server creates it atomically with the account (web#1302), and
+      // the family-required gate covers anyone left without one.
       // Only show email verification when no session (e.g. confirmation required)
       if !authManager.isAuthenticated {
         shouldNavigateToVerifyEmail = true
@@ -381,8 +383,9 @@ final class SignupViewModel {
 
   /// Standalone signup for a 13-17 player who names a guardian, via the
   /// dedicated `signup-minor` endpoint (parity with web PR #784). No family
-  /// is created here — the guardian's later confirmation creates the family
-  /// unit and links the player into it. The account itself IS auto-confirmed
+  /// is created client-side: the server creates it at signup with the player
+  /// as owner, and the guardian's later confirmation joins into it (web#1302).
+  /// The account itself IS auto-confirmed
   /// and sessioned immediately though (parity with the adult path, #167) —
   /// establishSession(fromTokenHash:) below lands the player on the
   /// dashboard, where GuardianPendingBanner/EmailVerificationBanner show.

@@ -7,6 +7,11 @@ struct InboundDraftsView: View {
   @State private var viewModel = InboundDraftsViewModel()
 
   var body: some View {
+    draftsBody.featureGated(.inboundDrafts)
+  }
+
+  @ViewBuilder
+  private var draftsBody: some View {
     contentView
       .navigationTitle("Coach Emails")
       .navigationBarTitleDisplayMode(.inline)

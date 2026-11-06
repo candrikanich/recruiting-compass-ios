@@ -18,7 +18,9 @@ struct CoachUpdateRequest: Codable, Sendable {
   enum CodingKeys: String, CodingKey {
     case firstName = "first_name"
     case lastName = "last_name"
-    case email, phone, position
+    case email, phone
+    // The coaches column is `role`; a `position` key is rejected by PostgREST (PGRST204) and fails the whole update.
+    case position = "role"
     case twitterHandle = "twitter_handle"
     case instagramHandle = "instagram_handle"
     case notes

@@ -7,6 +7,11 @@ struct ParentFamilyData: Codable, Identifiable, Sendable {
   let familyName: String
   let codeGeneratedAt: String
   var members: [FamilyMember] = []
+  /// Server verdict on leaving this family (GET /api/family/members); nil until loaded or on older servers.
+  var canLeave: Bool?
+  var leaveBlockedReason: String?
+
+  var leaveControl: ServerControl { ServerControl(allowed: canLeave, blockedReason: leaveBlockedReason) }
 
   enum CodingKeys: String, CodingKey {
     case familyId = "family_id"

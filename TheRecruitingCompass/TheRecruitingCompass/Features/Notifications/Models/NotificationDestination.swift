@@ -11,4 +11,19 @@ enum NotificationDestination: Hashable, Sendable {
   /// `relatedEntityType == "inbound_email_draft"`, not by `type`. See
   /// `NotificationDestinationParser`.
   case inboundDraftsList
+  /// `family_update` rows carry action_url `/settings/family-management`.
+  case familyManagement
+  /// A push tap that names no routable entity.
+  case notificationsList
+}
+
+extension NotificationDestination {
+  /// nil when the destination's feature is switched off remotely, so a tap lands on the default tab.
+  @MainActor
+  func gated(by flags: FeatureFlagStore?) -> NotificationDestination? {
+    switch self {
+    case .inboundDraftsList: return flags.isEnabled(.inboundDrafts) ? self : nil
+    default: return self
+    }
+  }
 }

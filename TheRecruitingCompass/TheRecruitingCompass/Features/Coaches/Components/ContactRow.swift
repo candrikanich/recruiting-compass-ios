@@ -33,17 +33,17 @@ struct ContactRow: View {
   private func rowContent(showLinkIndicator: Bool) -> some View {
     HStack(spacing: 12) {
       Image(systemName: icon)
-        .font(.body)
+        .font(.brand(.body))
         .foregroundStyle(type.url(for: value) != nil || customAction != nil ? type.iconColor : .secondary)
         .frame(width: 24)
         .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 2) {
         Text(label)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
         Text(value)
-          .font(.body)
+          .font(.brand(.body))
           .foregroundStyle(.primary)
       }
 
@@ -51,7 +51,7 @@ struct ContactRow: View {
 
       if showLinkIndicator {
         Image(systemName: "arrow.up.right")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
           .accessibilityHidden(true)
       }

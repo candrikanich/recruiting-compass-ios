@@ -3,14 +3,11 @@ import SwiftUI
 /// Freezes the target user/family ids at the moment the create-event sheet is opened,
 /// matching the pattern in `EventsListView` so the form's `@State` survives an
 /// `authManager`/`familyManager` republish mid-edit.
-private struct CreateEventContext: Identifiable {
-  let id = UUID()
-  let userId: String
-  let familyUnitId: String
+private struct PresentedFamily: Identifiable, Equatable {
+  let id: String
 }
 
 struct UpcomingEventsWidget: View {
-  let familyUnitId: String
   let userId: String
   /// Reload the dashboard after a create so the new event appears in this widget.
   var onEventCreated: (() -> Void)?
@@ -21,11 +18,11 @@ struct UpcomingEventsWidget: View {
 
   @State private var isShowingAll = false
   @State private var isShowingAllEvents = false
-  @State private var createEventContext: CreateEventContext?
+  @State private var createEventLaunch = CreateEventLaunch()
+  @Environment(FamilyManager.self) private var familyManager
 
-  init(events: [FullEvent], familyUnitId: String, userId: String, onEventCreated: (() -> Void)? = nil) {
+  init(events: [FullEvent], userId: String, onEventCreated: (() -> Void)? = nil) {
     self.sortedEvents = events.sorted { $0.startDate < $1.startDate }
-    self.familyUnitId = familyUnitId
     self.userId = userId
     self.onEventCreated = onEventCreated
   }
@@ -37,7 +34,7 @@ struct UpcomingEventsWidget: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Upcoming Events")
-        .font(.headline)
+        .font(.brand(.headline))
         .accessibilityAddTraits(.isHeader)
 
       Divider()
@@ -45,14 +42,20 @@ struct UpcomingEventsWidget: View {
       if sortedEvents.isEmpty {
         VStack(alignment: .leading, spacing: 8) {
           Text("No upcoming events scheduled")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
 
           Button(action: presentCreateEvent) {
-            Text("Add Event")
-              .font(.caption.weight(.semibold))
-              .foregroundStyle(Color.accentBlue)
+            if createEventLaunch.isWaiting {
+              ProgressView()
+                .accessibilityLabel(String(localized: "Loading your family"))
+            } else {
+              Text("Add Event")
+                .font(.brand(.caption, weight: .semibold))
+                .foregroundStyle(Color.accentPrimary)
+            }
           }
+          .disabled(createEventLaunch.isWaiting)
           .accessibilityHint("Opens the form to create a new event")
         }
         .padding(.vertical)
@@ -69,12 +72,12 @@ struct UpcomingEventsWidget: View {
               Text(isShowingAll
                 ? String(localized: "Show less")
                 : String(localized: "Show \(sortedEvents.count - 3) more events"))
-                .font(.caption)
+                .font(.brand(.caption))
               Image(systemName: isShowingAll ? "chevron.up" : "chevron.down")
-                .font(.caption)
+                .font(.brand(.caption))
                 .accessibilityHidden(true)
             }
-            .foregroundStyle(Color.accentBlue)
+            .foregroundStyle(Color.accentPrimary)
           }
           .accessibilityLabel(String(localized: isShowingAll
             ? "Show fewer events"
@@ -86,8 +89,8 @@ struct UpcomingEventsWidget: View {
 
         Button(action: { isShowingAllEvents = true }) {
           Text("View All Events")
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(Color.accentBlue)
+            .font(.brand(.caption, weight: .semibold))
+            .foregroundStyle(Color.accentPrimary)
         }
         .accessibilityHint("Opens the full events list")
       }
@@ -101,23 +104,70 @@ struct UpcomingEventsWidget: View {
         EventsListView()
       }
     }
-    .sheet(item: $createEventContext) { context in
+    .sheet(item: presentedFamilyUnitId) { presented in
       NavigationStack {
         CreateEventView(
           eventsService: EventsServiceImpl(),
-          userId: context.userId,
-          familyUnitId: context.familyUnitId,
+          userId: userId,
+          familyUnitId: presented.id,
           onEventCreated: { _ in
-            createEventContext = nil
+            createEventLaunch.dismiss()
             onEventCreated?()
           }
         )
       }
     }
+    .onChange(of: familyManager.resolvedFamilyUnitId) { _, _ in familyDidChange() }
+    .onChange(of: familyManager.membership) { _, _ in familyDidChange() }
+    .onDisappear { createEventLaunch.cancel() }
+    .alert(
+      String(localized: "Couldn't load your family"),
+      isPresented: showingLoadFailure
+    ) {
+      Button("Retry") { retryFamilyLoad() }
+      Button("Cancel", role: .cancel) { createEventLaunch.dismiss() }
+    } message: {
+      Text("We need your family before you can add an event. Check your connection and try again.")
+    }
+  }
+
+  /// Item binding over the launch phase; the sheet's `id` is the frozen family id.
+  private var presentedFamilyUnitId: Binding<PresentedFamily?> {
+    Binding(
+      get: {
+        if case .presenting(let id) = createEventLaunch.phase { PresentedFamily(id: id) } else { nil }
+      },
+      set: { if $0 == nil { createEventLaunch.dismiss() } }
+    )
+  }
+
+  private var showingLoadFailure: Binding<Bool> {
+    Binding(
+      get: { createEventLaunch.phase == .failed },
+      // Every alert button flips this to false, including Retry; only Cancel may end the wait.
+      set: { _ in }
+    )
   }
 
   private func presentCreateEvent() {
-    createEventContext = CreateEventContext(userId: userId, familyUnitId: familyUnitId)
+    createEventLaunch.tap(
+      familyUnitId: familyManager.resolvedFamilyUnitId, membership: familyManager.membership
+    )
+  }
+
+  private func familyDidChange() {
+    createEventLaunch.familyChanged(
+      familyUnitId: familyManager.resolvedFamilyUnitId, membership: familyManager.membership
+    )
+  }
+
+  private func retryFamilyLoad() {
+    createEventLaunch.retry(membership: .unknown)
+    Task {
+      await familyManager.loadFamilyData()
+      // A repeat failure leaves membership at .failed, so onChange never fires; settle the wait explicitly.
+      familyDidChange()
+    }
   }
 }
 
@@ -177,8 +227,8 @@ struct UpcomingEventsWidget: View {
         updatedAt: "2026-02-01T12:00:00Z"
       )
     ],
-    familyUnitId: "family-1",
     userId: "user-1"
   )
   .padding()
+  .environment(FamilyManager())
 }

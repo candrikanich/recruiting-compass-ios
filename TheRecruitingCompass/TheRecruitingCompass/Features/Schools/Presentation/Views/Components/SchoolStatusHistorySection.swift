@@ -6,12 +6,12 @@ struct SchoolStatusHistorySection: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       Text("Status History")
-        .font(.headline)
+        .font(.brand(.headline))
         .accessibilityAddTraits(.isHeader)
 
       if history.isEmpty {
         Text("No status changes yet")
-          .font(.body)
+          .font(.brand(.body))
           .foregroundStyle(.secondary)
           .italic()
           .padding(.vertical, 8)

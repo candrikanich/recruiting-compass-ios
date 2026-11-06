@@ -17,12 +17,12 @@ struct SchoolPicker: View {
     VStack(alignment: .leading, spacing: 8) {
       HStack {
         Text("School")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .fontWeight(.medium)
           .foregroundStyle(.secondary)
 
         Text("*")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.red)
           .accessibilityHidden(true)
 

@@ -8,10 +8,10 @@ struct LegalBulletList: View {
       ForEach(items, id: \.self) { item in
         HStack(alignment: .top, spacing: 8) {
           Text("•")
-            .font(.body)
+            .font(.brand(.body))
             .foregroundStyle(Color.secondaryText)
           Text(item)
-            .font(.body)
+            .font(.brand(.body))
             .foregroundStyle(Color.secondaryText)
             .fixedSize(horizontal: false, vertical: true)
         }

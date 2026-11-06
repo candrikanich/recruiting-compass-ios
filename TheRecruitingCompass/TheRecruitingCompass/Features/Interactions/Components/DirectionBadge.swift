@@ -5,7 +5,7 @@ struct DirectionBadge: View {
 
   var body: some View {
     Text(direction.displayName)
-      .font(.caption)
+      .font(.brand(.caption))
       .fontWeight(.medium)
       .foregroundStyle(direction.badgeColor.foregroundColor)
       .padding(.horizontal, 8)

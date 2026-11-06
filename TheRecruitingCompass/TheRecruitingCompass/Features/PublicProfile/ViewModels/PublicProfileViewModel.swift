@@ -39,6 +39,53 @@ final class PublicProfileViewModel {
     var slugError: String?
     var saveError: String?
     private(set) var cardData: PublicProfileData?
+    /// Why the first load failed; nil until a load has failed and again once one succeeds.
+    private(set) var loadError: String?
+    /// The server's own words for a failed load (e.g. a 403); preferred over generic copy when a save is refused.
+    private var loadServerMessage: String?
+
+    enum LoadState: Equatable {
+        case loading
+        case loaded
+        case failed(String)
+    }
+
+    /// The editor renders only for `.loaded`: its fields are client defaults until the stored profile arrives,
+    /// so showing them would let the user edit (and see "live & public" for) values that were never saved.
+    var loadState: LoadState {
+        if profile != nil { return .loaded }
+        return loadError.map(LoadState.failed) ?? .loading
+    }
+
+    enum ContentState: Equatable {
+        case selectAthlete
+        case unconfigured
+        case loading
+        case failed(String)
+        case editor
+    }
+
+    /// What `PublicTab` renders. The view switches over this exhaustively, so a branch cannot be dropped silently.
+    var contentState: ContentState {
+        Self.contentState(hasNoEditableProfile: hasNoEditableProfile, isConfigured: isConfigured, loadState: loadState)
+    }
+
+    static func contentState(hasNoEditableProfile: Bool, isConfigured: Bool, loadState: LoadState) -> ContentState {
+        if hasNoEditableProfile { return .selectAthlete }
+        if !isConfigured { return .unconfigured }
+        switch loadState {
+        case .loading: return .loading
+        case .failed(let message): return .failed(message)
+        case .loaded: return .editor
+        }
+    }
+
+    private static let notLoadedMessage = String(
+        localized: "Your profile didn't load, so changes can't be saved. Reopen this screen to retry."
+    )
+    private static let loadFailedMessage = String(
+        localized: "Couldn't load your public profile. Please try again."
+    )
 
     var isConfigured: Bool { SupabaseConfig.apiBaseURL != nil }
 
@@ -68,6 +115,18 @@ final class PublicProfileViewModel {
 
     private var token: String? { authManager.session?.accessToken }
 
+    /// A parent has no public profile of their own (family spec §9 item 17). True when a parent is
+    /// viewing this editor without a selected athlete, so load/save must not run at all.
+    var hasNoEditableProfile: Bool {
+        authManager.user?.role == .parent && (targetUserId == nil || targetUserId == authManager.user?.id)
+    }
+
+    /// The athlete this editor is pinned to (fixed at init). nil = the caller's own row (player accounts).
+    private var athleteId: String? {
+        guard let targetUserId, targetUserId != authManager.user?.id else { return nil }
+        return targetUserId
+    }
+
     /// Fails open on any lookup error — a status-check failure must never
     /// fabricate a publish lock.
     func refreshGuardianStatus() async {
@@ -80,24 +139,49 @@ final class PublicProfileViewModel {
     func load() async {
         isLoading = true
         defer { isLoading = false }
+        if profile == nil { loadError = nil; loadServerMessage = nil }
         availableSchools = await fetchSchoolsData()
+        guard !hasNoEditableProfile else { return }
+        let athleteId = athleteId
         do {
-            guard let loaded = try await service.fetchProfile(accessToken: token) else { return }
+            guard let loaded = try await service.fetchProfile(athleteId: athleteId, accessToken: token) else {
+                return markLoadFailed(message: nil)
+            }
             apply(loaded)
         } catch PublicProfileAPIError.unauthorized {
             let refreshed = await retryAfterRefresh {
-                try await self.service.fetchProfile(accessToken: self.token)
+                try await self.service.fetchProfile(athleteId: athleteId, accessToken: self.token)
             }
             if let refreshed, let profile = refreshed {
                 apply(profile)
+            } else {
+                markLoadFailed(message: nil)
             }
+        } catch PublicProfileAPIError.serverMessage(let message) {
+            markLoadFailed(message: message)
         } catch {
-            // leave state as-is; view shows unconfigured/empty
+            markLoadFailed(message: nil)
         }
+    }
+
+    /// `loadState` stays `.loaded` when a reload fails after a successful load: those values are ones the user saw.
+    private func markLoadFailed(message: String?) {
+        loadServerMessage = message
+        loadError = message ?? Self.loadFailedMessage
     }
 
     func save() async {
         saveError = nil
+        guard !hasNoEditableProfile else {
+            saveError = String(localized: "Select an athlete to edit their public profile.")
+            return
+        }
+        // The editor's fields are client defaults until a load succeeds; sending them would
+        // overwrite the stored profile with values the user never saw.
+        guard profile != nil else {
+            saveError = loadServerMessage ?? Self.notLoadedMessage
+            return
+        }
         // Slug validity is independent of the other fields: an invalid/reserved local slug
         // must not block persisting the rest. Only the vanity_slug key itself is conditional;
         // when invalid it's omitted so the server keeps the existing slug.
@@ -128,6 +212,16 @@ final class PublicProfileViewModel {
         }
     }
 
+    /// An `.unknown` status is never written back, so the dependent school id must be left untouched
+    /// (outer nil = omit) rather than cleared with an explicit null.
+    private var committedSchoolPayload: String?? {
+        switch commitmentStatus {
+        case .unknown: return nil
+        case .committed: return .some(committedSchoolId)
+        default: return .some(nil)
+        }
+    }
+
     private func buildPayload(slugToSend: String??) -> UpdateProfilePayload {
         UpdateProfilePayload(
             bio: .some(bio.isEmpty ? nil : bio),
@@ -138,8 +232,9 @@ final class PublicProfileViewModel {
             valuesTags: valuesTags,
             awards: awards,
             commitmentStatus: commitmentStatus,
-            committedSchoolId: .some(commitmentStatus == .committed ? committedSchoolId : nil),
-            sectionConfig: sections
+            committedSchoolId: committedSchoolPayload,
+            sectionConfig: sections,
+            athleteId: athleteId
         )
     }
 
@@ -167,6 +262,35 @@ final class PublicProfileViewModel {
         case .reserved:
             slugError = String(localized: "That custom URL is reserved.")
         }
+    }
+
+    // MARK: - Debounced text saves
+
+    enum DebouncedField: Hashable { case bio, lookingFor }
+
+    private var debouncedSaves: [DebouncedField: Task<Void, Never>] = [:]
+    var hasPendingDebouncedSave: Bool { !debouncedSaves.isEmpty }
+
+    /// Debounced auto-save, since `TextEditor` has no reliable commit event. The task is tied to this
+    /// view model, so it can only write to the athlete this editor is pinned to, and it clears itself
+    /// once fired so a later flush doesn't re-send the whole profile.
+    func scheduleDebouncedSave(_ field: DebouncedField, delay: Duration = .milliseconds(700)) {
+        debouncedSaves[field]?.cancel()
+        debouncedSaves[field] = Task { [weak self] in
+            try? await Task.sleep(for: delay)
+            guard !Task.isCancelled, let self else { return }
+            debouncedSaves[field] = nil
+            await save()
+            await assembleCard()
+        }
+    }
+
+    /// Saves now if an edit is still waiting on its debounce (athlete switch, navigation away).
+    func flushPendingSaves() async {
+        guard hasPendingDebouncedSave else { return }
+        debouncedSaves.values.forEach { $0.cancel() }
+        debouncedSaves = [:]
+        await save()
     }
 
     // MARK: - Section Configuration (reorder + eye toggle)
@@ -257,7 +381,7 @@ final class PublicProfileViewModel {
             academics: isSectionVisible(.academics) ? academicsSection(from: details) : nil,
             credentials: credentialsRow(from: details),
             metrics: isSectionVisible(.metrics) ? Self.buildMetrics(from: metricRows) : nil,
-            film: isSectionVisible(.film) ? videos.map { PublicProfileData.FilmItem(title: $0.title, url: $0.url) } : nil,
+            film: isSectionVisible(.film) ? Self.buildFilm(from: videos) : nil,
             lookingFor: isSectionVisible(.values) ? (lookingFor.isEmpty ? nil : lookingFor) : nil,
             valuesTags: isSectionVisible(.values) ? valuesTags : [],
             teamHistory: isSectionVisible(.teamHistory) ? Self.buildTeamHistory(from: details) : nil,
@@ -276,6 +400,11 @@ final class PublicProfileViewModel {
         if let date = iso.date(from: raw) { return date }
         iso.formatOptions = [.withInternetDateTime]
         return iso.date(from: raw)
+    }
+
+    /// Web drops film rows that aren't http(s) links; so do we.
+    nonisolated static func buildFilm(from videos: [VideoLink]) -> [PublicProfileData.FilmItem] {
+        videos.map { PublicProfileData.FilmItem(title: $0.title, url: $0.url) }.filter { $0.linkURL != nil }
     }
 
     /// One card per `metric_type` (newest by `created_at` wins), ranked
@@ -387,6 +516,9 @@ final class PublicProfileViewModel {
 
     private func apply(_ profile: PlayerProfile) {
         self.profile = profile
+        loadError = nil
+        loadServerMessage = nil
+        if saveError == Self.notLoadedMessage { saveError = nil }
         bio = profile.bio ?? ""
         vanitySlug = profile.vanitySlug ?? ""
         isPublished = profile.isPublished

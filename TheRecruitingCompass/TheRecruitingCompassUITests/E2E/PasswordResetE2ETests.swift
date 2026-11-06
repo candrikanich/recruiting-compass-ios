@@ -6,7 +6,7 @@ final class PasswordResetE2ETests: XCTestCase {
   override func setUpWithError() throws {
     continueAfterFailure = false
     app = XCUIApplication()
-    app.launchArguments = ["--uitesting"]
+    app.launchArguments = ["--uitesting", "--disable-animations"]
     app.launch()
   }
 

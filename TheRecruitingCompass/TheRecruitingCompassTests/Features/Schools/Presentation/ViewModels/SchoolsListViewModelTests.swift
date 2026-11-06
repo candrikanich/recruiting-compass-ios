@@ -283,6 +283,43 @@ final class SchoolsListViewModelTests: XCTestCase {
     XCTAssertEqual(sut.analytics.contactedCount, 1)
   }
 
+  // MARK: - Visit/contact signal payloads
+
+  // Full interaction and event rows grow with the account; the list reads two or three columns of each.
+  func testLoadSchools_fetchesSlimSignals_notFullInteractionsOrEvents() async {
+    mockService.stubbedSchools = [makeSchool(id: "1")]
+
+    await sut.loadSchools()
+
+    XCTAssertEqual(mockInteractionsService.fetchSchoolContactSignalsCallCount, 1)
+    XCTAssertEqual(mockInteractionsService.fetchInteractionsCallCount, 0)
+    XCTAssertEqual(mockEventsService.fetchVisitEventsCallCount, 1)
+    XCTAssertEqual(mockEventsService.fetchEventsCallCount, 0)
+  }
+
+  func testVisitedCount_nonVisitEventDoesNotCount() async {
+    mockService.stubbedSchools = [makeSchool(id: "1")]
+    mockEventsService.stubbedEvents = [
+      FullEvent.mock(id: "e1", type: "camp", startDate: "2020-01-01", schoolId: "1")
+    ]
+
+    await sut.loadSchools()
+
+    XCTAssertEqual(sut.analytics.visitedCount, 0)
+  }
+
+  func testLoadSchools_signalFetchesFail_listStillLoads() async {
+    mockService.stubbedSchools = [makeSchool(id: "1")]
+    mockInteractionsService.shouldSucceed = false
+    mockEventsService.shouldThrowFetchEvents = true
+
+    await sut.loadSchools()
+
+    XCTAssertNil(sut.errorMessage)
+    XCTAssertEqual(sut.analytics.contactedCount, 0)
+    XCTAssertEqual(sut.analytics.visitedCount, 0)
+  }
+
   // MARK: - Loading Tests
 
   func testLoadSchools_Success() async {

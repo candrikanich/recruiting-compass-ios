@@ -27,12 +27,12 @@ final class ActivityFeedServiceTests: XCTestCase {
     ]
 
     // When
-    let result = try await mockService.fetchInteractions(userId: "user-1")
+    let result = try await mockService.fetchInteractions(familyUnitId: "user-1")
 
     // Then
     XCTAssertEqual(result.count, 3)
     XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)
-    XCTAssertEqual(mockService.lastFetchInteractionsUserId, "user-1")
+    XCTAssertEqual(mockService.lastFetchInteractionsFamilyUnitId, "user-1")
   }
 
   func testFetchInteractions_ReturnsEmptyWhenNone() async throws {
@@ -40,7 +40,7 @@ final class ActivityFeedServiceTests: XCTestCase {
     mockService.mockInteractions = []
 
     // When
-    let result = try await mockService.fetchInteractions(userId: "user-1")
+    let result = try await mockService.fetchInteractions(familyUnitId: "user-1")
 
     // Then
     XCTAssertTrue(result.isEmpty)
@@ -52,7 +52,7 @@ final class ActivityFeedServiceTests: XCTestCase {
 
     // When/Then
     do {
-      _ = try await mockService.fetchInteractions(userId: "user-1")
+      _ = try await mockService.fetchInteractions(familyUnitId: "user-1")
       XCTFail("Expected error to be thrown")
     } catch {
       XCTAssertNotNil(error)
@@ -60,12 +60,12 @@ final class ActivityFeedServiceTests: XCTestCase {
     }
   }
 
-  func testFetchInteractions_PassesCorrectUserId() async throws {
+  func testFetchInteractions_PassesCorrectFamilyUnitId() async throws {
     // When
-    _ = try await mockService.fetchInteractions(userId: "specific-user-id")
+    _ = try await mockService.fetchInteractions(familyUnitId: "specific-user-id")
 
     // Then
-    XCTAssertEqual(mockService.lastFetchInteractionsUserId, "specific-user-id")
+    XCTAssertEqual(mockService.lastFetchInteractionsFamilyUnitId, "specific-user-id")
   }
 
   // MARK: - Fetch Status Changes Tests
@@ -78,12 +78,12 @@ final class ActivityFeedServiceTests: XCTestCase {
     ]
 
     // When
-    let result = try await mockService.fetchStatusChanges(userId: "user-1")
+    let result = try await mockService.fetchStatusChanges(familyUnitId: "user-1")
 
     // Then
     XCTAssertEqual(result.count, 2)
     XCTAssertEqual(mockService.fetchStatusChangesCallCount, 1)
-    XCTAssertEqual(mockService.lastFetchStatusChangesUserId, "user-1")
+    XCTAssertEqual(mockService.lastFetchStatusChangesFamilyUnitId, "user-1")
   }
 
   func testFetchStatusChanges_ReturnsEmptyWhenNone() async throws {
@@ -91,7 +91,7 @@ final class ActivityFeedServiceTests: XCTestCase {
     mockService.mockStatusChanges = []
 
     // When
-    let result = try await mockService.fetchStatusChanges(userId: "user-1")
+    let result = try await mockService.fetchStatusChanges(familyUnitId: "user-1")
 
     // Then
     XCTAssertTrue(result.isEmpty)
@@ -103,7 +103,7 @@ final class ActivityFeedServiceTests: XCTestCase {
 
     // When/Then
     do {
-      _ = try await mockService.fetchStatusChanges(userId: "user-1")
+      _ = try await mockService.fetchStatusChanges(familyUnitId: "user-1")
       XCTFail("Expected error to be thrown")
     } catch {
       XCTAssertNotNil(error)
@@ -122,12 +122,12 @@ final class ActivityFeedServiceTests: XCTestCase {
     ]
 
     // When
-    let result = try await mockService.fetchDocuments(userId: "user-1")
+    let result = try await mockService.fetchDocuments(familyUnitId: "user-1")
 
     // Then
     XCTAssertEqual(result.count, 3)
     XCTAssertEqual(mockService.fetchDocumentsCallCount, 1)
-    XCTAssertEqual(mockService.lastFetchDocumentsUserId, "user-1")
+    XCTAssertEqual(mockService.lastFetchDocumentsFamilyUnitId, "user-1")
   }
 
   func testFetchDocuments_ReturnsEmptyWhenNone() async throws {
@@ -135,7 +135,7 @@ final class ActivityFeedServiceTests: XCTestCase {
     mockService.mockDocuments = []
 
     // When
-    let result = try await mockService.fetchDocuments(userId: "user-1")
+    let result = try await mockService.fetchDocuments(familyUnitId: "user-1")
 
     // Then
     XCTAssertTrue(result.isEmpty)
@@ -147,7 +147,7 @@ final class ActivityFeedServiceTests: XCTestCase {
 
     // When/Then
     do {
-      _ = try await mockService.fetchDocuments(userId: "user-1")
+      _ = try await mockService.fetchDocuments(familyUnitId: "user-1")
       XCTFail("Expected error to be thrown")
     } catch {
       XCTAssertNotNil(error)
@@ -219,9 +219,9 @@ final class ActivityFeedServiceTests: XCTestCase {
     mockService.mockDocuments = [createDocument(id: "d1")]
 
     // When
-    let interactions = try await mockService.fetchInteractions(userId: "user-1")
-    let statusChanges = try await mockService.fetchStatusChanges(userId: "user-1")
-    let documents = try await mockService.fetchDocuments(userId: "user-1")
+    let interactions = try await mockService.fetchInteractions(familyUnitId: "user-1")
+    let statusChanges = try await mockService.fetchStatusChanges(familyUnitId: "user-1")
+    let documents = try await mockService.fetchDocuments(familyUnitId: "user-1")
 
     // Then
     XCTAssertEqual(interactions.count, 1)
@@ -240,15 +240,15 @@ final class ActivityFeedServiceTests: XCTestCase {
 
     // When: interactions fail
     do {
-      _ = try await mockService.fetchInteractions(userId: "user-1")
+      _ = try await mockService.fetchInteractions(familyUnitId: "user-1")
       XCTFail("Expected error")
     } catch {
       // Expected
     }
 
     // Then: other sources still work
-    let statusChanges = try await mockService.fetchStatusChanges(userId: "user-1")
-    let documents = try await mockService.fetchDocuments(userId: "user-1")
+    let statusChanges = try await mockService.fetchStatusChanges(familyUnitId: "user-1")
+    let documents = try await mockService.fetchDocuments(familyUnitId: "user-1")
     XCTAssertEqual(statusChanges.count, 1)
     XCTAssertEqual(documents.count, 1)
   }
@@ -261,15 +261,15 @@ final class ActivityFeedServiceTests: XCTestCase {
 
     // When: status changes fail
     do {
-      _ = try await mockService.fetchStatusChanges(userId: "user-1")
+      _ = try await mockService.fetchStatusChanges(familyUnitId: "user-1")
       XCTFail("Expected error")
     } catch {
       // Expected
     }
 
     // Then: other sources still work
-    let interactions = try await mockService.fetchInteractions(userId: "user-1")
-    let documents = try await mockService.fetchDocuments(userId: "user-1")
+    let interactions = try await mockService.fetchInteractions(familyUnitId: "user-1")
+    let documents = try await mockService.fetchDocuments(familyUnitId: "user-1")
     XCTAssertEqual(interactions.count, 1)
     XCTAssertEqual(documents.count, 1)
   }
@@ -282,15 +282,15 @@ final class ActivityFeedServiceTests: XCTestCase {
 
     // When: documents fail
     do {
-      _ = try await mockService.fetchDocuments(userId: "user-1")
+      _ = try await mockService.fetchDocuments(familyUnitId: "user-1")
       XCTFail("Expected error")
     } catch {
       // Expected
     }
 
     // Then: other sources still work
-    let interactions = try await mockService.fetchInteractions(userId: "user-1")
-    let statusChanges = try await mockService.fetchStatusChanges(userId: "user-1")
+    let interactions = try await mockService.fetchInteractions(familyUnitId: "user-1")
+    let statusChanges = try await mockService.fetchStatusChanges(familyUnitId: "user-1")
     XCTAssertEqual(interactions.count, 1)
     XCTAssertEqual(statusChanges.count, 1)
   }
@@ -303,17 +303,17 @@ final class ActivityFeedServiceTests: XCTestCase {
 
     // When/Then: each call throws independently
     do {
-      _ = try await mockService.fetchInteractions(userId: "user-1")
+      _ = try await mockService.fetchInteractions(familyUnitId: "user-1")
       XCTFail("Expected error")
     } catch { }
 
     do {
-      _ = try await mockService.fetchStatusChanges(userId: "user-1")
+      _ = try await mockService.fetchStatusChanges(familyUnitId: "user-1")
       XCTFail("Expected error")
     } catch { }
 
     do {
-      _ = try await mockService.fetchDocuments(userId: "user-1")
+      _ = try await mockService.fetchDocuments(familyUnitId: "user-1")
       XCTFail("Expected error")
     } catch { }
 
@@ -340,8 +340,8 @@ final class ActivityFeedServiceTests: XCTestCase {
     ]
 
     // When: fetch all data
-    let interactions = try await mockService.fetchInteractions(userId: "user-1")
-    let statusChanges = try await mockService.fetchStatusChanges(userId: "user-1")
+    let interactions = try await mockService.fetchInteractions(familyUnitId: "user-1")
+    let statusChanges = try await mockService.fetchStatusChanges(familyUnitId: "user-1")
 
     // Collect unique school IDs (as the ViewModel would)
     var schoolIds = Set<String>()
@@ -372,7 +372,7 @@ final class ActivityFeedServiceTests: XCTestCase {
     mockService.mockInteractions = [interaction]
 
     // When
-    let interactions = try await mockService.fetchInteractions(userId: "user-1")
+    let interactions = try await mockService.fetchInteractions(familyUnitId: "user-1")
     let schoolIds = interactions.compactMap(\.schoolId)
 
     // Then
@@ -383,13 +383,13 @@ final class ActivityFeedServiceTests: XCTestCase {
 
   func testMultipleFetchCalls_IncrementCallCount() async throws {
     // When
-    _ = try await mockService.fetchInteractions(userId: "user-1")
-    _ = try await mockService.fetchInteractions(userId: "user-2")
-    _ = try await mockService.fetchInteractions(userId: "user-3")
+    _ = try await mockService.fetchInteractions(familyUnitId: "user-1")
+    _ = try await mockService.fetchInteractions(familyUnitId: "user-2")
+    _ = try await mockService.fetchInteractions(familyUnitId: "user-3")
 
     // Then
     XCTAssertEqual(mockService.fetchInteractionsCallCount, 3)
-    XCTAssertEqual(mockService.lastFetchInteractionsUserId, "user-3")
+    XCTAssertEqual(mockService.lastFetchInteractionsFamilyUnitId, "user-3")
   }
 
   // MARK: - Reset Tests
@@ -408,9 +408,9 @@ final class ActivityFeedServiceTests: XCTestCase {
     mockService.fetchStatusChangesCallCount = 3
     mockService.fetchDocumentsCallCount = 2
     mockService.fetchSchoolNamesCallCount = 1
-    mockService.lastFetchInteractionsUserId = "old-user"
-    mockService.lastFetchStatusChangesUserId = "old-user"
-    mockService.lastFetchDocumentsUserId = "old-user"
+    mockService.lastFetchInteractionsFamilyUnitId = "old-user"
+    mockService.lastFetchStatusChangesFamilyUnitId = "old-user"
+    mockService.lastFetchDocumentsFamilyUnitId = "old-user"
     mockService.lastFetchSchoolNamesIds = ["old-school"]
 
     // When
@@ -429,9 +429,9 @@ final class ActivityFeedServiceTests: XCTestCase {
     XCTAssertEqual(mockService.fetchStatusChangesCallCount, 0)
     XCTAssertEqual(mockService.fetchDocumentsCallCount, 0)
     XCTAssertEqual(mockService.fetchSchoolNamesCallCount, 0)
-    XCTAssertNil(mockService.lastFetchInteractionsUserId)
-    XCTAssertNil(mockService.lastFetchStatusChangesUserId)
-    XCTAssertNil(mockService.lastFetchDocumentsUserId)
+    XCTAssertNil(mockService.lastFetchInteractionsFamilyUnitId)
+    XCTAssertNil(mockService.lastFetchStatusChangesFamilyUnitId)
+    XCTAssertNil(mockService.lastFetchDocumentsFamilyUnitId)
     XCTAssertNil(mockService.lastFetchSchoolNamesIds)
   }
 
@@ -439,7 +439,7 @@ final class ActivityFeedServiceTests: XCTestCase {
     // Given: error state
     mockService.shouldThrowOnInteractions = true
     do {
-      _ = try await mockService.fetchInteractions(userId: "user-1")
+      _ = try await mockService.fetchInteractions(familyUnitId: "user-1")
     } catch { }
 
     // When: reset
@@ -447,7 +447,7 @@ final class ActivityFeedServiceTests: XCTestCase {
     mockService.mockInteractions = [createInteraction(id: "new")]
 
     // Then: succeeds after reset
-    let result = try await mockService.fetchInteractions(userId: "user-1")
+    let result = try await mockService.fetchInteractions(familyUnitId: "user-1")
     XCTAssertEqual(result.count, 1)
     XCTAssertEqual(result.first?.id, "new")
     XCTAssertEqual(mockService.fetchInteractionsCallCount, 1)

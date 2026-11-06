@@ -6,6 +6,13 @@ struct SaveStatusView: View {
     var body: some View {
         statusContent
             .animation(.easeInOut(duration: 0.2), value: status)
+            .onChange(of: status) { _, newStatus in
+                guard let announcement = newStatus.announcement else { return }
+                // Low priority so an autosave never interrupts what VoiceOver is already reading.
+                var text = AttributedString(announcement)
+                text.accessibilitySpeechAnnouncementPriority = .low
+                AccessibilityNotification.Announcement(text).post()
+            }
     }
 
     @ViewBuilder
@@ -18,15 +25,17 @@ struct SaveStatusView: View {
                 ProgressView()
                     .scaleEffect(0.8)
                 Text("Saving...")
-                    .font(.caption)
+                    .font(.brand(.caption))
                     .foregroundStyle(.secondary)
             }
+            .accessibilityElement(children: .combine)
         case .saved:
             HStack(spacing: 4) {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(.green)
+                    .accessibilityHidden(true)
                 Text("Saved")
-                    .font(.caption)
+                    .font(.brand(.caption))
                     .foregroundStyle(.secondary)
             }
         }

@@ -7,13 +7,13 @@ struct TrendCard: View {
     VStack(alignment: .leading, spacing: 12) {
       HStack {
         Text(trend.type.displayName)
-          .font(.headline)
+          .font(.brand(.headline))
         Spacer()
         TrendIndicator(trend: trend.trend)
       }
 
       Text("Last \(trend.count) records: \(trend.type.format(trend.min)) to \(trend.type.format(trend.max)) \(trend.unit) (avg: \(trend.type.format(trend.average)))")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
 
       MiniBarChart(values: trend.values, maxValue: trend.max)

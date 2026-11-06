@@ -47,7 +47,7 @@ struct OnboardingStepOneView: View {
   @ViewBuilder private var headerSection: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Let's personalize your experience")
-        .font(.body)
+        .font(.brand(.body))
         .foregroundStyle(.secondary)
     }
   }
@@ -57,7 +57,7 @@ struct OnboardingStepOneView: View {
   @ViewBuilder private var sportPickerSection: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Primary Sport")
-        .font(.subheadline.weight(.semibold))
+        .font(.brand(.subheadline, weight: .semibold))
 
       if viewModel.primarySport.isEmpty {
         sportSearchList
@@ -95,7 +95,7 @@ struct OnboardingStepOneView: View {
                 let sportGender = SportGenderMap.gender(for: sport)
                 if sportGender != .neutral {
                   Text(sportGender == .male ? "M" : "W")
-                    .font(.caption2.weight(.medium))
+                    .font(.brand(.caption2, weight: .medium))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
@@ -121,7 +121,7 @@ struct OnboardingStepOneView: View {
   @ViewBuilder private var selectedSportBadge: some View {
     HStack {
       Text(viewModel.primarySport)
-        .font(.body.weight(.medium))
+        .font(.brand(.body, weight: .medium))
       Spacer()
       Button {
         viewModel.primarySport = ""
@@ -141,7 +141,7 @@ struct OnboardingStepOneView: View {
   @ViewBuilder private var graduationYearSection: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Expected Graduation Year")
-        .font(.subheadline.weight(.semibold))
+        .font(.brand(.subheadline, weight: .semibold))
 
       let years = OnboardingConstants.graduationYears
       // Show segmented for 4 or fewer years; otherwise use a picker
@@ -185,7 +185,7 @@ struct OnboardingStepOneView: View {
           Button("Other year...") {
             viewModel.graduationYear = otherYears.first
           }
-          .font(.footnote)
+          .font(.brand(.footnote))
           .foregroundStyle(.secondary)
         }
       }
@@ -208,9 +208,9 @@ struct OnboardingStepOneView: View {
     VStack(alignment: .leading, spacing: 8) {
       HStack(spacing: 4) {
         Text("Zip Code")
-          .font(.subheadline.weight(.semibold))
+          .font(.brand(.subheadline, weight: .semibold))
         Text("(optional)")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.tertiary)
       }
 
@@ -226,11 +226,11 @@ struct OnboardingStepOneView: View {
 
       if let error = viewModel.zipCodeError {
         Text(error)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.red)
       } else {
         Text("Helps us find nearby schools")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.tertiary)
       }
     }
@@ -252,7 +252,7 @@ struct OnboardingStepOneView: View {
           ProgressView().tint(.white)
         } else {
           Text("Continue")
-            .font(.body.weight(.semibold))
+            .font(.brand(.body, weight: .semibold))
         }
       }
       .frame(maxWidth: .infinity)

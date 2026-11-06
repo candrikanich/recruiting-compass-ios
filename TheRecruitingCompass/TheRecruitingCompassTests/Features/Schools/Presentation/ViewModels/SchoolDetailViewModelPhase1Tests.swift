@@ -316,6 +316,16 @@ final class SchoolDetailViewModelPhase1Tests: XCTestCase {
     XCTAssertNil(viewModel.errorMessage)
   }
 
+  func testUpdateStatus_fromUnknownServerStatus_recordsUnknownPreviousAndAllowsResearching() async {
+    viewModel.school = createMockSchool(status: "some_future_status")
+    mockSchoolsService.stubbedSchool = createMockSchool(status: "researching")
+
+    await viewModel.updateStatus(to: .researching)
+
+    XCTAssertEqual(mockSchoolsService.updateStatusCallCount, 1, "picking Researching must not be a no-op")
+    XCTAssertEqual(mockSchoolsService.lastPreviousStatus, .unknown)
+  }
+
   func testUpdateStatus_SameStatus_NoOp() async {
     // Given
     let school = createMockSchool(status: "interested")

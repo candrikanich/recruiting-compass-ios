@@ -25,11 +25,26 @@ When editing or creating source files, always use the full double-nested path, e
 
 ## Build & Test
 
-`make build`, `make test`, `make test-unit`, `make test-unit-fast` (see `Makefile`), or `xcodebuild build|test -scheme TheRecruitingCompass` from `TheRecruitingCompass/`.
+`make build`, `make test`, `make test-unit`, `make test-unit-fast` (see `Makefile`), or `xcodebuild build -scheme TheRecruitingCompass` from `TheRecruitingCompass/`; tests go through `scripts/run-ios-tests.sh` (below).
 
 - **Simulator names churn** between Xcode betas — run `xcrun simctl list devices available | grep iPhone` and target by `id=` rather than assuming `name=iPhone 17` exists.
 - CI uses `platform=iOS Simulator,OS=latest,name=iPhone 16` with explicit boot; `OS=latest` prevents xcodebuild from selecting unstable simulator clones.
-- **~3700 unit tests.** The full suite exceeds 10 minutes — run the affected test classes via `-only-testing:` for fast evidence and trust the xcodebuild exit code.
+- **Run every simulator test through `scripts/run-ios-tests.sh`, never a raw `xcodebuild test`.** This Mac gets
+  overrun when two runs boot simulators at once, so the script takes one machine-wide lock (shared by every agent,
+  worktree and the nightly) and waits its turn. It builds first, outside the lock, then tests serially
+  (`-parallel-testing-enabled NO`, `-collect-test-diagnostics never`) on the shared `TRC Agent iPhone` and shuts it down
+  afterwards, pass or fail. Examples: `scripts/run-ios-tests.sh --only TheRecruitingCompassTests/FooTests`,
+  `--ui`, `--destination 'name=iPad Air 11-inch (M4)'`, `-- <extra xcodebuild args>`; `--help` lists the rest.
+  The last line is `run-ios-tests: ** TEST SUCCEEDED **` or `** TEST FAILED **`; exit 75 = gave up waiting for the
+  lock, 124 = stalled 20 min, 70 = invalid run (simulator error, not a test result). `make test-*` uses it too.
+  Never `simctl shutdown all`, `erase all` or `killall` CoreSimulator — other runs share the Mac. Name any
+  hand-made throwaway simulator `trc-<issue>`/`agent-<label>` so the hourly sweep (`scripts/sim_sweep.py`) can delete
+  it; `~/.config/recruiting-compass/sim-sweep-keep` exempts a device from the sweep and from shutdown.
+  `python3 scripts/sim_sweep.py --tests-running` shows who holds the lock.
+  Never rename or delete DerivedData, and never shut down keep-listed devices (including Perf iPhone 17).
+  When waiting on a run, match the script's final line, not `started`, with one monitor per run. On exit 124,
+  report the stall instead of retrying in a loop.
+- **~3700 unit tests.** The full suite exceeds 10 minutes — run the affected test classes via `--only` for fast evidence and trust the exit code.
 
 ### Environment Configuration
 

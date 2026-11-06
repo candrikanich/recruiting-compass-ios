@@ -16,7 +16,7 @@ struct DocumentListViewRow: View {
           contentView
           if document.isShared {
             Text("Shared: \(document.sharedWithSchools.count)")
-              .font(.caption)
+              .font(.brand(.caption))
               .padding(.horizontal, 6)
               .padding(.vertical, 2)
               .background(Color.green.opacity(0.2))
@@ -42,7 +42,7 @@ struct DocumentListViewRow: View {
       onDelete()
     } label: {
       Image(systemName: "trash")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(Color.errorRed)
         .frame(minWidth: 44, minHeight: 44)
         .contentShape(Rectangle())
@@ -59,7 +59,7 @@ struct DocumentListViewRow: View {
         .frame(width: 80, height: 60)
 
       Image(systemName: iconName)
-        .font(.title2)
+        .font(.brand(.title2))
         .foregroundStyle(.secondary)
     }
   }
@@ -78,12 +78,12 @@ struct DocumentListViewRow: View {
   private var contentView: some View {
     VStack(alignment: .leading, spacing: 4) {
       Text(document.title)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .fontWeight(.medium)
         .lineLimit(1)
         .foregroundStyle(.primary)
       Text("\(schoolName) • v\(document.version) • \(document.displayDate)")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
     }
     .frame(maxWidth: .infinity, alignment: .leading)

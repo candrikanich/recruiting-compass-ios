@@ -7,11 +7,15 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
   var createEventCallCount = 0
   var fetchEventCallCount = 0
   var fetchEventsCallCount = 0
+  var fetchVisitEventsCallCount = 0
   var fetchSchoolsCallCount = 0
   var createSchoolCallCount = 0
   var updateEventCallCount = 0
   var deleteEventCallCount = 0
   var fetchCoachesCallCount = 0
+  var fetchSchoolNameCallCount = 0
+  var shouldThrowFetchSchoolName = false
+  var stubbedSchoolName: String?
   var fetchMetricsCallCount = 0
   var createMetricCallCount = 0
   var deleteMetricCallCount = 0
@@ -40,6 +44,8 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
   // MARK: - Error Flags
 
   var shouldThrowCreateEvent = false
+  /// Takes precedence over `shouldThrowCreateEvent` so tests can throw a specific error type.
+  var createEventError: Error?
   var shouldThrowFetchEvent = false
   /// When shouldThrowFetchEvent is true, use this code (404 = not found, others = generic error).
   var fetchEventErrorCode = 404
@@ -89,6 +95,7 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
   func createEvent(_ request: CreateEventRequest) async throws -> FullEvent {
     createEventCallCount += 1
     lastCreateEventRequest = request
+    if let createEventError { throw createEventError }
     if shouldThrowCreateEvent {
       throw NSError(
         domain: "MockEventsService",
@@ -127,6 +134,22 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
     return stubbedEvents
   }
 
+  /// Derived from `stubbedEvents` with the same type filter the real query applies server-side.
+  func fetchVisitEvents(userId: String) async throws -> [SchoolVisitEvent] {
+    fetchVisitEventsCallCount += 1
+    if shouldThrowFetchEvents {
+      throw NSError(
+        domain: "MockEventsService",
+        code: 5,
+        userInfo: [NSLocalizedDescriptionKey: "Mock fetch events error"]
+      )
+    }
+    let visitTypes = [EventType.officialVisit.rawValue, EventType.unofficialVisit.rawValue]
+    return stubbedEvents
+      .filter { visitTypes.contains($0.type) }
+      .map { SchoolVisitEvent(schoolId: $0.schoolId, startDate: $0.startDate) }
+  }
+
   func fetchSchools(familyUnitId: String) async throws -> [SchoolSummary] {
     fetchSchoolsCallCount += 1
     lastFetchSchoolsFamilyUnitId = familyUnitId
@@ -140,7 +163,12 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
     return stubbedSchools
   }
 
-  func createSchool(name: String, location: String?, userId: String, familyUnitId: String) async throws -> SchoolSummary {
+  func createSchool(
+    name: String,
+    location: String?,
+    userId: String,
+    familyUnitId: String?
+  ) async throws -> SchoolSummary {
     createSchoolCallCount += 1
     lastCreateSchoolName = name
     lastCreateSchoolLocation = location
@@ -180,6 +208,12 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
         userInfo: [NSLocalizedDescriptionKey: "Mock delete event error"]
       )
     }
+  }
+
+  func fetchSchoolName(schoolId: String) async throws -> String? {
+    fetchSchoolNameCallCount += 1
+    if shouldThrowFetchSchoolName { throw NSError(domain: "MockEventsService", code: 20) }
+    return stubbedSchoolName
   }
 
   func fetchCoaches(schoolId: String, userId: String) async throws -> [Coach] {

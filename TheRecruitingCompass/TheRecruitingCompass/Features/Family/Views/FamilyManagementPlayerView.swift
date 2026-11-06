@@ -2,15 +2,19 @@ import SwiftUI
 
 struct FamilyManagementPlayerView: View {
   @Bindable var viewModel: FamilyManagementViewModel
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
 
   var body: some View {
     ScrollView {
       VStack(spacing: FamilyConstants.Spacing.large) {
         familyCodeCard
-        inviteByEmailCard
+        if featureFlags.isEnabled(.familyInvites) {
+          inviteByEmailCard
+        }
         pendingInvitationsSection
         familyMembersSection
         forwardCoachEmailsSection
+        leaveGuidance
       }
       .padding(.horizontal, FamilyConstants.Spacing.medium)
       .padding(.top, FamilyConstants.Spacing.medium)
@@ -27,29 +31,23 @@ struct FamilyManagementPlayerView: View {
     } message: {
       Text("Are you sure? The old code will stop working and anyone trying to join with the old code will not be able to.")
     }
-    .confirmationDialog(
-      "Remove Family Member",
-      isPresented: $viewModel.showDeleteConfirmation,
-      titleVisibility: .visible
-    ) {
-      Button("Remove", role: .destructive) {
-        Task { await viewModel.removeMember() }
-      }
-      Button("Cancel", role: .cancel) {}
-    } message: {
-      if let member = viewModel.memberToRemove,
-         let name = member.user?.fullName ?? member.user?.email {
-        Text("Remove \(name) from family?")
-      }
-    }
+  }
+
+  /// Players own the family and never get a Leave action; the server refuses it too.
+  @ViewBuilder
+  private var leaveGuidance: some View {
+    Text("Players can't leave a family. To stop using the app, request account deletion from Profile.")
+      .font(.brand(.caption))
+      .foregroundStyle(.secondary)
+      .frame(maxWidth: .infinity, alignment: .leading)
   }
 
   // MARK: - Family Code Card
   @ViewBuilder
   private var familyCodeCard: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
-      Text("Your Family Code")
-        .font(.headline)
+      Text(viewModel.playerFamilyCodeHeading)
+        .font(.brand(.headline))
         .frame(maxWidth: .infinity, alignment: .leading)
 
       if let code = viewModel.familyCode {
@@ -65,7 +63,7 @@ struct FamilyManagementPlayerView: View {
 
           if let date = viewModel.formattedCodeGeneratedAt {
             Text("Created \(date)")
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.secondary)
           }
 
@@ -76,7 +74,7 @@ struct FamilyManagementPlayerView: View {
                   .frame(maxWidth: .infinity)
               }
               .buttonStyle(.bordered)
-              .accessibilityLabel(String(localized: "Copy family code to clipboard"))
+              .accessibilityLabel(String(localized: "Copy Family Code to clipboard"))
 
               ShareLink(
                 item: "Join my family on The Recruiting Compass with code: \(code)",
@@ -86,7 +84,7 @@ struct FamilyManagementPlayerView: View {
                 }
               )
               .buttonStyle(.bordered)
-              .accessibilityLabel(String(localized: "Share family code"))
+              .accessibilityLabel(String(localized: "Share Family Code"))
             }
 
             Button(action: { viewModel.confirmRegenerateCode() }) {
@@ -95,13 +93,26 @@ struct FamilyManagementPlayerView: View {
             }
             .buttonStyle(.bordered)
             .tint(.red)
-            .accessibilityLabel(String(localized: "Regenerate family code"))
+            .accessibilityLabel(String(localized: "Regenerate Family Code"))
             .accessibilityHint("Creates a new code and invalidates the old one")
           }
         }
+      } else if viewModel.familyCodeUnavailable {
+        VStack(spacing: FamilyConstants.Spacing.small) {
+          Text("Your Family Code isn't available right now.")
+            .font(.brand(.subheadline))
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.center)
+          Button("Try again") {
+            Task { await viewModel.retryMissingFamilyCode() }
+          }
+          .buttonStyle(.bordered)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, FamilyConstants.Spacing.medium)
       } else {
         ProgressView()
-          .accessibilityLabel(String(localized: "Loading family code"))
+          .accessibilityLabel(String(localized: "Loading Family Code"))
           .frame(maxWidth: .infinity)
           .padding(.vertical, FamilyConstants.Spacing.extraLarge)
       }
@@ -117,16 +128,16 @@ struct FamilyManagementPlayerView: View {
   private var inviteByEmailCard: some View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
       Text("Invite Parent by Email")
-        .font(.headline)
+        .font(.brand(.headline))
         .frame(maxWidth: .infinity, alignment: .leading)
 
       Text("They'll receive a link to join your family.")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
 
       Text("Invites expire after 30 days.")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -171,10 +182,10 @@ struct FamilyManagementPlayerView: View {
       VStack(spacing: FamilyConstants.Spacing.medium) {
         HStack {
           Text("Pending Invitations")
-            .font(.headline)
+            .font(.brand(.headline))
           Spacer()
           Text("\(viewModel.pendingInvitations.count)")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
         }
 
@@ -182,23 +193,23 @@ struct FamilyManagementPlayerView: View {
           HStack {
             VStack(alignment: .leading, spacing: 4) {
               Text(invite.invitedEmail)
-                .font(.subheadline.weight(.medium))
+                .font(.brand(.subheadline, weight: .medium))
               Text("Expires \(formattedExpiry(invite.expiresAt ?? ""))")
-                .font(.caption)
+                .font(.brand(.caption))
                 .foregroundStyle(.secondary)
             }
             Spacer()
             Button("Resend") {
               Task { await viewModel.resendInvitation(invite) }
             }
-            .font(.caption)
+            .font(.brand(.caption))
             .buttonStyle(.bordered)
             .accessibilityLabel(String(localized: "Resend invite to \(invite.invitedEmail)"))
 
             Button("Revoke") {
               Task { await viewModel.revokeInvitation(invite) }
             }
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(.red)
             .buttonStyle(.bordered)
             .tint(.red)
@@ -227,10 +238,10 @@ struct FamilyManagementPlayerView: View {
     VStack(spacing: FamilyConstants.Spacing.medium) {
       HStack {
         Text("Family Members")
-          .font(.headline)
+          .font(.brand(.headline))
         Spacer()
         Text("\(viewModel.familyMembers.count)")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
       }
 
@@ -255,13 +266,13 @@ struct FamilyManagementPlayerView: View {
   private var emptyMembersState: some View {
     VStack(spacing: FamilyConstants.Spacing.small) {
       Image(systemName: "person.2.slash")
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .foregroundStyle(.secondary)
         .accessibilityHidden(true)
       Text("No family members yet")
-        .font(.headline)
-      Text("Share your family code to invite parents")
-        .font(.subheadline)
+        .font(.brand(.headline))
+      Text("Share your Family Code to invite parents")
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
         .multilineTextAlignment(.center)
     }
@@ -275,7 +286,7 @@ struct FamilyManagementPlayerView: View {
     ForEach(viewModel.inboundAddresses) { entry in
       ForwardCoachEmailsCard(
         address: entry.address,
-        familyName: viewModel.inboundAddresses.count > 1 ? entry.familyName : nil,
+        familyName: viewModel.inboundAddresses.count > 1 ? entry.displayLabel : nil,
         onCopy: { viewModel.copyInboundAddressToClipboard(entry.address) }
       )
     }

@@ -3,42 +3,59 @@ import SwiftUI
 struct DocumentVersionRow: View {
   let version: DocumentVersion
   let onRestore: (DocumentVersion) -> Void
+  var urlResolver: any DocumentURLResolving = DocumentURLResolver()
+
+  @Environment(\.openURL) private var openURL
+  @State private var isOpening = false
+  @State private var openFailureMessage: String?
+
+  private func openVersion() async {
+    isOpening = true
+    defer { isOpening = false }
+    do {
+      openURL(try await urlResolver.openableURL(for: version.fileUrl))
+    } catch {
+      openFailureMessage = DocumentURLError.openFailureMessage(for: error)
+    }
+  }
 
   var body: some View {
     HStack {
       VStack(alignment: .leading, spacing: 4) {
         HStack(spacing: 8) {
           Text("v\(version.version)")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .fontWeight(.semibold)
           if version.isCurrent {
             Text("Current")
-              .font(.caption)
+              .font(.brand(.caption))
               .fontWeight(.semibold)
               .padding(.horizontal, 6)
               .padding(.vertical, 2)
-              .background(Color.accentBlue.opacity(0.2))
+              .background(Color.accentPrimary.opacity(0.2))
               .clipShape(.rect(cornerRadius: 4))
           }
         }
         Text(version.displayDate)
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
       }
       Spacer()
       HStack(spacing: 8) {
-        if let url = URL(string: version.fileUrl) {
-          Link(destination: url) {
-            Text("View")
-              .font(.caption)
-          }
-          .buttonStyle(.bordered)
+        Button {
+          Task { await openVersion() }
+        } label: {
+          Text("View")
+            .font(.brand(.caption))
         }
+        .buttonStyle(.bordered)
+        .disabled(isOpening)
+        .accessibilityLabel(String(localized: "View version \(version.version)"))
         if !version.isCurrent {
           Button("Restore") {
             onRestore(version)
           }
-          .font(.caption)
+          .font(.brand(.caption))
           .buttonStyle(.bordered)
           .frame(minHeight: 44)
           .contentShape(Rectangle())
@@ -48,5 +65,13 @@ struct DocumentVersionRow: View {
       }
     }
     .padding(.vertical, 8)
+    .alert(
+      "Unable to open this version",
+      isPresented: Binding(get: { openFailureMessage != nil }, set: { if !$0 { openFailureMessage = nil } })
+    ) {
+      Button("OK", role: .cancel) {}
+    } message: {
+      Text(openFailureMessage ?? "")
+    }
   }
 }

@@ -33,31 +33,12 @@ final class PerformanceServiceImpl: PerformanceManaging, Sendable {
     }
   }
 
-  func createMetric(userId: String, request: MetricCreateRequest) async throws -> PerformanceMetric {
+  func createMetric(userId: String, familyUnitId: String?, request: MetricCreateRequest) async throws -> PerformanceMetric {
     logger.debug("Creating metric: \(request.metricType)")
 
-    struct CreatePayload: Codable {
-      let userId: String
-      let metricType: String
-      let value: Double
-      let unit: String
-      let recordedDate: String
-      let verified: Bool
-      let notes: String?
-
-      enum CodingKeys: String, CodingKey {
-        case userId = "user_id"
-        case metricType = "metric_type"
-        case value
-        case unit
-        case recordedDate = "recorded_date"
-        case verified
-        case notes
-      }
-    }
-
-    let payload = CreatePayload(
+    let payload = MetricInsertPayload(
       userId: userId,
+      familyUnitId: FamilyUnitID.normalized(familyUnitId),
       metricType: request.metricType,
       value: request.value,
       unit: request.unit,
@@ -118,5 +99,25 @@ final class PerformanceServiceImpl: PerformanceManaging, Sendable {
       .eq("id", value: id)
       .execute()
     logger.info("Metric deleted: \(id)")
+  }
+}
+
+struct MetricInsertPayload: Encodable {
+  let userId: String
+  let familyUnitId: String?
+  let metricType: String
+  let value: Double
+  let unit: String
+  let recordedDate: String
+  let verified: Bool
+  let notes: String?
+
+  enum CodingKeys: String, CodingKey {
+    case userId = "user_id"
+    case familyUnitId = "family_unit_id"
+    case metricType = "metric_type"
+    case value, unit
+    case recordedDate = "recorded_date"
+    case verified, notes
   }
 }

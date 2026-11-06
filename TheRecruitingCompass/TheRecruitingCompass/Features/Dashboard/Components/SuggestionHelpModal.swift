@@ -15,7 +15,7 @@ struct SuggestionHelpModal: View {
         VStack(alignment: .leading, spacing: 20) {
           section(title: String(localized: "Why It Matters")) {
             Text(content.whyItMatters)
-              .font(.body)
+              .font(.brand(.body))
               .foregroundStyle(Color.primary)
           }
 
@@ -24,11 +24,11 @@ struct SuggestionHelpModal: View {
               ForEach(Array(content.howToComplete.enumerated()), id: \.offset) { index, step in
                 HStack(alignment: .top, spacing: 8) {
                   Text("\(index + 1).")
-                    .font(.body)
+                    .font(.brand(.body))
                     .fontWeight(.semibold)
                     .foregroundStyle(urgency.color)
                   Text(step)
-                    .font(.body)
+                    .font(.brand(.body))
                     .foregroundStyle(Color.primary)
                 }
               }
@@ -43,7 +43,7 @@ struct SuggestionHelpModal: View {
                     .foregroundStyle(urgency.color)
                     .accessibilityHidden(true)
                   Text(item)
-                    .font(.body)
+                    .font(.brand(.body))
                     .foregroundStyle(Color.primary)
                 }
               }
@@ -52,7 +52,7 @@ struct SuggestionHelpModal: View {
 
           section(title: String(localized: "Timeline")) {
             Text(content.timeline)
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .foregroundStyle(Color.secondaryText)
           }
         }
@@ -73,7 +73,7 @@ struct SuggestionHelpModal: View {
   private func section<Body: View>(title: String, @ViewBuilder content: () -> Body) -> some View {
     VStack(alignment: .leading, spacing: 8) {
       Text(title)
-        .font(.headline)
+        .font(.brand(.headline))
         .foregroundStyle(Color.primary)
       content()
     }

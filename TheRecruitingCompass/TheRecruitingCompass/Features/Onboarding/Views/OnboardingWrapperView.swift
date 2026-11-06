@@ -20,7 +20,7 @@ struct OnboardingWrapperView: View {
 
 /// Parent onboarding: single player-details step, saved directly, straight to dashboard — matches
 /// production web. Inviting the athlete is deferred to the dashboard's "Invite Athlete" banner.
-/// The "Skip for now" escape hatch is iOS-only — web's equivalent wizard has no skip button.
+/// No skip: web's wizard has none, and the family now comes from signup, not from finishing this step.
 private struct ParentOnboardingWrapperContent: View {
   var onComplete: () -> Void
   @Environment(AuthManager.self) private var authManager
@@ -29,17 +29,9 @@ private struct ParentOnboardingWrapperContent: View {
 
   var body: some View {
     ParentOnboardingWizardView(viewModel: viewModel, onDismiss: {
-      onboardingManager.markParentOnboardingComplete()
+      onboardingManager.markComplete()
       onComplete()
     })
-    .toolbar {
-      ToolbarItem(placement: .cancellationAction) {
-        Button("Skip for now") {
-          onboardingManager.markParentOnboardingComplete()
-          onComplete()
-        }
-      }
-    }
     .environment(authManager)
   }
 }

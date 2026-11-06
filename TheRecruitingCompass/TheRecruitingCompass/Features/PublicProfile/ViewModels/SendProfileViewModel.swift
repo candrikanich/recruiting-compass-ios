@@ -13,6 +13,7 @@ final class SendProfileViewModel {
     private let photoService: ProfilePhotoManaging
     private let interactionsService: InteractionsManaging
     private let guardianService: GuardianManaging
+    private let familyManager: FamilyManager
 
     /// Set when a send is attempted on an unpublished profile.
     var notPublishedPrompt = false
@@ -28,6 +29,10 @@ final class SendProfileViewModel {
     var lastViewedAt: String?
     var errorMessage: String?
     var successMessage: String?
+    /// True briefly after a successful copy; the view's "Copied" label reads this, never its own flag.
+    private(set) var linkCopied = false
+    var copiedFeedbackDuration: Duration = .seconds(2)
+    private var copiedResetTask: Task<Void, Never>?
 
     init(
         service: PublicProfileManaging = PublicProfileServiceImpl(),
@@ -35,7 +40,8 @@ final class SendProfileViewModel {
         preferenceService: PreferenceManaging = PreferenceServiceImpl(supabaseManager: .shared),
         photoService: ProfilePhotoManaging = ProfilePhotoServiceImpl(),
         interactionsService: InteractionsManaging = InteractionsServiceImpl(supabaseManager: .shared),
-        guardianService: GuardianManaging = GuardianServiceImpl()
+        guardianService: GuardianManaging = GuardianServiceImpl(),
+        familyManager: FamilyManager? = nil
     ) {
         self.service = service
         self.authManager = authManager
@@ -43,30 +49,40 @@ final class SendProfileViewModel {
         self.photoService = photoService
         self.interactionsService = interactionsService
         self.guardianService = guardianService
+        self.familyManager = familyManager ?? .shared
     }
 
-    /// Load the profile's publish state so the view can hide the Send Profile
-    /// button until the profile is public.
-    func loadPublishState() async {
-        let token = authManager.session?.accessToken
-        let profile = try? await service.fetchProfile(accessToken: token)
-        isPublished = profile?.isPublished ?? false
+    /// Identity of the athlete this screen would send for; the view keys its load on it so a
+    /// selection change (or family data arriving late) reloads the Send Profile state.
+    var selectionKey: String {
+        guard case let .resolved(athleteId) = target else { return "" }
+        return athleteId ?? authManager.user?.id ?? ""
     }
 
     /// Load publish state plus any already-generated tracking link for this coach,
     /// so the view can offer copy-link and show view stats (web parity).
     func loadTrackingInfo(for coachId: String) async {
         let token = authManager.session?.accessToken
-        guard let profile = try? await service.fetchProfile(accessToken: token) else {
-            isPublished = false
+        let loadedTarget = target
+        loadGeneration += 1
+        let generation = loadGeneration
+        // Drop the previous athlete's link before any await so it can't be copied while this loads.
+        if loadedKey != selectionKey { clearTrackingInfo() }
+        loadedKey = selectionKey
+        guard let profile = await fetchSelectedProfile(target: loadedTarget, token: token) else {
+            guard isCurrent(generation, loadedTarget) else { return }
+            clearTrackingInfo()
             return
         }
+        guard case let .resolved(athleteId) = loadedTarget else { return }
+        let link = profile.isPublished
+            ? try? await service.fetchTrackingLink(coachId: coachId, athleteId: athleteId, accessToken: token)
+            : nil
+        // A newer load owns the state once the selection moved on or another load started.
+        guard isCurrent(generation, loadedTarget) else { return }
         isPublished = profile.isPublished
-        guard profile.isPublished,
-              let link = try? await service.fetchTrackingLink(coachId: coachId, accessToken: token) else {
-            trackingURL = nil
-            viewCount = nil
-            lastViewedAt = nil
+        guard let link else {
+            clearTrackingInfo(keepingPublished: true)
             return
         }
         trackingURL = buildURL(profile: profile, refToken: link.refToken)
@@ -80,9 +96,12 @@ final class SendProfileViewModel {
         notPublishedPrompt = false
         guardianPendingPrompt = false
         let token = authManager.session?.accessToken
+        let preparedTarget = target
 
-        guard let profile = try? await service.fetchProfile(accessToken: token) else {
-            return .failed
+        guard case let .resolved(athleteId) = preparedTarget,
+              let profile = await fetchSelectedProfile(target: preparedTarget, token: token),
+              preparedTarget == target else {
+            return failSend()
         }
         guard profile.isPublished else {
             notPublishedPrompt = true
@@ -93,12 +112,19 @@ final class SendProfileViewModel {
         // COPPA-adjacent lock: a self-signed-up 13-17 player can't share their profile
         // until their named guardian confirms, independent of the publish toggle. Fails
         // open on any lookup error — matches the rest of the guardian-gating in this app.
-        if let token, let status = try? await guardianService.fetchStatus(accessToken: token), status.locked {
+        var guardianLocked = false
+        if let token, let status = try? await guardianService.fetchStatus(accessToken: token) {
+            guardianLocked = status.locked
+        }
+        guard preparedTarget == target else { return failSend() }
+        if guardianLocked {
             guardianPendingPrompt = true
             return .guardianPending
         }
 
-        let playerName = await resolvePlayerName(athleteUserId: profile.userId)
+        guard let playerName = await resolvePlayerName(athleteUserId: profile.userId) else {
+            return failSend()
+        }
         let details: PlayerDetails? = try? await preferenceService.fetchPreferences(
             category: .player, userId: profile.userId
         )
@@ -108,11 +134,19 @@ final class SendProfileViewModel {
             fallback: details?.primaryPosition
         )
 
-        guard let link = try? await service.createTrackingLink(coachId: coach.id, accessToken: token),
+        guard let link = try? await service.createTrackingLink(
+                  coachId: coach.id, athleteId: athleteId, accessToken: token
+              ),
               let url = buildURL(profile: profile, refToken: link.refToken) else {
-            return .failed
+            return failSend()
         }
+        // The selection can change while the lookups above are in flight; never send for a different athlete.
+        guard preparedTarget == target else { return failSend() }
         // Surface the link for copy + view stats now that it exists.
+        // Supersede any load still in flight (including ones started during this send) so none can overwrite
+        // the link written here. Early returns above leave valid in-flight loads alone.
+        loadGeneration += 1
+        loadedKey = selectionKey
         trackingURL = url
         viewCount = link.viewCount
         lastViewedAt = link.lastViewedAt
@@ -151,19 +185,19 @@ final class SendProfileViewModel {
             errorMessage = String(localized: "Profile sent, but logging it failed.")
             return
         }
-        let request = InteractionCreateRequest(
-            schoolId: message.schoolId,
-            coachId: message.coachId,
-            type: channel == .email ? .email : .text,
-            direction: .outbound,
-            occurredAt: Date(),
-            subject: message.subject,
-            content: message.url.absoluteString,
-            sentiment: nil,
-            loggedBy: loggedBy,
-            familyUnitId: message.familyUnitId
-        )
         do {
+            let request = try InteractionCreateRequest(
+                schoolId: message.schoolId,
+                coachId: message.coachId,
+                type: channel == .email ? .email : .text,
+                direction: .outbound,
+                occurredAt: Date(),
+                subject: message.subject,
+                content: message.url.absoluteString,
+                sentiment: nil,
+                loggedBy: loggedBy,
+                familyUnitId: message.familyUnitId
+            )
             _ = try await interactionsService.createInteraction(request)
             successMessage = String(localized: "Logged profile sent to coach.")
         } catch {
@@ -171,21 +205,86 @@ final class SendProfileViewModel {
         }
     }
 
-    /// Copy the current tracking link to the pasteboard. No-op if none exists.
-    func copyTrackingLink() {
-        guard let url = trackingURL else { return }
+    /// Copy the current tracking link to the pasteboard. Returns whether anything was copied; a link
+    /// loaded for another athlete is never copied.
+    @discardableResult
+    func copyTrackingLink() -> Bool {
+        guard let url = trackingURL, loadedKey == selectionKey else { return false }
         UIPasteboard.general.string = url.absoluteString
+        linkCopied = true
+        copiedResetTask?.cancel()
+        copiedResetTask = Task { [weak self, copiedFeedbackDuration] in
+            try? await Task.sleep(for: copiedFeedbackDuration)
+            guard !Task.isCancelled else { return }
+            self?.linkCopied = false
+        }
+        return true
     }
 
     // MARK: - Private
 
-    /// The athlete's display name. When a parent sends the athlete's profile, the
-    /// session name is the parent's — look up the athlete's name (RLS-gated).
-    private func resolvePlayerName(athleteUserId: String) async -> String {
-        if athleteUserId == authManager.user?.id {
-            return authManager.user?.fullName ?? ""
+    /// The `selectionKey` the published tracking state was loaded for.
+    private var loadedKey: String?
+    /// Bumped per `loadTrackingInfo` and when `prepare()` writes its link; only the latest writer may update
+    /// state, even for the same athlete.
+    private var loadGeneration = 0
+
+    private func isCurrent(_ generation: Int, _ loadedTarget: Target) -> Bool {
+        generation == loadGeneration && loadedTarget == target
+    }
+
+    private enum Target: Equatable {
+        /// `athleteId` nil = the caller's own row (player); non-nil = the parent's selected athlete.
+        case resolved(athleteId: String?)
+        /// A parent with no athlete selected has no profile of their own to fall back on.
+        case none
+    }
+
+    private var target: Target {
+        let user = authManager.user
+        guard let targetUserId = PublicProfileTarget.userId(
+            user: user, selectedAthleteUserId: familyManager.selectedAthlete?.userId
+        ) else { return .none }
+        return .resolved(athleteId: Self.sameUser(targetUserId, user?.id) ? nil : targetUserId)
+    }
+
+    /// The single profile fetch behind every entry point. Only returns a row owned by the targeted
+    /// athlete, so a mismatched server response can never be sent or offered as a link.
+    private func fetchSelectedProfile(target: Target, token: String?) async -> PlayerProfile? {
+        guard case let .resolved(athleteId) = target,
+              let profile = try? await service.fetchProfile(athleteId: athleteId, accessToken: token),
+              let expectedUserId = athleteId ?? authManager.user?.id,
+              Self.sameUser(profile.userId, expectedUserId) else { return nil }
+        return profile
+    }
+
+    /// Ids compare case-insensitively: Swift's `UUID.uuidString` is uppercase while Postgres returns lowercase.
+    private static func sameUser(_ lhs: String, _ rhs: String?) -> Bool {
+        guard let rhs else { return false }
+        return lhs.caseInsensitiveCompare(rhs) == .orderedSame
+    }
+
+    private func failSend() -> SendProfilePreparation {
+        errorMessage = String(localized: "Couldn't prepare the profile to send. Please try again.")
+        return .failed
+    }
+
+    private func clearTrackingInfo(keepingPublished: Bool = false) {
+        if !keepingPublished { isPublished = false }
+        linkCopied = false
+        trackingURL = nil
+        viewCount = nil
+        lastViewedAt = nil
+    }
+
+    /// The athlete's display name, or nil when it can't be determined — a coach must never get a blank
+    /// name. A parent sends the athlete's profile, so the session name (the parent's) is never used for them.
+    private func resolvePlayerName(athleteUserId: String) async -> String? {
+        if Self.sameUser(athleteUserId, authManager.user?.id),
+           let own = authManager.user?.fullName.nonBlankTrimmed {
+            return own
         }
-        return (try? await photoService.fullName(userId: athleteUserId)) ?? ""
+        return (try? await photoService.fullName(userId: athleteUserId)).nonBlankTrimmed
     }
 
     private func buildURL(profile: PlayerProfile, refToken: String) -> URL? {

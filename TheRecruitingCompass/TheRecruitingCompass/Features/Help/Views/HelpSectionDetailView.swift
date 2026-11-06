@@ -10,13 +10,11 @@ import SwiftUI
 struct HelpSectionDetailView: View {
   let section: HelpSection
 
-  private let lastReviewed = "August 2026"
-
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 32) {
-        Text("Last reviewed: \(lastReviewed)")
-          .font(.caption)
+        Text("Last reviewed: \(HelpFamilyCopy.lastReviewed)")
+          .font(.brand(.caption))
           .foregroundStyle(.secondary)
 
         HelpSectionContent(section: section)
@@ -60,7 +58,7 @@ private struct HelpGettingStartedContent: View {
       sectionBlock {
         HelpSectionHeader(title: "What is The Recruiting Compass?")
         Text("The Recruiting Compass is a recruiting management tool built for student athletes and their families. It helps you organize your college search, track schools and coaches, manage the phases of the recruiting process, and stay on top of every interaction along the way.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.primary)
         HelpCallout(type: .tip, text: "You're in charge of your recruiting journey. The Recruiting Compass keeps everything organized so you can focus on making the right connections.")
       }
@@ -68,7 +66,7 @@ private struct HelpGettingStartedContent: View {
       sectionBlock {
         HelpSectionHeader(title: "Creating your profile")
         Text("Your athlete profile is the foundation of everything in the app. Complete it before adding schools or coaches.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Navigate to Settings", bodyText: "From the dashboard, go to Settings → Athlete Profile.")
         HelpStepCard(step: 2, title: "Fill in your details", bodyText: "Enter your name, graduation year, sport, position(s), GPA, and test scores. All fields help generate accurate personal fit signals for schools.")
@@ -77,18 +75,21 @@ private struct HelpGettingStartedContent: View {
 
       sectionBlock {
         HelpSectionHeader(title: "Adding family members")
-        Text("Parents and guardians can be added as family members to view and collaborate on your recruiting journey.")
-          .font(.subheadline)
+        Text(HelpFamilyCopy.addingFamilyIntro)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
+        HelpCallout(type: .info, text: HelpFamilyCopy.gettingStartedCallout)
         HelpStepCard(step: 1, title: "Go to Family settings", bodyText: "Navigate to Settings → Family.")
-        HelpStepCard(step: 2, title: "Invite a family member", bodyText: "Enter their email address and tap Send invite. They'll receive an email to create their account and join your family unit.", isLast: true)
+        HelpStepCard(
+          step: 2, title: "Invite a family member", bodyText: HelpFamilyCopy.inviteFamilyMemberStep, isLast: true
+        )
         HelpCallout(type: .info, text: "Family members can view and edit your athlete profile, school list, and interactions — everyone in the family works together.")
       }
 
       sectionBlock {
         HelpSectionHeader(title: "Understanding the dashboard")
         Text("The dashboard gives you a snapshot of your recruiting progress at a glance.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         HelpImageSlot(caption: "The main dashboard showing your school list, current phase, and recent activity.")
         bulletList(items: [
@@ -102,7 +103,7 @@ private struct HelpGettingStartedContent: View {
       sectionBlock {
         HelpSectionHeader(title: "Your first action")
         Text("Once your profile is set up, the most impactful first step is building your school list.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Search for schools", bodyText: "Go to Search and filter by division, sport, location, or size. Add any school that interests you.", isLast: true)
         HelpCallout(type: .tip, text: "Start broad — you can always narrow your list later. Adding 20–30 schools gives the fit signal calculations enough data to show meaningful patterns.")
@@ -119,7 +120,7 @@ private struct HelpSchoolsContent: View {
       sectionBlock {
         HelpSectionHeader(title: "Adding a school to your list")
         Text("Your school list is the core of your recruiting compass. Add every school you're considering, even ones you're unsure about — fit signals will help you prioritize.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Go to Search", bodyText: "Navigate to Search and use the filters to find schools by division, sport, state, or enrollment size.")
         HelpStepCard(step: 2, title: "View the school profile", bodyText: "Tap any school to see its full profile — academic info, athletic program details, and location.")
@@ -129,11 +130,11 @@ private struct HelpSchoolsContent: View {
       sectionBlock {
         HelpSectionHeader(title: "What are fit signals?")
         Text("Fit signals show how well a school matches your athlete profile across specific dimensions. Each signal appears as a colored pill — Strong, Good, Fair, or Limited — so you can see strengths and gaps at a glance.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         HelpImageSlot(caption: "Fit signals showing Personal Fit and Academic Fit dimensions for a school.")
         Text("Personal Fit evaluates three dimensions:")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         bulletList(items: [
           ("Location fit", "proximity to home and region preference"),
@@ -141,7 +142,7 @@ private struct HelpSchoolsContent: View {
           ("Cost fit", "tuition and financial aid alignment with your budget")
         ])
         Text("Academic Fit evaluates your academic profile:")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         bulletList(items: [
           ("Academic fit", "your GPA and test scores vs. the school's average admit profile")
@@ -152,7 +153,7 @@ private struct HelpSchoolsContent: View {
       sectionBlock {
         HelpSectionHeader(title: "Managing your school list", badge: .required)
         Text("Your school list drives everything else in the app — phases, interactions, and recommendation letters are all tied to specific schools.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         bulletList(items: [
           ("Sort", "by recent activity or date added"),
@@ -165,7 +166,7 @@ private struct HelpSchoolsContent: View {
       sectionBlock {
         HelpSectionHeader(title: "Logging a coach interaction")
         Text("Every time you communicate with a coach — email, call, campus visit — log it as an interaction. This creates a timeline of your recruiting relationship with each school.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Open a school", bodyText: "Go to your Schools page and tap the school you interacted with.")
         HelpStepCard(step: 2, title: "Select a coach", bodyText: "Tap a coach on the school's page, or tap Add coach if they're not listed yet.")
@@ -175,7 +176,7 @@ private struct HelpSchoolsContent: View {
       sectionBlock {
         HelpSectionHeader(title: "Interaction types")
         Text("Choose the type that best describes how contact was made.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         interactionTypeRow(icon: "envelope", title: "Email", detail: "written correspondence with a coach")
         interactionTypeRow(icon: "phone", title: "Phone call", detail: "direct conversation by phone")
@@ -196,7 +197,7 @@ private struct HelpPhasesContent: View {
       sectionBlock {
         HelpSectionHeader(title: "Overview of recruiting phases")
         Text("The recruiting process is organized into four phases that map to your high school career. Each phase unlocks specific features and actions in the app.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         HelpImageSlot(caption: "The four recruiting phases: Freshman, Sophomore, Junior, and Senior.")
       }
@@ -212,7 +213,7 @@ private struct HelpPhasesContent: View {
       sectionBlock {
         HelpSectionHeader(title: "How to advance your phase")
         Text("Phase advancement is a confirmed action — both you and a coach or family member must confirm the transition.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Open Phase settings", bodyText: "Go to Settings → Recruiting Phase.")
         HelpStepCard(step: 2, title: "Request advancement", bodyText: "Tap Advance to [next phase]. A confirmation request is sent to your family unit.")
@@ -223,7 +224,7 @@ private struct HelpPhasesContent: View {
       sectionBlock {
         HelpSectionHeader(title: "Requesting a recommendation letter")
         Text("Recommendation letters from coaches, teachers, or counselors strengthen your recruiting profile. Track all your requests in one place.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Go to Documents", bodyText: "Navigate to Documents and select the Recommendation Letters tab.")
         HelpStepCard(step: 2, title: "Add a new request", bodyText: "Tap Request letter and enter the recommender's name, relationship, and the school or program the letter is for.")
@@ -234,10 +235,13 @@ private struct HelpPhasesContent: View {
       sectionBlock {
         HelpSectionHeader(title: "Tracking letter status")
         Text("Each letter request moves through these states:")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         letterStatusRow(label: "Requested", color: .orange, text: "You've submitted the request. Waiting for the recommender to confirm.")
-        letterStatusRow(label: "In progress", color: .blue, text: "The recommender has confirmed they'll write it.")
+        letterStatusRow(
+          label: "In progress", color: Color.accentPrimary,
+          text: "The recommender has confirmed they'll write it."
+        )
         letterStatusRow(label: "Received", color: .green, text: "The letter has been submitted to the school or delivered to you.")
       }
     }
@@ -252,7 +256,7 @@ private struct HelpAccountContent: View {
       sectionBlock {
         HelpSectionHeader(title: "Updating your athlete profile")
         Text("Keep your profile current — fit signals and recommendations update automatically when your profile changes.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Open Settings", bodyText: "Navigate to Settings and select Athlete Profile.")
         HelpStepCard(step: 2, title: "Edit your details", bodyText: "Update any field — graduation year, sport, positions, GPA, SAT/ACT, height, or weight.")
@@ -262,21 +266,37 @@ private struct HelpAccountContent: View {
       sectionBlock {
         HelpSectionHeader(title: "Managing family members")
         Text("Family members (parents, guardians) can view your recruiting profile and help confirm phase advancements.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         HelpStepCard(step: 1, title: "Go to Family settings", bodyText: "Navigate to Settings → Family.")
-        HelpStepCard(step: 2, title: "Invite a member", bodyText: "Enter their email and tap Send invite. They'll receive an invitation to create a linked account.")
+        HelpStepCard(step: 2, title: "Invite a member", bodyText: HelpFamilyCopy.inviteMemberStep)
         HelpStepCard(step: 3, title: "Manage access", bodyText: "To remove a family member, tap the three-dot menu next to their name and select Remove.", isLast: true)
         HelpCallout(type: .info, text: "A family member's account is linked to your athlete profile — they can view and edit profile information alongside the athlete.")
       }
 
       sectionBlock {
+        HelpSectionHeader(title: HelpFamilyCopy.sectionTitle)
+        Text(HelpFamilyCopy.everyAccountIntro)
+          .font(.brand(.subheadline))
+          .foregroundStyle(.secondary)
+        bulletList(items: [
+          ("Created for you", HelpFamilyCopy.createdForYou),
+          ("Invited? You join instead", HelpFamilyCopy.invitedJoin),
+          ("Removed, or your family was deleted?", HelpFamilyCopy.removedOrDeleted)
+        ])
+        Text(HelpFamilyCopy.missingFamilyIntro)
+          .font(.brand(.subheadline))
+          .foregroundStyle(.secondary)
+        bulletList(lines: [HelpFamilyCopy.stillLoading, HelpFamilyCopy.loadFailed, HelpFamilyCopy.noFamilyYet])
+      }
+
+      sectionBlock {
         HelpSectionHeader(title: "Notification preferences")
         Text("Control which notifications you receive and how you receive them.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         Text("Go to Settings → Notifications to enable or disable notifications by category.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.primary)
         HelpCallout(type: .tip, text: "Keep Phase confirmations and Rec letter updates notifications enabled — these are time-sensitive actions that require your attention.")
       }
@@ -303,7 +323,9 @@ private struct HelpAccountContent: View {
 
       sectionBlock {
         HelpSectionHeader(title: "Changing your password")
-        HelpStepCard(step: 1, title: "Go to Account settings", bodyText: "Navigate to Settings → Account.")
+        HelpStepCard(
+          step: 1, title: "Go to User Settings", bodyText: "Navigate to More → Settings → User Settings."
+        )
         HelpStepCard(step: 2, title: "Tap Change password", bodyText: "Enter your current password, then your new password twice to confirm.")
         HelpStepCard(step: 3, title: "Save", bodyText: "Tap Update password. You'll be asked to log in again with your new credentials.", isLast: true)
       }
@@ -311,12 +333,16 @@ private struct HelpAccountContent: View {
       sectionBlock {
         HelpSectionHeader(title: "Data and privacy")
         Text("Your data is stored securely and never shared with third parties or college programs without your consent. The Recruiting Compass does not sell user data.")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
         bulletList(items: [
           ("What we store", "your athlete profile, school list, coach interactions, and app activity"),
           ("Who can see it", "only you and family members you've invited"),
-          ("To delete your account", "go to Settings → Account → Delete account. This permanently removes all your data.")
+          (
+            "To delete your account",
+            "go to More → Settings → User Settings → Data & Privacy → Request Account Deletion. "
+              + "Your account and data are permanently deleted after 30 days; you can cancel any time before then."
+          )
         ])
         HelpCallout(type: .important, text: "Account deletion is permanent and cannot be undone. Export your data before deleting if you want to keep a record of your recruiting history.")
       }
@@ -337,7 +363,7 @@ private struct HelpGlossaryContent: View {
       ForEach(groupedTerms, id: \.letter) { group in
         VStack(alignment: .leading, spacing: 10) {
           Text(group.letter)
-            .font(.caption)
+            .font(.brand(.caption))
             .fontWeight(.semibold)
             .foregroundStyle(.secondary)
             .textCase(.uppercase)
@@ -345,11 +371,11 @@ private struct HelpGlossaryContent: View {
           ForEach(group.terms) { entry in
             VStack(alignment: .leading, spacing: 2) {
               Text(entry.term)
-                .font(.subheadline)
+                .font(.brand(.subheadline))
                 .fontWeight(.medium)
                 .foregroundStyle(.primary)
               Text(entry.definition)
-                .font(.subheadline)
+                .font(.brand(.subheadline))
                 .foregroundStyle(.secondary)
             }
             .accessibilityElement(children: .combine)
@@ -379,12 +405,12 @@ private struct HelpFaqContent: View {
         } label: {
           HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(entry.question)
-              .font(.subheadline)
+              .font(.brand(.subheadline))
               .fontWeight(.medium)
               .foregroundStyle(.primary)
               .frame(maxWidth: .infinity, alignment: .leading)
             Image(systemName: expandedId == entry.id ? "chevron.up" : "chevron.down")
-              .font(.caption)
+              .font(.brand(.caption))
               .foregroundStyle(.secondary)
           }
           .padding(.vertical, 12)
@@ -395,7 +421,7 @@ private struct HelpFaqContent: View {
 
         if expandedId == entry.id {
           Text(entry.answer)
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
             .padding(.bottom, 12)
             .accessibilityLabel(String(localized: "\(entry.answer)"))
@@ -416,16 +442,29 @@ private func sectionBlock<Content: View>(@ViewBuilder content: () -> Content) ->
 }
 
 private func bulletList(items: [(String, String)]) -> some View {
+  bulletList(lines: items.map { "\($0.0) — \($0.1)" })
+}
+
+private func bulletList(lines: [String]) -> some View {
   VStack(alignment: .leading, spacing: 8) {
-    ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-      HStack(alignment: .top, spacing: 8) {
-        Text("•")
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
-        Text("\(item.0) — \(item.1)")
-          .font(.subheadline)
-          .foregroundStyle(.primary)
-      }
+    ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
+      HelpBulletRow(line: line)
+    }
+  }
+}
+
+/// Internal (not private) so tests can evaluate `body`; ForEach's content closure is unreachable by reflection.
+struct HelpBulletRow: View {
+  let line: String
+
+  var body: some View {
+    HStack(alignment: .top, spacing: 8) {
+      Text("•")
+        .font(.brand(.subheadline))
+        .foregroundStyle(.secondary)
+      Text(verbatim: line)
+        .font(.brand(.subheadline))
+        .foregroundStyle(.primary)
     }
   }
 }
@@ -433,11 +472,11 @@ private func bulletList(items: [(String, String)]) -> some View {
 private func interactionTypeRow(icon: String, title: String, detail: String) -> some View {
   HStack(alignment: .top, spacing: 12) {
     Image(systemName: icon)
-      .font(.subheadline)
+      .font(.brand(.subheadline))
       .foregroundStyle(.secondary)
       .frame(width: 20, alignment: .center)
     Text("\(title) — \(detail)")
-      .font(.subheadline)
+      .font(.brand(.subheadline))
       .foregroundStyle(.primary)
   }
 }
@@ -446,14 +485,14 @@ private func phaseCard(title: LocalizedStringKey, badge: HelpBadge.BadgeType?, t
   VStack(alignment: .leading, spacing: 8) {
     HStack(alignment: .firstTextBaseline, spacing: 8) {
       Text(title)
-        .font(.headline)
+        .font(.brand(.headline))
         .foregroundStyle(.primary)
       if let badge {
         HelpBadge(type: badge)
       }
     }
     Text(text)
-      .font(.subheadline)
+      .font(.brand(.subheadline))
       .foregroundStyle(.secondary)
   }
   .padding(16)
@@ -465,7 +504,7 @@ private func phaseCard(title: LocalizedStringKey, badge: HelpBadge.BadgeType?, t
 private func letterStatusRow(label: LocalizedStringKey, color: Color, text: LocalizedStringKey) -> some View {
   HStack(alignment: .top, spacing: 12) {
     Text(label)
-      .font(.caption)
+      .font(.brand(.caption))
       .fontWeight(.medium)
       .foregroundStyle(color)
       .padding(.horizontal, 8)
@@ -473,7 +512,7 @@ private func letterStatusRow(label: LocalizedStringKey, color: Color, text: Loca
       .background(color.opacity(0.2))
       .clipShape(Capsule())
     Text(text)
-      .font(.subheadline)
+      .font(.brand(.subheadline))
       .foregroundStyle(.secondary)
   }
 }
@@ -481,12 +520,12 @@ private func letterStatusRow(label: LocalizedStringKey, color: Color, text: Loca
 private func notificationPriorityRow(title: LocalizedStringKey, items: [String]) -> some View {
   VStack(alignment: .leading, spacing: 4) {
     Text(title)
-      .font(.subheadline)
+      .font(.brand(.subheadline))
       .fontWeight(.semibold)
       .foregroundStyle(.primary)
     ForEach(items, id: \.self) { item in
       Text("• \(item)")
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
     }
   }

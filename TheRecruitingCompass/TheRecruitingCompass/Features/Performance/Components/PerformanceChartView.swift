@@ -19,27 +19,21 @@ struct PerformanceChartView: View {
             x: .value("Date", metric.recordedDate),
             y: .value("Value", metric.value)
           )
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
           .interpolationMethod(.catmullRom)
 
           AreaMark(
             x: .value("Date", metric.recordedDate),
             y: .value("Value", metric.value)
           )
-          .foregroundStyle(
-            LinearGradient(
-              colors: [Color.accentBlue.opacity(0.2), Color.accentBlue.opacity(0.02)],
-              startPoint: .top,
-              endPoint: .bottom
-            )
-          )
+          .foregroundStyle(Color.Brand.forest500.opacity(0.12))
           .interpolationMethod(.catmullRom)
 
           PointMark(
             x: .value("Date", metric.recordedDate),
             y: .value("Value", metric.value)
           )
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
           .symbolSize(metric.id == selectedMetric?.id ? 120 : 40)
         }
 
@@ -78,9 +72,9 @@ struct PerformanceChartView: View {
   private func selectionCallout(for metric: PerformanceMetric) -> some View {
     VStack(spacing: 2) {
       Text("\(metric.metricType.format(metric.value)) \(metric.unit)")
-        .font(.headline)
+        .font(.brand(.headline))
       Text(metric.recordedDate, format: .dateTime.month(.abbreviated).day().year())
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.secondary)
     }
     .padding(.horizontal, 8)

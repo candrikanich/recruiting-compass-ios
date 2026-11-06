@@ -43,6 +43,17 @@ final class NotificationsServiceImpl: NotificationsManaging, Sendable {
     }
   }
 
+  /// One row by id, for routing a push tap. nil when it is gone or unreadable: the tap then opens the inbox.
+  func fetchNotification(id: String) async -> AppNotification? {
+    try? await supabaseManager.client
+      .from("notifications")
+      .select(Self.inboxColumns)
+      .eq("id", value: id)
+      .single()
+      .execute()
+      .value
+  }
+
   func markAsRead(id: String) async throws -> AppNotification {
     logger.debug("Marking notification as read: \(id)")
     do {

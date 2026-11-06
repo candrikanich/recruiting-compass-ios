@@ -33,7 +33,7 @@ struct CoachStatisticsSection: View {
             .foregroundStyle(.secondary)
             .accessibilityHidden(true)
           Text("Last contacted \(RelativeTimeFormatter.string(from: lastContact))")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
         }
       } else {
         HStack(spacing: 8) {
@@ -41,7 +41,7 @@ struct CoachStatisticsSection: View {
             .foregroundStyle(.secondary)
             .accessibilityHidden(true)
           Text("Never contacted")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
             .italic()
         }
@@ -53,7 +53,7 @@ struct CoachStatisticsSection: View {
             .foregroundStyle(.secondary)
             .accessibilityHidden(true)
           Text("Next contact: \(CoachStatisticsSection.dateFormatter.string(from: nextContact))")
-            .font(.subheadline)
+            .font(.brand(.subheadline))
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(String(localized: "Next contact date: \(CoachStatisticsSection.dateFormatter.string(from: nextContact))"))
@@ -64,7 +64,7 @@ struct CoachStatisticsSection: View {
           .foregroundStyle(.secondary)
           .accessibilityHidden(true)
         Text("Follow-up threshold: \(coach.followUpThresholdDays ?? 21) days")
-          .font(.subheadline)
+          .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
       }
       .accessibilityLabel(String(localized: "Follow-up threshold: \(coach.followUpThresholdDays ?? 21) days"))

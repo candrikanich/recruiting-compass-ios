@@ -3,6 +3,8 @@ import Foundation
 
 final class MockNotificationsService: NotificationsManaging, @unchecked Sendable {
   var shouldSucceed = true
+  /// Thrown by fetchNotifications when set (takes precedence over shouldSucceed).
+  var fetchError: Error?
   var mockNotifications: [AppNotification] = []
   var fetchNotificationsCallCount = 0
   var markAsReadCallCount = 0
@@ -14,6 +16,7 @@ final class MockNotificationsService: NotificationsManaging, @unchecked Sendable
 
   func fetchNotifications(userId: String) async throws -> [AppNotification] {
     fetchNotificationsCallCount += 1
+    if let fetchError { throw fetchError }
     if !shouldSucceed { throw NotificationServiceError.networkTimeout }
     return mockNotifications
   }

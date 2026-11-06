@@ -31,37 +31,37 @@ struct PhaseCard: View {
             VStack(alignment: .leading, spacing: 3) {
               HStack(spacing: 8) {
                 Text(phase.displayLabel)
-                  .font(.title3.weight(.bold))
+                  .font(.brand(.title3, weight: .bold))
                   .foregroundStyle(.primary)
                 if isCurrentPhase {
                   currentPhaseBadge
                 }
               }
               Text(phase.theme)
-                .font(.subheadline)
+                .font(.brand(.subheadline))
                 .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
             VStack(alignment: .trailing, spacing: 0) {
               Text("\(completedCount)/\(totalCount)")
-                .font(.title3.weight(.semibold))
+                .font(.brand(.title3, weight: .semibold))
                 .monospacedDigit()
               Text("tasks")
-                .font(.caption2)
+                .font(.brand(.caption2))
                 .foregroundStyle(.secondary)
             }
 
             Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-              .font(.caption.weight(.semibold))
+              .font(.brand(.caption, weight: .semibold))
               .foregroundStyle(.tertiary)
           }
 
           HStack(spacing: 8) {
             ProgressView(value: Double(completedCount), total: max(1, Double(totalCount)))
-              .tint(isCurrentPhase ? Color.accentBlue : Color.secondary)
+              .tint(isCurrentPhase ? Color.accentPrimary : Color.secondary)
             Text("\(percentComplete)%")
-              .font(.caption.weight(.semibold))
+              .font(.brand(.caption, weight: .semibold))
               .foregroundStyle(.secondary)
               .monospacedDigit()
           }
@@ -69,6 +69,10 @@ struct PhaseCard: View {
         .padding()
       }
       .buttonStyle(.plain)
+      .accessibilityElement(children: .combine)
+      .accessibilityLabel(headerAccessibility.label)
+      .accessibilityValue(headerAccessibility.value)
+      .accessibilityHint(headerAccessibility.hint)
 
       if isExpanded, !tasks.isEmpty {
         VStack(spacing: 8) {
@@ -91,13 +95,15 @@ struct PhaseCard: View {
         .fill(Color(.secondarySystemBackground))
         .overlay {
           RoundedRectangle(cornerRadius: 12)
-            .stroke(isCurrentPhase ? Color.accentBlue.opacity(0.5) : Color.clear, lineWidth: 2)
+            .stroke(isCurrentPhase ? Color.accentPrimary.opacity(0.5) : Color.clear, lineWidth: 2)
         }
     )
     .clipShape(RoundedRectangle(cornerRadius: 12))
-    .accessibilityElement(children: .combine)
-    .accessibilityLabel(String(localized: "\(phase.displayLabel), \(completedCount) of \(totalCount) tasks complete"))
-    .accessibilityHint("Double tap to expand or collapse")
+  }
+
+  private var headerAccessibility: PhaseCardAccessibility {
+    PhaseCardAccessibility(
+      phaseLabel: phase.displayLabel, completed: completedCount, total: totalCount, isExpanded: isExpanded)
   }
 
   @ViewBuilder private var currentPhaseBadge: some View {
@@ -106,7 +112,7 @@ struct PhaseCard: View {
         .fill(Color.successGreen)
         .frame(width: 6, height: 6)
       Text("Current")
-        .font(.caption2.weight(.semibold))
+        .font(.brand(.caption2, weight: .semibold))
         .foregroundStyle(Color.successGreen)
     }
     .padding(.horizontal, 8)
@@ -119,15 +125,15 @@ struct PhaseCard: View {
   private var completionIcon: some View {
     if percentComplete == 100 {
       Image(systemName: "checkmark.circle.fill")
-        .font(.title2)
+        .font(.brand(.title2))
         .foregroundStyle(Color.successGreen)
     } else if percentComplete > 0 {
       Image(systemName: "circle.lefthalf.filled")
-        .font(.title2)
-        .foregroundStyle(Color.accentBlue)
+        .font(.brand(.title2))
+        .foregroundStyle(Color.accentPrimary)
     } else {
       Image(systemName: "circle")
-        .font(.title2)
+        .font(.brand(.title2))
         .foregroundStyle(.tertiary)
     }
   }

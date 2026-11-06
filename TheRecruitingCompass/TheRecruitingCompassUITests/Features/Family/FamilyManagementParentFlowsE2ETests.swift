@@ -374,25 +374,6 @@ final class FamilyManagementParentFlowsE2ETests: XCTestCase {
     )
   }
 
-  // MARK: - Rate Limiting Tests
-
-  /// Test: Error handling for rate limiting (429)
-  /// Covers rate limit scenario
-  /// Note: This is difficult to test in E2E without actually triggering rate limits
-  @MainActor
-  func testParentView_joinFamily_rateLimited_showsError() throws {
-    // Given: Parent is logged in and on Family screen
-    try navigateToParentFamilyScreen()
-
-    add(app.takeScreenshot(name: "27-parent-rate-limit-test"))
-
-    // This test would require rapid repeated attempts to join
-    // In a real test environment, you might have a mock backend that returns 429
-    // For now, we'll skip this test as it's hard to reproduce reliably in E2E
-
-    throw XCTSkip("Rate limit testing requires mock backend or repeated requests")
-  }
-
   // MARK: - Accessibility Tests
 
   /// Test: Parent view has proper VoiceOver labels

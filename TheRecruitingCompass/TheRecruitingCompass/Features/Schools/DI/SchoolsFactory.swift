@@ -65,7 +65,7 @@ enum SchoolsFactory {
   @MainActor
   static func makeAddViewModel(
     schoolsService: any SchoolsManaging,
-    familyUnitId: String,
+    familyUnitId: String?,
     userId: String
   ) -> AddSchoolViewModel {
     AddSchoolViewModel(

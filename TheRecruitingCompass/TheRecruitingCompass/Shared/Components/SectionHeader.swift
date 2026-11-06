@@ -6,7 +6,7 @@ struct SectionHeader: View {
 
   var body: some View {
     Text(title)
-      .font(.headline)
+      .font(.brand(.headline))
       .foregroundStyle(.primary)
       .accessibilityAddTraits(.isHeader)
   }

@@ -31,7 +31,7 @@ struct CoachTagsCard: View {
 
   private func chip(_ tag: String) -> some View {
     HStack(spacing: 4) {
-      Text(tag).font(.footnote)
+      Text(tag).font(.brand(.footnote))
       Button {
         onRemove(tag)
       } label: {
@@ -51,8 +51,8 @@ struct CoachTagsCard: View {
       isAddingTag = true
     } label: {
       Label("Add Tag", systemImage: "plus")
-        .font(.footnote.weight(.semibold))
-        .foregroundStyle(Color.Brand.blue600)
+        .font(.brand(.footnote, weight: .semibold))
+        .foregroundStyle(Color.accentPrimary)
     }
     .accessibilityLabel("Add tag")
   }

@@ -322,6 +322,6 @@ let (user, session) = try await SupabaseManager.shared.signUp(
 // Sign out
 try await SupabaseManager.shared.signOut()
 
-// Refresh session
-let user = try await SupabaseManager.shared.refreshSession()
+// Current session with a freshly read profile (one `users` read per call)
+let session = try await SupabaseManager.shared.getCurrentSession()
 ```

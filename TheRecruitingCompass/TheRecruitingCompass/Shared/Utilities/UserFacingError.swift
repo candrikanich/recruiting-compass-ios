@@ -62,3 +62,18 @@ func isForeignKeyViolation(_ error: Error) -> Bool {
     || message.contains("still referenced")
     || message.contains("cannot delete")
 }
+
+/// Postgres SQLSTATE for `insufficient_privilege`, which PostgREST returns for an RLS denial.
+private let postgresInsufficientPrivilegeCode = "42501"
+
+/// True when the server refused the write for permission reasons (RLS denial / HTTP 403) rather than
+/// because the network failed.
+func isPermissionDenied(_ error: Error) -> Bool {
+  if let postgrestError = error as? PostgrestError {
+    return postgrestError.code == postgresInsufficientPrivilegeCode
+  }
+  if let httpError = error as? HTTPError {
+    return httpError.response.statusCode == 403
+  }
+  return false
+}

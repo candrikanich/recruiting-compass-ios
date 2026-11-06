@@ -32,7 +32,7 @@ final class InteractionsServiceTests: XCTestCase {
     XCTAssertEqual(result.count, 3)
   }
 
-  func testFetchInteractions_ThrowsError_WhenServiceFails() async {
+  func testFetchInteractions_ThrowsError_WhenServiceFails() async throws {
     // Given
     mockService.shouldSucceed = false
 
@@ -75,7 +75,7 @@ final class InteractionsServiceTests: XCTestCase {
     XCTAssertEqual(result.id, "test-id")
   }
 
-  func testFetchInteraction_Throws404_WhenNotFound() async {
+  func testFetchInteraction_Throws404_WhenNotFound() async throws {
     // Given
     mockService.mockInteractions = []
 
@@ -134,7 +134,7 @@ final class InteractionsServiceTests: XCTestCase {
 
   func testCreateInteraction_Success() async throws {
     // Given
-    let request = InteractionCreateRequest(
+    let request = try InteractionCreateRequest(
       schoolId: "school1",
       coachId: "coach1",
       type: .email,
@@ -161,7 +161,7 @@ final class InteractionsServiceTests: XCTestCase {
     let mockInteraction = createInteraction(id: "mock-id", subject: "Mock")
     mockService.mockCreatedInteraction = mockInteraction
 
-    let request = InteractionCreateRequest(
+    let request = try InteractionCreateRequest(
       schoolId: "school1",
       coachId: "coach1",
       type: .email,
@@ -186,7 +186,7 @@ final class InteractionsServiceTests: XCTestCase {
 
   func testCreateCoach_Success() async throws {
     // Given
-    let request = CoachCreateRequest(
+    let request = try CoachCreateRequest(
       schoolId: "school1",
       userId: "user1",
       familyUnitId: "family1",
@@ -214,7 +214,7 @@ final class InteractionsServiceTests: XCTestCase {
     let mockCoach = createCoach(id: "mock-id", firstName: "Mock", lastName: "Coach")
     mockService.mockCreatedCoach = mockCoach
 
-    let request = CoachCreateRequest(
+    let request = try CoachCreateRequest(
       schoolId: "school1",
       userId: "user1",
       familyUnitId: "family1",
@@ -268,7 +268,7 @@ final class InteractionsServiceTests: XCTestCase {
     XCTAssertEqual(mockService.mockInteractions.count, 0)
   }
 
-  func testDeleteInteraction_ThrowsError_WhenServiceFails() async {
+  func testDeleteInteraction_ThrowsError_WhenServiceFails() async throws {
     // Given
     mockService.shouldSucceed = false
 
@@ -298,7 +298,7 @@ final class InteractionsServiceTests: XCTestCase {
     XCTAssertEqual(mockService.mockInteractions.count, 0)
   }
 
-  func testCascadeDeleteInteraction_ThrowsError_WhenServiceFails() async {
+  func testCascadeDeleteInteraction_ThrowsError_WhenServiceFails() async throws {
     // Given
     mockService.shouldSucceed = false
 

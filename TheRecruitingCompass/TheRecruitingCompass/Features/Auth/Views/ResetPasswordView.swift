@@ -16,7 +16,7 @@ struct ResetPasswordView: View {
 
   var body: some View {
     ZStack {
-      LinearGradient.primaryBackground
+      Color.Brand.forest600
       .ignoresSafeArea()
 
       VStack(spacing: 0) {
@@ -24,10 +24,10 @@ struct ResetPasswordView: View {
           Button(action: { dismiss() }) {
             HStack(spacing: 4) {
               Image(systemName: "arrow.left")
-                .font(.footnote.weight(.semibold))
+                .font(.brand(.footnote, weight: .semibold))
                 .accessibilityHidden(true)
               Text("Back")
-                .font(.footnote.weight(.semibold))
+                .font(.brand(.footnote, weight: .semibold))
             }
             .foregroundStyle(Color.darkSlate)
             .frame(minHeight: 44)
@@ -85,18 +85,18 @@ struct ResetPasswordView: View {
     VStack(spacing: 24) {
       Image(systemName: "lock.rotation")
         .font(.system(size: iconSize))
-        .foregroundStyle(Color.primaryGreen)
+        .foregroundStyle(Color.accentPrimary)
         .padding(.vertical, 12)
         .scaleEffect(sizeCategory >= .extraLarge ? 1.08 : 1.0)
         .accessibilityHidden(true)
 
       VStack(spacing: 8) {
         Text("Reset Password")
-          .font(.title3.weight(.semibold))
+          .font(.brand(.title3, weight: .semibold))
           .foregroundStyle(Color.darkSlate)
 
         Text("Enter your new password below.")
-          .font(.footnote)
+          .font(.brand(.footnote))
           .foregroundStyle(Color.secondaryText)
       }
 
@@ -141,7 +141,7 @@ struct ResetPasswordView: View {
       }) {
         HStack {
           Text(viewModel.isLoading ? String(localized: "Resetting...") : String(localized: "Reset Password"))
-            .font(.callout.weight(.semibold))
+            .font(.brand(.callout, weight: .semibold))
 
           if viewModel.isLoading {
             ProgressView()
@@ -152,7 +152,7 @@ struct ResetPasswordView: View {
         .frame(minHeight: 48)
         .foregroundStyle(.white)
         .background(
-          LinearGradient.primaryButton
+          Color.accentFill
         )
         .clipShape(.rect(cornerRadius: 8))
         .opacity(viewModel.isButtonDisabled ? 0.5 : 1)
@@ -177,7 +177,7 @@ struct ResetPasswordView: View {
         .accessibilityHidden(true)
 
       Text(viewModel.passwordsMatch ? String(localized: "Passwords match") : String(localized: "Passwords do not match"))
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(viewModel.passwordsMatch
           ? Color.successGreen
           : Color.errorRed)
@@ -195,11 +195,11 @@ struct ResetPasswordView: View {
 
       VStack(spacing: 8) {
         Text("Password Reset!")
-          .font(.title3.weight(.semibold))
+          .font(.brand(.title3, weight: .semibold))
           .foregroundStyle(Color.darkSlate)
 
         Text("Your password has been updated successfully.")
-          .font(.footnote)
+          .font(.brand(.footnote))
           .foregroundStyle(Color.secondaryText)
           .multilineTextAlignment(.center)
       }
@@ -207,18 +207,18 @@ struct ResetPasswordView: View {
       InfoBanner(state: .verified)
 
       Text("Redirecting to login in \(viewModel.successCountdown)s...")
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(Color.secondaryText)
         .accessibilityLabel(String(localized: "Redirecting to login in \(viewModel.successCountdown) seconds"))
 
       Button(action: { dismiss() }) {
         Text("Sign In Now")
-          .font(.callout.weight(.semibold))
+          .font(.brand(.callout, weight: .semibold))
           .frame(maxWidth: .infinity)
           .frame(minHeight: 48)
           .foregroundStyle(.white)
           .background(
-            LinearGradient.primaryButton
+            Color.accentFill
           )
           .clipShape(.rect(cornerRadius: 8))
       }
@@ -236,11 +236,11 @@ struct ResetPasswordView: View {
 
       VStack(spacing: 8) {
         Text("Invalid Link")
-          .font(.title3.weight(.semibold))
+          .font(.brand(.title3, weight: .semibold))
           .foregroundStyle(Color.darkSlate)
 
         Text("This password reset link is no longer valid.")
-          .font(.footnote)
+          .font(.brand(.footnote))
           .foregroundStyle(Color.secondaryText)
           .multilineTextAlignment(.center)
       }
@@ -252,12 +252,12 @@ struct ResetPasswordView: View {
 
       Button(action: { showForgotPassword = true }) {
         Text("Request New Link")
-          .font(.callout.weight(.semibold))
+          .font(.brand(.callout, weight: .semibold))
           .frame(maxWidth: .infinity)
           .frame(minHeight: 48)
           .foregroundStyle(.white)
           .background(
-            LinearGradient.primaryButton
+            Color.accentFill
           )
           .clipShape(.rect(cornerRadius: 8))
       }
@@ -266,10 +266,10 @@ struct ResetPasswordView: View {
       Button(action: { dismiss() }) {
         HStack(spacing: 4) {
           Image(systemName: "arrow.left")
-            .font(.caption.weight(.semibold))
+            .font(.brand(.caption, weight: .semibold))
             .accessibilityHidden(true)
           Text("Back to Login")
-            .font(.footnote.weight(.semibold))
+            .font(.brand(.footnote, weight: .semibold))
         }
         .foregroundStyle(Color.tertiaryText)
         .frame(minHeight: 44)

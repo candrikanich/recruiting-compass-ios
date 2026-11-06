@@ -57,10 +57,7 @@ final class ParentOnboardingWizardViewModel {
   // selected calendar day, so formatting must use the device's local timezone too (matching
   // COPPAHelper's parser) — forcing GMT here shifts the day for any device not on UTC.
   private var playerDateOfBirthString: String? {
-    let formatter = DateFormatter()
-    formatter.dateFormat = "yyyy-MM-dd"
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    return formatter.string(from: playerDateOfBirth)
+    COPPAHelper.makeDateOfBirthFormatter().string(from: playerDateOfBirth)
   }
 
   var isPlayerUnderAge: Bool {
@@ -102,18 +99,25 @@ final class ParentOnboardingWizardViewModel {
     hasConfirmedDateOfBirth = true
   }
 
-  /// Ensures a family exists and loads its code for the invite sheet (mirrors web: we have a family by the time we share or send invite).
+  /// The family-required gate guarantees a family before onboarding, so this only reads it; it never creates one.
   func loadFamilyCode() async {
     isLoadingFamilyCode = true
     defer { isLoadingFamilyCode = false }
     do {
-      let response = try await familyService.createFamily(role: .parent)
-      familyCode = response.familyCode
+      familyCode = try await existingFamily().familyCode
     } catch {
       logger.error("loadFamilyCode failed: \(error.localizedDescription, privacy: .public) — full error: \(String(describing: error), privacy: .private)")
       familyCode = nil
-      errorMessage = "Couldn't load your family code. Please try again."
+      errorMessage = "Couldn't load your Family Code. Please try again."
     }
+  }
+
+  private func existingFamily() async throws -> FamilyUnit {
+    guard let userId = authManager.user?.id,
+          let family = try await familyService.getFamilyUnit(forUserId: userId) else {
+      throw FamilyError.serverError("We couldn't find your family. Please sign out and back in.")
+    }
+    return family
   }
 
   private var pendingPlayerDetails: PendingPlayerDetails {
@@ -140,9 +144,9 @@ final class ParentOnboardingWizardViewModel {
     defer { isLoading = false }
 
     do {
-      let response = try await familyService.createFamily(role: .parent)
-      try await familyService.savePlayerDetails(familyId: response.familyId, details: pendingPlayerDetails)
-      familyCode = response.familyCode
+      let family = try await existingFamily()
+      try await familyService.savePlayerDetails(familyId: family.id, details: pendingPlayerDetails)
+      familyCode = family.familyCode
 
       // Matches web's savePlayerDetails(): a failure here is logged but never blocks
       // reaching the dashboard — the shared onboarding_complete flag is best-effort.
@@ -185,7 +189,8 @@ final class ParentOnboardingWizardViewModel {
       try await familyService.sendEmailInvite(
         email: inviteEmail.trimmingCharacters(in: .whitespaces),
         role: "player",
-        pendingPlayerDetails: hasPlayerDetails ? pendingPlayerDetails : nil
+        pendingPlayerDetails: hasPlayerDetails ? pendingPlayerDetails : nil,
+        familyUnitId: nil
       )
       successMessage = "Invite sent to \(inviteEmail.trimmingCharacters(in: .whitespaces))!"
       showSuccessToast = true

@@ -14,6 +14,7 @@ final class MockInteractionsService: InteractionsManaging, @unchecked Sendable {
   var createInteractionCallCount = 0
   var createCoachCallCount = 0
   var fetchInteractionsCallCount = 0
+  var fetchSchoolContactSignalsCallCount = 0
   var fetchInteractionsForUserCallCount = 0
   var lastDeletedId: String?
   var lastCascadeDeletedId: String?
@@ -24,6 +25,13 @@ final class MockInteractionsService: InteractionsManaging, @unchecked Sendable {
     fetchInteractionsCallCount += 1
     if !shouldSucceed { throw NSError(domain: "test", code: -1) }
     return mockInteractions
+  }
+
+  /// Derived from `mockInteractions`, as the real query is a two-column projection of the same rows.
+  func fetchSchoolContactSignals(familyUnitId: String) async throws -> [SchoolContactSignal] {
+    fetchSchoolContactSignalsCallCount += 1
+    if !shouldSucceed { throw NSError(domain: "test", code: -1) }
+    return mockInteractions.map { SchoolContactSignal(schoolId: $0.schoolId, type: $0.type) }
   }
 
   func fetchInteractionsForUser(userId: String) async throws -> [Interaction] {
@@ -67,8 +75,8 @@ final class MockInteractionsService: InteractionsManaging, @unchecked Sendable {
     // Create default interaction
     return Interaction(
       id: UUID().uuidString,
-      type: InteractionType(rawValue: interaction.type) ?? .email,
-      direction: Direction(rawValue: interaction.direction) ?? .outbound,
+      type: interaction.type.flatMap { InteractionType(rawValue: $0) } ?? .email,
+      direction: interaction.direction.flatMap { Direction(rawValue: $0) } ?? .outbound,
       schoolId: interaction.schoolId,
       coachId: interaction.coachId,
       subject: interaction.subject,

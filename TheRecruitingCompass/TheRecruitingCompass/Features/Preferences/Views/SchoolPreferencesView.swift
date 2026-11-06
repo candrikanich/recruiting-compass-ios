@@ -48,7 +48,7 @@ struct SchoolPreferencesView: View {
         Text("Quick Templates")
       } footer: {
         Text("Templates provide starting criteria. You can customize after applying.")
-          .font(.caption)
+          .font(.brand(.caption))
       }
 
       // Preferences List
@@ -68,13 +68,13 @@ struct SchoolPreferencesView: View {
           Text("Your Preferences (Priority Order)")
         } footer: {
           Text("Drag to reorder. Higher priorities match first.")
-            .font(.caption)
+            .font(.brand(.caption))
         }
       } else {
         Section {
           Text("No preferences set. Apply a template or add your own.")
             .foregroundStyle(.secondary)
-            .font(.callout)
+            .font(.brand(.callout))
         }
       }
 

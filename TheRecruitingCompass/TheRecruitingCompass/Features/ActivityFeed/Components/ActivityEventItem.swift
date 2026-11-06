@@ -3,12 +3,14 @@ import SwiftUI
 struct ActivityEventItem: View {
   let event: ActivityEvent
   let compact: Bool
+  let actorLabel: String?
 
   @Environment(\.sizeCategory) private var sizeCategory
 
-  init(event: ActivityEvent, compact: Bool = false) {
+  init(event: ActivityEvent, compact: Bool = false, actorLabel: String? = nil) {
     self.event = event
     self.compact = compact
+    self.actorLabel = actorLabel
   }
 
   var body: some View {
@@ -19,7 +21,7 @@ struct ActivityEventItem: View {
           .frame(width: iconSize, height: iconSize)
 
         Image(systemName: event.icon)
-          .font(compact ? .caption : .body)
+          .font(compact ? .brand(.caption) : .brand(.body))
           .foregroundStyle(iconBackgroundColor)
       }
       .accessibilityHidden(true)
@@ -27,14 +29,21 @@ struct ActivityEventItem: View {
       // Content
       VStack(alignment: .leading, spacing: compact ? 2 : 4) {
         Text(event.title)
-          .font(compact ? .subheadline : .headline)
+          .font(compact ? .brand(.subheadline) : .brand(.headline))
           .fontWeight(.medium)
           .foregroundStyle(.primary)
           .lineLimit(1)
 
+        if let actorLabel {
+          Text(actorLabel)
+            .font(.brand(.caption))
+            .foregroundStyle(Color.tertiaryText)
+            .lineLimit(1)
+        }
+
         if !event.description.isEmpty {
           Text(event.description)
-            .font(compact ? .caption : .subheadline)
+            .font(compact ? .brand(.caption) : .brand(.subheadline))
             .foregroundStyle(.secondary)
             .lineLimit(2)
         }
@@ -45,12 +54,12 @@ struct ActivityEventItem: View {
       // Time + chevron
       VStack(alignment: .trailing, spacing: 4) {
         Text(event.timestamp, format: .relative(presentation: .named))
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.tertiaryText)
 
         if event.isClickable {
           Image(systemName: "chevron.right")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.iconGray)
             .accessibilityHidden(true)
         }
@@ -80,8 +89,8 @@ struct ActivityEventItem: View {
 
   private var iconBackgroundColor: Color {
     switch event.type {
-    case .interaction: return .accentBlue
-    case .schoolStatusChange: return .primaryGreen
+    case .interaction: return .accentPrimary
+    case .schoolStatusChange: return Color.Brand.gold600
     case .documentUpload: return .amberGold
     }
   }
@@ -93,6 +102,7 @@ struct ActivityEventItem: View {
     var parts: [String] = []
     parts.append(event.type.label)
     parts.append(event.title)
+    if let actorLabel { parts.append(actorLabel) }
     if !event.description.isEmpty {
       parts.append(event.description)
     }

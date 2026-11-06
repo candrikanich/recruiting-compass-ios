@@ -21,12 +21,12 @@ struct InlineErrorView: View {
   var body: some View {
     VStack(spacing: 16) {
       Image(systemName: icon)
-        .font(.largeTitle)
+        .font(.brand(.largeTitle))
         .foregroundStyle(Color.errorRed)
         .accessibilityHidden(true)
 
       Text(message)
-        .font(.body)
+        .font(.brand(.body))
         .foregroundStyle(Color.secondaryText)
         .multilineTextAlignment(.center)
 

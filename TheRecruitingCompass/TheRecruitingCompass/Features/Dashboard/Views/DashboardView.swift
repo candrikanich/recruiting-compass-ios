@@ -11,6 +11,7 @@ struct DashboardView: View {
   @State private var emailVerificationBannerViewModel = EmailVerificationBannerViewModel()
   @Environment(FamilyManager.self) private var familyManager
   @Environment(AuthManager.self) private var authManager
+  @Environment(FeatureFlagStore.self) private var featureFlags: FeatureFlagStore?
   @Environment(\.openMoreSection) private var openMoreSection
   @Environment(\.horizontalSizeClass) private var sizeClass
 
@@ -36,7 +37,8 @@ struct DashboardView: View {
           )
         }
 
-        if familyManager.currentMember?.isParent == true && !viewModel.isParentPreviewMode {
+        if familyManager.currentMember?.isParent == true && !viewModel.isParentPreviewMode
+          && featureFlags.isEnabled(.familyInvites) {
           ParentOnboardingBanner(onInviteTapped: {
             showParentWizard = true
           })
@@ -59,7 +61,7 @@ struct DashboardView: View {
         }
         .refreshable {
           await viewModel.refresh()
-          await timelineViewModel.refresh()
+          await timelineViewModel.loadSummary()
         }
       }
       .navigationTitle("Dashboard")
@@ -83,7 +85,7 @@ struct DashboardView: View {
         onDismiss: { Task { await viewModel.fetchDashboardData() } },
         content: {
           DashboardAddSchoolSheet(
-            familyUnitId: familyManager.currentMember?.familyUnitId ?? "",
+            familyUnitId: FamilyUnitID.normalized(familyManager.currentMember?.familyUnitId),
             userId: authManager.user?.id ?? ""
           )
         }
@@ -92,16 +94,15 @@ struct DashboardView: View {
         await viewModel.fetchDashboardData()
         await subscribeRealtime()
       }
-      .task {
-        await timelineViewModel.load()
+      // Keyed on the athlete being viewed, not `selectedAthleteId`: for a player that selection goes from
+      // nil to their own member row once the family loads, which is the same athlete and no reason to reload.
+      .task(id: timelineViewModel.currentAthleteId) {
+        await timelineViewModel.loadSummary()
       }
       .task {
         if let userId = authManager.user?.id {
           await nuxProgressManager.load(userId: userId)
         }
-      }
-      .onChange(of: familyManager.selectedAthleteId) { _, _ in
-        Task { await timelineViewModel.load() }
       }
       .onChange(of: familyManager.familyUnitId) { _, _ in
         let service = realtimeService
@@ -140,8 +141,10 @@ struct DashboardView: View {
       }
 
       DashboardPublicProfileCard(
-        targetUserId: familyManager.selectedAthlete?.userId ?? authManager.user?.id
+        targetUserId: PublicProfileTarget.userId(
+          user: authManager.user, selectedAthleteUserId: familyManager.selectedAthlete?.userId)
       )
+      .id(familyManager.selectedAthleteId)
 
       Spacer()
         .frame(height: 32)
@@ -179,9 +182,10 @@ struct DashboardView: View {
     } sidebarContent: {
       VStack(spacing: 16) {
         DashboardPublicProfileCard(
-          targetUserId: familyManager.selectedAthlete?.userId
-            ?? authManager.user?.id
+          targetUserId: PublicProfileTarget.userId(
+            user: authManager.user, selectedAthleteUserId: familyManager.selectedAthlete?.userId)
         )
+        .id(familyManager.selectedAthleteId)
 
         if !viewModel.isEmpty {
           dashboardAllWidgets(onlyWidthClasses: [.sidebar])
@@ -214,10 +218,21 @@ struct DashboardView: View {
         )
       }
 
+      // A parent with an athlete selected (the default) is always in preview mode, so the family switcher must not
+      // depend on it or a multi-family parent could never reach it.
+      if familyManager.currentMember?.isParent == true {
+        FamilySwitcher(
+          choices: familyManager.familyChoices,
+          selectedFamilyId: familyManager.familyUnitId,
+          onSelect: { familyId in Task { await familyManager.switchFamily(to: familyId) } }
+        )
+      }
+
       if familyManager.currentMember?.isParent == true
         && !viewModel.isParentPreviewMode {
         DashboardAthleteSelectorSection(
           athletes: familyManager.athletes,
+          familyLabels: familyManager.familyLabels,
           selectedAthleteId: familyManager.selectedAthleteId,
           onSelect: { athleteId in viewModel.selectAthlete(athleteId) }
         )
@@ -318,6 +333,7 @@ struct DashboardView: View {
       allSchools: viewModel.allSchools,
       events: viewModel.events,
       interactionTrends: viewModel.interactionTrends,
+      interactionTrendsLastDate: viewModel.interactionTrendsLastDate,
       metrics: viewModel.metrics,
       schoolsWithOffersPercentage: viewModel.schoolsWithOffersPercentage,
       interactionsThisMonth: viewModel.interactionsThisMonth,
@@ -365,14 +381,14 @@ private struct DashboardHeaderSection: View {
     VStack(alignment: .leading, spacing: 8) {
       if isParentPreviewMode {
         Text("\(selectedAthleteName)'s Dashboard")
-          .font(.title2)
+          .font(.brand(.title2))
           .bold()
           .accessibilityAddTraits(.isHeader)
       } else {
         Text(isEmpty
           ? String(localized: "Welcome, \(userFirstName)!")
           : String(localized: "Welcome back, \(userFirstName)!"))
-          .font(.title2)
+          .font(.brand(.title2))
           .bold()
           .accessibilityAddTraits(.isHeader)
       }
@@ -383,12 +399,14 @@ private struct DashboardHeaderSection: View {
 
 private struct DashboardAthleteSelectorSection: View {
   let athletes: [FamilyMember]
+  let familyLabels: [String: String]
   let selectedAthleteId: String?
   let onSelect: (String) -> Void
 
   var body: some View {
     AthleteSelector(
       athletes: athletes,
+      familyLabels: familyLabels,
       selectedAthleteId: selectedAthleteId,
       onSelect: onSelect
     )
@@ -402,10 +420,7 @@ private struct DashboardLoadingSection: View {
         StatCard(
           title: String(localized: "Loading"),
           count: 0,
-          subtitle: nil,
-          description: nil,
           icon: "circle",
-          gradientColors: [Color.Brand.slate100, Color.Brand.slate100],
           isEnabled: false,
           destination: nil
         )
@@ -437,7 +452,7 @@ private struct DashboardLogoutButton: View {
           Image(systemName: "rectangle.portrait.and.arrow.right")
             .accessibilityHidden(true)
           Text(isLoggingOut ? String(localized: "Logging out...") : String(localized: "Log Out"))
-            .font(.callout.weight(.semibold))
+            .font(.brand(.callout, weight: .semibold))
         }
         .frame(maxWidth: .infinity)
         .frame(minHeight: 48)
@@ -457,7 +472,7 @@ private struct DashboardLogoutButton: View {
 // MARK: - Add School Sheet
 
 private struct DashboardAddSchoolSheet: View {
-  let familyUnitId: String
+  let familyUnitId: String?
   let userId: String
 
   @State private var navigationPath = NavigationPath()

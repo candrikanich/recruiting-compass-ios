@@ -5,9 +5,13 @@ protocol FamilyManaging: Sendable {
   // Existing methods
   /// Returns all members belonging to the given family unit.
   func fetchFamilyMembers(familyUnitId: String) async throws -> [FamilyMember]
-  /// Returns the `FamilyMember` record for the currently authenticated user, or `nil` if not in a family.
-  func getCurrentMember(userId: String) async throws -> FamilyMember?
-  /// Returns the `FamilyUnit` the given user belongs to, or `nil` if they have not joined one.
+  /// Every family membership of the user, most recently joined first (a parent can be in several families).
+  func getMemberships(userId: String) async throws -> [FamilyMember]
+  /// The player (athlete) members of the given families, with the graduation year used to pick a default family.
+  func familyPlayers(among familyUnitIds: [String]) async throws -> [FamilyPlayer]
+  /// Returns the family unit with this id, or `nil` if it doesn't exist.
+  func getFamilyUnit(id: String) async throws -> FamilyUnit?
+  /// The user's most recently joined family unit, or `nil` if they have not joined one.
   func getFamilyUnit(forUserId userId: String) async throws -> FamilyUnit?
 
   // Family Management methods (Player + Parent)
@@ -15,25 +19,39 @@ protocol FamilyManaging: Sendable {
   func createFamily(role: UserRole) async throws -> CreateFamilyResponse
   /// Rotates the family join code and returns the updated code.
   func regenerateCode(familyId: String) async throws -> RegenerateFamilyCodeResponse
+  /// Members plus the server's per-member `canRemove`/reasons and the caller's leave verdict (web API).
+  func fetchFamilyDetail(familyUnitId: String) async throws -> FamilyMembersDetail
+  /// Leaves the family (parents only). Throws `FamilyError.lastMemberConfirmationRequired` until
+  /// `confirmDeleteFamily` is true when the caller is the last member.
+  @discardableResult
+  func leaveFamily(familyId: String, confirmDeleteFamily: Bool) async throws -> FamilyLeaveOutcome
   /// Removes the specified member from the family unit.
   func removeFamilyMember(memberId: String) async throws
 
   // Family Management methods (Parent)
   /// Adds the current user to an existing family using the given join code.
-  func joinFamilyWithCode(familyCode: String) async throws
+  /// Returns the server's join response (nil when its body couldn't be read — the join still succeeded).
+  func joinFamilyWithCode(familyCode: String) async throws -> JoinFamilyResponse?
   /// Returns all family units the current parent user is associated with.
   func getParentFamilies() async throws -> [ParentFamilyData]
 
   // Invite operations (email-based)
   /// Sends an email invitation to join the family unit with the specified role.
   /// - Parameter pendingPlayerDetails: Pre-filled player profile data to attach to the invite, if applicable.
-  func sendEmailInvite(email: String, role: String, pendingPlayerDetails: PendingPlayerDetails?) async throws
+  /// - Parameter familyUnitId: The family the invite targets (the selected family for a multi-family parent);
+  ///   nil lets the server fall back to the sender's own family.
+  func sendEmailInvite(
+    email: String, role: String, pendingPlayerDetails: PendingPlayerDetails?, familyUnitId: String?
+  ) async throws
   /// Returns all pending (unsettled) email invitations for the current family.
   func fetchPendingInvitations() async throws -> [FamilyInvitation]
+  /// Invitations addressed to the signed-in user's own email (RLS-scoped), for the family-required gate.
+  /// Pending and unexpired only; the token column is not readable by the invitee and is never selected.
+  func fetchInvitationsAddressed(toEmail email: String) async throws -> [FamilyInvitation]
   /// Cancels a pending invitation so it can no longer be accepted.
   func revokeInvitation(id: String) async throws
   /// Re-sends the invitation email for an existing pending invite.
-  func resendInvitation(id: String, email: String, role: String) async throws
+  func resendInvitation(id: String, email: String, role: String, familyUnitId: String?) async throws
   /// Looks up invite details by the token embedded in a deep-link URL.
   func lookupInviteByToken(_ token: String) async throws -> InviteDetails
   /// Accepts a family invitation, adding the current user to the family. Returns the response,

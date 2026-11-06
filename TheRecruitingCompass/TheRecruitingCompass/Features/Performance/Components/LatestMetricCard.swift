@@ -6,30 +6,30 @@ struct LatestMetricCard: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text(metric.displayName)
-        .font(.caption)
+        .font(.brand(.caption))
         .fontWeight(.medium)
         .foregroundStyle(.secondary)
 
       HStack(alignment: .firstTextBaseline, spacing: 4) {
         Text(metric.metricType.format(metric.value))
-          .font(.title)
+          .font(.brand(.title))
           .bold()
-          .foregroundStyle(Color.accentBlue)
+          .foregroundStyle(Color.accentPrimary)
 
         if !metric.unit.isEmpty {
           Text(metric.unit)
-            .font(.subheadline)
+            .font(.brand(.subheadline))
             .foregroundStyle(.secondary)
         }
       }
 
       Text(metric.formattedDate)
-        .font(.caption)
+        .font(.brand(.caption))
         .foregroundStyle(.tertiary)
 
       if metric.verified {
         Label("Verified", systemImage: "checkmark.seal.fill")
-          .font(.caption)
+          .font(.brand(.caption))
           .foregroundStyle(Color.successGreen)
       }
     }

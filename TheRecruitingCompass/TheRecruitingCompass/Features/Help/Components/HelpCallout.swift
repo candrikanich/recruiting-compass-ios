@@ -26,7 +26,7 @@ struct HelpCallout: View {
     var backgroundColor: Color {
       switch self {
       case .tip: return Color(red: 0.85, green: 0.95, blue: 0.88)
-      case .info: return Color.accentBlue.opacity(0.12)
+      case .info: return Color.accentPrimary.opacity(0.12)
       case .warning: return Color.warningBackground
       case .important: return Color.errorBackground
       }
@@ -35,7 +35,7 @@ struct HelpCallout: View {
     var iconColor: Color {
       switch self {
       case .tip: return .primaryGreen
-      case .info: return .accentBlue
+      case .info: return .accentPrimary
       case .warning: return .warningOrange
       case .important: return .errorRed
       }
@@ -48,12 +48,12 @@ struct HelpCallout: View {
   var body: some View {
     HStack(alignment: .top, spacing: 12) {
       Image(systemName: type.icon)
-        .font(.title3)
+        .font(.brand(.title3))
         .foregroundStyle(type.iconColor)
         .accessibilityHidden(true)
 
       Text(text)
-        .font(.subheadline)
+        .font(.brand(.subheadline))
         .foregroundStyle(.primary)
         .fixedSize(horizontal: false, vertical: true)
     }

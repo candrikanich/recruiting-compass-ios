@@ -97,11 +97,11 @@ final class FamilyManagementScreenObject {
   }
 
   var joinFamilyInstructions: XCUIElement {
-    app.staticTexts["Enter a family code shared by a player"]
+    app.staticTexts["Enter a Family Code shared by a player"]
   }
 
   var familyCodeInput: XCUIElement {
-    app.textFields["Enter family code"]
+    app.textFields["Enter Family Code"]
   }
 
   var joinFamilyButton: XCUIElement {

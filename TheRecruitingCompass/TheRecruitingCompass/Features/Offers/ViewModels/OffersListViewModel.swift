@@ -193,12 +193,16 @@ final class OffersListViewModel {
   func createOffer() async {
     guard formState.isValid else { return }
     guard let userId = targetUserId else { return }
+    guard let familyUnitId = FamilyUnitID.normalized(familyUnitId) else {
+      errorMessage = FamilyUnitID.MissingError.missing.errorDescription
+      return
+    }
 
     isSubmitting = true
     defer { isSubmitting = false }
 
     do {
-      let request = OfferCreateRequest(userId: userId, form: formState)
+      let request = OfferCreateRequest(userId: userId, familyUnitId: familyUnitId, form: formState)
       let newOffer = try await offersService.createOffer(request)
       allOffers.insert(newOffer, at: 0)
       formState.reset()

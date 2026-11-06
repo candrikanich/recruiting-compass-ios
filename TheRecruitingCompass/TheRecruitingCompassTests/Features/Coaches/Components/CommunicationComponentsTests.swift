@@ -54,7 +54,7 @@ final class CommunicationComponentsTests: XCTestCase {
     let twitter = CommunicationType.twitter("")
     let instagram = CommunicationType.instagram("")
 
-    XCTAssertEqual(email.iconColor, .accentBlue)
+    XCTAssertEqual(email.iconColor, .accentPrimary)
     XCTAssertEqual(phone.iconColor, .successGreen)
     XCTAssertNotNil(twitter.iconColor)
     XCTAssertNotNil(instagram.iconColor)

@@ -7,9 +7,13 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 /// Sendable: Stateless service with no mutable properties
 final class DashboardServiceImpl: DashboardManaging, Sendable {
   private let supabaseManager: SupabaseManager
+  private let session: URLSession
+  private let baseURLOverride: URL?
 
-  init(supabaseManager: SupabaseManager) {
+  init(supabaseManager: SupabaseManager, session: URLSession = .shared, baseURLOverride: URL? = nil) {
     self.supabaseManager = supabaseManager
+    self.session = session
+    self.baseURLOverride = baseURLOverride
   }
 
   func fetchStats(familyUnitId: String, userId: String) async throws -> DashboardStats {
@@ -19,10 +23,10 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
       async let schoolIdsTask = fetchSchoolIds(familyUnitId: familyUnitId)
       async let interactionCountTask = exactCount(
         table: "interactions",
-        column: "logged_by",
-        value: userId
+        column: "family_unit_id",
+        value: familyUnitId
       )
-      async let monthCountTask = countInteractionsThisMonth(userId: userId)
+      async let monthCountTask = countInteractionsThisMonth(familyUnitId: familyUnitId)
       async let upcomingTask = countUpcomingEvents(userId: userId)
       async let offerRowsTask = fetchOfferStatRows(userId: userId)
 
@@ -148,14 +152,14 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
 
   /// Counts interactions in the current calendar month using date range filters.
   /// Uses `gte`/`lt` on timestamptz columns (PostgREST `like` only works on text).
-  private func countInteractionsThisMonth(userId: String) async throws -> Int {
+  private func countInteractionsThisMonth(familyUnitId: String) async throws -> Int {
     let (monthStart, nextMonthStart) = Self.currentMonthRange()
     do {
       async let withOccurred: Int = {
         let response = try await supabaseManager.client
           .from("interactions")
           .select("id", head: true, count: .exact)
-          .eq("logged_by", value: userId)
+          .eq("family_unit_id", value: familyUnitId)
           .gte("occurred_at", value: monthStart)
           .lt("occurred_at", value: nextMonthStart)
           .execute()
@@ -165,7 +169,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
         let response = try await supabaseManager.client
           .from("interactions")
           .select("id", head: true, count: .exact)
-          .eq("logged_by", value: userId)
+          .eq("family_unit_id", value: familyUnitId)
           .is("occurred_at", value: nil)
           .gte("created_at", value: monthStart)
           .lt("created_at", value: nextMonthStart)
@@ -223,12 +227,12 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     }
   }
 
-  func fetchInteractions(userId: String, limit: Int?) async throws -> [Interaction] {
+  func fetchInteractions(familyUnitId: String, limit: Int?) async throws -> [Interaction] {
     try await logger.fetch("interactions") {
       var query = supabaseManager.client
         .from("interactions")
         .select()
-        .eq("logged_by", value: userId)
+        .eq("family_unit_id", value: familyUnitId)
         .order("created_at", ascending: false)
 
       if let limit {
@@ -237,6 +241,34 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
 
       return try await query.execute().value
     }
+  }
+
+  func fetchInteractions(familyUnitId: String, since: Date) async throws -> [Interaction] {
+    let cutoff = since.formatted(.iso8601)
+    return try await logger.fetch("interactions") {
+      try await supabaseManager.client
+        .from("interactions")
+        .select()
+        .eq("family_unit_id", value: familyUnitId)
+        .or("occurred_at.gte.\(cutoff),and(occurred_at.is.null,created_at.gte.\(cutoff))")
+        .order("created_at", ascending: false)
+        .execute()
+        .value
+    }
+  }
+
+  func fetchLatestInteraction(familyUnitId: String) async throws -> Interaction? {
+    let rows: [Interaction] = try await logger.fetch("interactions") {
+      try await supabaseManager.client
+        .from("interactions")
+        .select()
+        .eq("family_unit_id", value: familyUnitId)
+        .order("occurred_at", ascending: false, nullsFirst: false)
+        .limit(1)
+        .execute()
+        .value
+    }
+    return rows.first
   }
 
   func fetchOffers(userId: String) async throws -> [Offer] {
@@ -282,8 +314,8 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     }
   }
 
-  func fetchSuggestions(location: String, accessToken: String?) async throws -> (suggestions: [Suggestion], pendingCount: Int) {
-    guard let baseURL = SupabaseConfig.apiBaseURL,
+  func fetchSuggestions(location: String, athleteId: String?, accessToken: String?) async throws -> (suggestions: [Suggestion], pendingCount: Int) {
+    guard let baseURL = baseURLOverride ?? SupabaseConfig.apiBaseURL,
           let token = accessToken, !token.isEmpty else {
       logger.debug("Suggestions API not configured (API_BASE_URL or token missing), returning empty")
       return ([], 0)
@@ -293,6 +325,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
       throw SuggestionsAPIError.notConfigured
     }
     components.queryItems = [URLQueryItem(name: "location", value: location)]
+      + (athleteId.map { [URLQueryItem(name: "athleteId", value: $0)] } ?? [])
     guard let url = components.url else {
       throw SuggestionsAPIError.notConfigured
     }
@@ -303,7 +336,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     request.setValue("application/json", forHTTPHeaderField: "Accept")
     // API expects JWT access token only; refresh_token would 401 (supabase.auth.getUser(accessToken))
 
-    let (data, response) = try await URLSession.shared.data(for: request)
+    let (data, response) = try await session.data(for: request)
 
     guard let http = response as? HTTPURLResponse else {
       throw SuggestionsAPIError.invalidResponse

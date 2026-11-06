@@ -6,16 +6,18 @@ struct CoachFollowupRow: View {
   let onEmail: () -> Void
   let onText: () -> Void
   let onProfile: () -> Void
+  /// False when the `athlete_messages` kill switch is off: email/text are outreach and must not be offered.
+  var showsOutreach = true
 
   var body: some View {
     HStack(spacing: 12) {
       Button(action: onProfile) {
         VStack(alignment: .leading, spacing: 2) {
           Text(coach.fullName)
-            .font(.subheadline.weight(.semibold))
+            .font(.brand(.subheadline, weight: .semibold))
             .foregroundStyle(Color.primary)
           Text("\(schoolName) · \(CoachFollowup.daysSinceLabel(coach, asOf: Date.now))")
-            .font(.caption)
+            .font(.brand(.caption))
             .foregroundStyle(Color.secondaryText)
             .lineLimit(1)
         }
@@ -24,12 +26,12 @@ struct CoachFollowupRow: View {
       .buttonStyle(.plain)
       .accessibilityLabel(String(localized: "View \(coach.fullName) profile"))
 
-      if coach.contactEmail != nil {
+      if showsOutreach, coach.contactEmail != nil {
         iconAction(systemImage: "envelope.fill",
                    label: String(localized: "Email \(coach.fullName)"),
                    action: onEmail)
       }
-      if coach.contactPhone != nil {
+      if showsOutreach, coach.contactPhone != nil {
         iconAction(systemImage: "message.fill",
                    label: String(localized: "Text \(coach.fullName)"),
                    action: onText)
@@ -39,7 +41,7 @@ struct CoachFollowupRow: View {
       if coach.contactEmail == nil && coach.contactPhone == nil {
         Button(action: onProfile) {
           Label(String(localized: "Add contact info"), systemImage: "person.crop.circle.badge.plus")
-            .font(.caption)
+            .font(.brand(.caption))
             .labelStyle(.titleAndIcon)
         }
         .buttonStyle(.bordered)
@@ -54,7 +56,7 @@ struct CoachFollowupRow: View {
                           action: @escaping () -> Void) -> some View {
     Button(action: action) {
       Image(systemName: systemImage)
-        .font(.subheadline.weight(.semibold))
+        .font(.brand(.subheadline, weight: .semibold))
         .foregroundStyle(.tint)
         .frame(width: 36, height: 36)
         .background(Color(uiColor: .systemGray6), in: .circle)
