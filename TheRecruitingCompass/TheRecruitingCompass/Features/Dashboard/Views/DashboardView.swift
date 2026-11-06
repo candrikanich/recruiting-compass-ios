@@ -218,13 +218,18 @@ struct DashboardView: View {
         )
       }
 
-      if familyManager.currentMember?.isParent == true
-        && !viewModel.isParentPreviewMode {
+      // A parent with an athlete selected (the default) is always in preview mode, so the family switcher must not
+      // depend on it or a multi-family parent could never reach it.
+      if familyManager.currentMember?.isParent == true {
         FamilySwitcher(
           choices: familyManager.familyChoices,
           selectedFamilyId: familyManager.familyUnitId,
           onSelect: { familyId in Task { await familyManager.switchFamily(to: familyId) } }
         )
+      }
+
+      if familyManager.currentMember?.isParent == true
+        && !viewModel.isParentPreviewMode {
         DashboardAthleteSelectorSection(
           athletes: familyManager.athletes,
           familyLabels: familyManager.familyLabels,
