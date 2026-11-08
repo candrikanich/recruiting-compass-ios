@@ -15,11 +15,14 @@ protocol TemplateContextProviding: Sendable {
 struct TemplateContextService: TemplateContextProviding {
   private let supabaseManager: SupabaseManager
   private let videoLinksService: any VideoLinksManaging
+  private let shareLinks: DocumentShareLinkService
 
   init(supabaseManager: SupabaseManager = .shared,
-       videoLinksService: (any VideoLinksManaging)? = nil) {
+       videoLinksService: (any VideoLinksManaging)? = nil,
+       shareLinks: DocumentShareLinkService = DocumentShareLinkService()) {
     self.supabaseManager = supabaseManager
     self.videoLinksService = videoLinksService ?? VideoLinksServiceImpl()
+    self.shareLinks = shareLinks
   }
 
   func buildContext(coach: Coach, school: School?, athleteUserId: String?,
@@ -173,14 +176,23 @@ struct TemplateContextService: TemplateContextProviding {
 
   private func fetchTranscriptURL(userId: String) async throws -> String? {
     struct Row: Decodable {
+      let id: String
       let fileUrl: String?
-      enum CodingKeys: String, CodingKey { case fileUrl = "file_url" }
+      enum CodingKeys: String, CodingKey { case id, fileUrl = "file_url" }
     }
     let rows: [Row] = try await supabaseManager.client
-      .from("documents").select("file_url")
+      .from("documents").select("id, file_url")
       .eq("user_id", value: userId).eq("type", value: "transcript")
       .order("created_at", ascending: false).limit(1).execute().value
-    return rows.first?.fileUrl
+    guard let row = rows.first else { return nil }
+    return await shareLinks.linkForDocument(
+      id: row.id, fileURL: row.fileUrl, supabaseOrigin: Self.supabaseOrigin)
+  }
+
+  private static var supabaseOrigin: String {
+    let url = SupabaseConfig.url
+    guard let scheme = url.scheme, let host = url.host else { return "" }
+    return "\(scheme)://\(host)" + (url.port.map { ":\($0)" } ?? "")
   }
 
   /// AnyJSON scalar → trimmed string, else nil (arrays/objects/null omitted).
