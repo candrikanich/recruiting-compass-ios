@@ -259,7 +259,7 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
       .execute()
       .value
 
-    if !document.fileUrl.isEmpty, let storagePath = extractStoragePath(from: document.fileUrl) {
+    if let storagePath = Self.storageObjectPath(forDeleting: document.fileUrl, supabaseOrigin: SupabaseConfig.url) {
       do {
         _ = try await supabaseManager.client.storage
           .from("documents")
@@ -279,13 +279,12 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
     logger.info("Deleted document: \(id)")
   }
 
-  /// Extracts bucket path from Supabase public URL.
-  /// e.g. "https://x.supabase.co/storage/v1/object/public/documents/user/type/file.pdf" -> "user/type/file.pdf"
-  private func extractStoragePath(from fileUrl: String) -> String? {
-    guard let url = URL(string: fileUrl) else { return nil }
-    let path = url.path
-    let prefix = "/storage/v1/object/public/documents/"
-    guard path.hasPrefix(prefix) else { return nil }
-    return String(path.dropFirst(prefix.count))
+  /// The object this row owns, or nil when none may be removed. Uses the viewer's classifier so bare paths
+  /// (everything uploaded on web) and our own public URLs resolve, while traversal and foreign values never do.
+  static func storageObjectPath(forDeleting fileUrl: String, supabaseOrigin: URL) -> String? {
+    guard case .storagePath(let path) = DocumentFileLocation.classify(fileUrl, supabaseOrigin: supabaseOrigin) else {
+      return nil
+    }
+    return path
   }
 }
