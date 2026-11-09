@@ -266,10 +266,42 @@ reset_sim() {
   xcrun simctl erase "$SIM_UDID" || true
   xcrun simctl boot "$SIM_UDID" || true
   xcrun simctl bootstatus "$SIM_UDID" -b || true
+  warm_sim
 }
 
 DERIVED="$STATE_DIR/DerivedData"
 RESULTS="$STATE_DIR/results"
+APP_BUNDLE_ID="com.chrisandrikanich.TheRecruitingCompass"
+WARMUP_SECONDS=20
+
+# A freshly erased simulator answers its first accessibility snapshots slowly, and that
+# lag landed on whichever test ran first: XCUITest waits timed out at 5 s and nights
+# failed at a SHA that passed the next night (#550). Paying the first-launch cost here
+# keeps it out of the tests. Best effort: a failed warm-up still lets the tests run.
+warm_sim() {
+  local app="" candidate
+  # Match on bundle id: the product name (myCompass.app) differs from the scheme name.
+  for candidate in "$DERIVED"/Build/Products/*-iphonesimulator/*.app; do
+    if [ "$(plutil -extract CFBundleIdentifier raw "$candidate/Info.plist" 2>/dev/null)" = "$APP_BUNDLE_ID" ]; then
+      app="$candidate"
+      break
+    fi
+  done
+  if [ -z "$app" ]; then
+    log "Warm-up skipped: no built app under $DERIVED"
+    return 0
+  fi
+  log "Warming up the simulator: install + launch for ${WARMUP_SECONDS}s"
+  timeout 180 xcrun simctl install "$SIM_UDID" "$app" || { log "Warm-up install failed (non-fatal)"; return 0; }
+  # SIMCTL_CHILD_ passes the variable to the app, as XCUIApplication.launchEnvironment
+  # does in E2ETestEnvironment, so the warm-up launch hits the local stack too.
+  SIMCTL_CHILD_SUPABASE_URL="$SUPABASE_URL" \
+  SIMCTL_CHILD_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+    timeout 120 xcrun simctl launch "$SIM_UDID" "$APP_BUNDLE_ID" --uitesting --disable-animations \
+    >/dev/null || { log "Warm-up launch failed (non-fatal)"; return 0; }
+  sleep "$WARMUP_SECONDS"
+  xcrun simctl terminate "$SIM_UDID" "$APP_BUNDLE_ID" >/dev/null 2>&1 || true
+}
 
 build_for_testing() {
   xcodebuild build-for-testing \
