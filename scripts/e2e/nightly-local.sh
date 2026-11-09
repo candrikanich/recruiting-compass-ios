@@ -294,10 +294,13 @@ warm_sim() {
   log "Warming up the simulator: install + launch for ${WARMUP_SECONDS}s"
   timeout 180 xcrun simctl install "$SIM_UDID" "$app" || { log "Warm-up install failed (non-fatal)"; return 0; }
   # SIMCTL_CHILD_ passes the variable to the app, as XCUIApplication.launchEnvironment
-  # does in E2ETestEnvironment, so the warm-up launch hits the local stack too.
+  # does in E2ETestEnvironment, so the warm-up launch hits the local stack too. The
+  # arguments match configure(), which adds the captcha bypass because the nightly sets
+  # E2E_SUPABASE_URL.
   SIMCTL_CHILD_SUPABASE_URL="$SUPABASE_URL" \
   SIMCTL_CHILD_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
-    timeout 120 xcrun simctl launch "$SIM_UDID" "$APP_BUNDLE_ID" --uitesting --disable-animations \
+    timeout 120 xcrun simctl launch "$SIM_UDID" "$APP_BUNDLE_ID" \
+    --uitesting --disable-animations --e2e-captcha-bypass \
     >/dev/null || { log "Warm-up launch failed (non-fatal)"; return 0; }
   sleep "$WARMUP_SECONDS"
   xcrun simctl terminate "$SIM_UDID" "$APP_BUNDLE_ID" >/dev/null 2>&1 || true
