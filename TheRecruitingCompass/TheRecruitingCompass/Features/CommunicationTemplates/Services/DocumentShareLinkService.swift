@@ -1,5 +1,11 @@
 import Foundation
+import OSLog
 import Supabase
+
+private let logger = Logger(
+  subsystem: "com.chrisandrikanich.TheRecruitingCompass",
+  category: "DocumentShareLink"
+)
 
 /// What a stored `documents.file_url` may become in a coach message (parity with web
 /// `documentObjectPath` in utils/storageUrl.ts, web#1600): a share link for a file in our
@@ -75,10 +81,14 @@ protocol DocumentShareTokenStoring: Sendable {
 }
 
 struct SupabaseDocumentShareTokenStore: DocumentShareTokenStoring {
-  private let supabaseManager: SupabaseManager
+  private let client: SupabaseClient
+
+  init(client: SupabaseClient) {
+    self.client = client
+  }
 
   init(supabaseManager: SupabaseManager = .shared) {
-    self.supabaseManager = supabaseManager
+    self.init(client: supabaseManager.client)
   }
 
   private struct TokenRow: Decodable { let token: String }
@@ -88,7 +98,7 @@ struct SupabaseDocumentShareTokenStore: DocumentShareTokenStoring {
   }
 
   func activeTokens(documentId: String) async throws -> [String] {
-    let rows: [TokenRow] = try await supabaseManager.client
+    let rows: [TokenRow] = try await client
       .from("document_share_tokens").select("token")
       .eq("document_id", value: documentId).is("revoked_at", value: nil)
       .order("created_at", ascending: false).execute().value
@@ -97,7 +107,7 @@ struct SupabaseDocumentShareTokenStore: DocumentShareTokenStoring {
 
   func insertToken(documentId: String) async throws -> String {
     do {
-      let row: TokenRow = try await supabaseManager.client
+      let row: TokenRow = try await client
         .from("document_share_tokens").insert(NewToken(documentId: documentId))
         .select("token").single().execute().value
       return row.token
@@ -137,7 +147,13 @@ struct DocumentShareLinkService: Sendable {
   /// The link for a coach message, or nil (never the bucket URL) when none can be issued.
   func linkForDocument(id: String, fileURL: String?, supabaseOrigin: String) async -> String? {
     switch DocumentLinkTarget.classify(fileURL: fileURL, supabaseOrigin: supabaseOrigin) {
-    case .storage: return try? await shareURL(documentId: id)
+    case .storage:
+      do {
+        return try await shareURL(documentId: id)
+      } catch {
+        logger.error("Share link not issued: \(error.localizedDescription, privacy: .public)")
+        return nil
+      }
     case .external(let url): return url
     case .none: return nil
     }
