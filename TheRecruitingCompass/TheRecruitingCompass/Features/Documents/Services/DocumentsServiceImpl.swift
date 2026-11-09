@@ -15,7 +15,7 @@ private struct DocumentUpdatePayload: Encodable {
   }
 }
 
-struct DocumentInsertPayload: Encodable {
+struct DocumentInsertPayload: Encodable, Equatable {
   let userId: String
   let familyUnitId: String?
   let uploadedBy: String
@@ -28,6 +28,13 @@ struct DocumentInsertPayload: Encodable {
   let schoolId: String?
   let isCurrent: Bool
   let sharedWithSchools: [String]
+
+  func with(fileUrl: String) -> DocumentInsertPayload {
+    DocumentInsertPayload(
+      userId: userId, familyUnitId: familyUnitId, uploadedBy: uploadedBy, type: type, title: title,
+      description: description, fileUrl: fileUrl, fileType: fileType, version: version, schoolId: schoolId,
+      isCurrent: isCurrent, sharedWithSchools: sharedWithSchools)
+  }
 
   enum CodingKeys: String, CodingKey {
     case userId = "user_id"
@@ -192,6 +199,7 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
 
   func uploadDocument(
     userId: String,
+    uploadedBy: String,
     file: Data,
     fileName: String,
     mimeType: String,
@@ -205,35 +213,26 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
     logger.debug("Uploading document: \(title) type: \(type.rawValue)")
 
     let timestamp = Int(Date.now.timeIntervalSince1970 * 1000)
-    let storagePath = "\(userId)/\(type.rawValue)/\(timestamp)_\(fileName)"
+    let plan = Self.uploadPlan(
+      userId: userId, uploadedBy: uploadedBy, familyUnitId: familyUnitId, type: type, timestamp: timestamp,
+      fileName: fileName, mimeType: mimeType, title: title, description: description,
+      schoolId: schoolId, version: version
+    )
 
     _ = try await supabaseManager.client.storage
       .from("documents")
       .upload(
-        storagePath,
+        plan.path,
         data: file,
         options: FileOptions(cacheControl: "3600", contentType: mimeType)
       )
 
     let urlResponse = try supabaseManager.client.storage
       .from("documents")
-      .getPublicURL(path: storagePath)
+      .getPublicURL(path: plan.path)
     let publicURL = urlResponse.absoluteURL
 
-    let payload = DocumentInsertPayload(
-      userId: userId,
-      familyUnitId: FamilyUnitID.normalized(familyUnitId),
-      uploadedBy: userId,
-      type: type.rawValue,
-      title: title,
-      description: description,
-      fileUrl: publicURL.absoluteString,
-      fileType: mimeType,
-      version: version,
-      schoolId: schoolId,
-      isCurrent: true,
-      sharedWithSchools: []
-    )
+    let payload = plan.payload(fileUrl: publicURL.absoluteString)
 
     let document: Document = try await supabaseManager.client
       .from("documents")
@@ -277,6 +276,42 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
       .execute()
 
     logger.info("Deleted document: \(id)")
+  }
+
+  /// Where an upload lands and what row describes it. The storage INSERT policy only admits `auth.uid()` as the
+  /// first folder, so a parent uploading for an athlete stores under their own uid while the row's `user_id`
+  /// stays the athlete's (web `useDocumentUpload`). All of that lives here so it can be tested without a network.
+  struct UploadPlan: Equatable {
+    let path: String
+    private let draft: DocumentInsertPayload
+
+    fileprivate init(path: String, draft: DocumentInsertPayload) {
+      self.path = path
+      self.draft = draft
+    }
+
+    func payload(fileUrl: String) -> DocumentInsertPayload { draft.with(fileUrl: fileUrl) }
+  }
+
+  static func uploadPlan(
+    userId: String, uploadedBy: String, familyUnitId: String?, type: DocumentType, timestamp: Int,
+    fileName: String, mimeType: String, title: String, description: String?, schoolId: String?, version: Int
+  ) -> UploadPlan {
+    let draft = DocumentInsertPayload(
+      userId: userId,
+      familyUnitId: FamilyUnitID.normalized(familyUnitId),
+      uploadedBy: uploadedBy,
+      type: type.rawValue,
+      title: title,
+      description: description,
+      fileUrl: "",
+      fileType: mimeType,
+      version: version,
+      schoolId: schoolId,
+      isCurrent: true,
+      sharedWithSchools: []
+    )
+    return UploadPlan(path: "\(uploadedBy)/\(type.rawValue)/\(timestamp)_\(fileName)", draft: draft)
   }
 
   /// The object this row owns, or nil when none may be removed. Uses the viewer's classifier so bare paths

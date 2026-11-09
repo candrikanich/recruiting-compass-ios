@@ -105,6 +105,31 @@ final class DocumentsListViewModelTests: XCTestCase {
     XCTAssertEqual(mockDocuments.lastFetchDocumentsUserId, ParentViewingAthleteFixture.athleteUserId)
   }
 
+  func testUploadDocument_parentViewingAthlete_savesToAthleteAndFamily() async {
+    let familyManager = ParentViewingAthleteFixture.makeFamilyManager(authManager: mockAuth)
+    sut = DocumentsListViewModel(
+      documentsService: mockDocuments,
+      schoolsService: mockSchools,
+      authManager: mockAuth,
+      familyManager: familyManager,
+      cache: mockCache
+    )
+    let tempFile = makeTempVideoFile()
+    defer { try? FileManager.default.removeItem(at: tempFile) }
+    mockDocuments.stubbedUploadedDocument = .mock(id: "up-1", sharedWithSchools: [])
+    sut.uploadType = .highlightVideo
+    sut.uploadTitle = "Highlights"
+    sut.setSelectedFile(tempFile)
+
+    await sut.uploadDocument()
+
+    XCTAssertNil(sut.uploadError)
+    XCTAssertEqual(mockDocuments.lastUploadDocumentUserId, ParentViewingAthleteFixture.athleteUserId)
+    XCTAssertEqual(mockDocuments.lastUploadDocumentFamilyUnitId, ParentViewingAthleteFixture.familyUnitId)
+    // Storage RLS only admits the signed-in uid as the first folder, so the uploader is the parent.
+    XCTAssertEqual(mockDocuments.lastUploadDocumentUploadedBy, ParentViewingAthleteFixture.parentUserId)
+  }
+
   // MARK: - Filtered Documents
 
   func testFilteredDocuments_noFilters_returnsAll() async {

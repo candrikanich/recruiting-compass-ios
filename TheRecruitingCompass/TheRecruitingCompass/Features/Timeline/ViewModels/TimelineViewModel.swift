@@ -33,6 +33,8 @@ final class TimelineViewModel {
   var whatMattersItems: [WhatMattersItem] = []
 
   var isViewingAsParent: Bool { familyManager.isParentViewingAthlete }
+  /// Friendly explanation shown when a parent tries an action that stays with the athlete.
+  var restrictionNotice: String?
   var currentAthleteId: String? {
     if let athlete = familyManager.selectedAthlete { return athlete.userId }
     return authManager.user?.id
@@ -208,9 +210,10 @@ final class TimelineViewModel {
   }
 
   func markComplete(taskId: String) async {
-    // Write against the athlete being viewed. For a player this is their own id;
-    // for a parent helping their athlete it's the linked athlete's id, so the
-    // athlete_task row is keyed to the athlete, not the parent.
+    guard !isViewingAsParent else {
+      restrictionNotice = familyManager.completeTaskRestrictionNotice
+      return
+    }
     guard let athleteId = currentAthleteId else { return }
 
     guard let task = allTasks.first(where: { $0.id == taskId }), !task.isLocked else { return }

@@ -366,7 +366,7 @@ final class DocumentDetailViewModel {
   }
 
   func uploadNewVersion(file: URL) async {
-    guard let userId, let doc = document else { return }
+    guard let userId, let uploaderId = authManager.user?.id, let doc = document else { return }
 
     let ext = "." + file.pathExtension.lowercased()
     guard doc.type.allowedExtensions.contains(ext) else {
@@ -400,6 +400,7 @@ final class DocumentDetailViewModel {
       uploadProgress = 0.5
       let newDoc = try await documentsService.uploadDocument(
         userId: userId,
+        uploadedBy: uploaderId,
         file: data,
         fileName: file.lastPathComponent,
         mimeType: mimeType,

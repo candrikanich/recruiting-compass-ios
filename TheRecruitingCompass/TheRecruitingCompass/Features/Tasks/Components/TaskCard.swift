@@ -22,6 +22,11 @@ struct TaskCard: View {
     return String(localized: "Mark \(task.title) complete")
   }
 
+  private var checkboxAccessibilityHint: String {
+    if task.isLocked { return "Double tap to see prerequisites" }
+    return isViewingAsParent ? "Double tap to see who can mark this complete" : "Double tap to mark complete"
+  }
+
   private var cardAccessibilityLabel: String {
     let status = task.effectiveStatus.displayName
     let locked = task.isLocked ? "Locked" : "Unlocked"
@@ -45,10 +50,9 @@ struct TaskCard: View {
             .frame(minWidth: 44, minHeight: 44)
             .contentShape(Rectangle())
         }
-        .disabled(isViewingAsParent)
         .buttonStyle(.plain)
         .accessibilityLabel(checkboxAccessibilityLabel)
-        .accessibilityHint(task.isLocked ? "Double tap to see prerequisites" : "Double tap to mark complete")
+        .accessibilityHint(checkboxAccessibilityHint)
 
         VStack(alignment: .leading, spacing: 6) {
           HStack(spacing: 6) {

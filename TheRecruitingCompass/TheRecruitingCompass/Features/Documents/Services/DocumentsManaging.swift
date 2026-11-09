@@ -6,6 +6,7 @@ protocol DocumentsManaging: Sendable {
   func updateDocument(id: String, title: String?, description: String?, schoolId: String?) async throws -> Document
   func uploadDocument(
     userId: String,
+    uploadedBy: String,
     file: Data,
     fileName: String,
     mimeType: String,

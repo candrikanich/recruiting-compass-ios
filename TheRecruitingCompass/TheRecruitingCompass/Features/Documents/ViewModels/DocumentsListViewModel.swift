@@ -298,7 +298,7 @@ final class DocumentsListViewModel {
   }
 
   func uploadDocument() async {
-    guard let userId = targetUserId else { return }
+    guard let userId = targetUserId, let uploaderId = authManager.user?.id else { return }
     guard let type = uploadType else {
       uploadError = "Please select a document type."
       return
@@ -341,6 +341,7 @@ final class DocumentsListViewModel {
 
       let doc = try await documentsService.uploadDocument(
         userId: userId,
+        uploadedBy: uploaderId,
         file: data,
         fileName: fileURL.lastPathComponent,
         mimeType: mimeType,

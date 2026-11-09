@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Parent mode banner for Tasks: "Viewing [Athlete Name]'s Tasks (Read-Only)".
+/// Parent banner for Tasks and Timeline: edits are shared with the family, completing tasks stays with the athlete.
 struct TasksParentBanner: View {
   let athleteName: String
   let onDismiss: () -> Void
@@ -18,7 +18,10 @@ struct TasksParentBanner: View {
         Text("Parent Preview Mode")
           .font(.brand(.subheadline, weight: .semibold))
           .foregroundStyle(Color.Surface.onBrandTint)
-        Text("Viewing \(athleteName)'s Tasks (Read-Only)")
+        Text(ParentRestriction.bannerDetail(athleteName: athleteName))
+          .font(.brand(.caption))
+          .foregroundStyle(Color.Surface.onBrandTint)
+        Text("Only \(athleteName) can mark tasks complete.")
           .font(.brand(.caption))
           .foregroundStyle(Color.Surface.onBrandTint)
       }
@@ -42,7 +45,8 @@ struct TasksParentBanner: View {
       Rectangle().fill(Color.Surface.brandTintBorder).frame(height: 1)
     }
     .accessibilityElement(children: .combine)
-    .accessibilityLabel(String(localized: "Parent preview mode, viewing \(athleteName)'s tasks, read only"))
+    .accessibilityLabel(
+      "\(ParentRestriction.bannerDetail(athleteName: athleteName)) Only \(athleteName) can mark tasks complete.")
   }
 }
 

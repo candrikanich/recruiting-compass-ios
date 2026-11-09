@@ -70,6 +70,13 @@ struct TasksListView: View {
         Text("Complete these tasks first: \(task.prerequisiteTasks.map(\.title).joined(separator: ", "))")
       }
     }
+    .alert("Only the athlete can do this", isPresented: Binding(
+      get: { viewModel.restrictionNotice != nil },
+      set: { if !$0 { viewModel.restrictionNotice = nil } }
+    )) {
+    } message: {
+      Text(viewModel.restrictionNotice ?? "")
+    }
     .navigationTitle("Tasks")
     .accessibilityIdentifier("tasks_list_view")
   }

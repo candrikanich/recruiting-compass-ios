@@ -55,6 +55,12 @@ final class FamilyManager {
     return familyMembers.first { $0.id == athleteId }
   }
 
+  /// What a parent is told when an action stays with the athlete they are viewing.
+  var completeTaskRestrictionNotice: String {
+    let name = selectedAthlete?.user?.fullName ?? ParentRestriction.fallbackAthleteName
+    return ParentRestriction.completeTaskMessage(athleteName: name)
+  }
+
   var athletes: [FamilyMember] {
     familyMembers.filter { $0.isAthlete }
   }
