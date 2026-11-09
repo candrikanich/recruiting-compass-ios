@@ -7,7 +7,7 @@ final class ParentRestrictionTests: XCTestCase {
 
   func testCompleteTaskMessage_namesAthleteAndNeverReadsAsAnError() {
     let message = ParentRestriction.completeTaskMessage(athleteName: "Jordan")
-    XCTAssertEqual(message, "Only Jordan can mark tasks complete. You can still add notes, tasks and documents.")
+    XCTAssertEqual(message, "Only Jordan can mark tasks complete. You can still add notes and documents.")
     XCTAssertFalse(message.lowercased().contains("denied"))
   }
 

@@ -66,6 +66,29 @@ final class DocumentDetailViewModelTests: XCTestCase {
     XCTAssertEqual(mockDocuments.lastUploadDocumentFamilyUnitId, "family-1")
   }
 
+  func testUploadNewVersion_parentViewingAthlete_rowIsAthletes_uploaderIsParent() async {
+    let parentAuth = MockAuthManager()
+    let family = ParentViewingAthleteFixture.makeFamilyManager(authManager: parentAuth)
+    sut = DocumentDetailViewModel(
+      documentId: "doc-1",
+      documentsService: mockDocuments,
+      schoolsService: mockSchools,
+      authManager: parentAuth,
+      familyManager: family,
+      cache: InMemoryCache()
+    )
+    mockDocuments.stubbedDocument = .mock(id: "doc-1", title: "Test Doc", type: .highlightVideo)
+    await sut.loadDocument()
+    let file = FileManager.default.temporaryDirectory.appendingPathComponent("v2-\(UUID().uuidString).mp4")
+    try? Data(count: 1).write(to: file)
+    defer { try? FileManager.default.removeItem(at: file) }
+
+    await sut.uploadNewVersion(file: file)
+
+    XCTAssertEqual(mockDocuments.lastUploadDocumentUserId, ParentViewingAthleteFixture.athleteUserId)
+    XCTAssertEqual(mockDocuments.lastUploadDocumentUploadedBy, ParentViewingAthleteFixture.parentUserId)
+  }
+
   // MARK: - loadDocument
 
   func testLoadDocument_onSuccess_populatesDocumentAndVersions() async {

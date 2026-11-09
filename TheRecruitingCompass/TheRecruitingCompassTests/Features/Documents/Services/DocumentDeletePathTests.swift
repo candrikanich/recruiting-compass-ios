@@ -13,6 +13,13 @@ final class DocumentDeletePathTests: XCTestCase {
     DocumentsServiceImpl.storageObjectPath(forDeleting: raw, supabaseOrigin: origin)
   }
 
+  func testStoragePath_firstSegmentIsTheUploader_andDeleteResolvesIt() {
+    let stored = DocumentsServiceImpl.storagePath(
+      uploadedBy: "parent-1", type: .resume, timestamp: 5, fileName: "cv.pdf")
+    XCTAssertEqual(stored.split(separator: "/").first.map(String.init), "parent-1")
+    XCTAssertEqual(path(stored), stored)
+  }
+
   func testBarePath_isRemoved() {
     XCTAssertEqual(path("u1/resume/123_cv.pdf"), "u1/resume/123_cv.pdf")
   }

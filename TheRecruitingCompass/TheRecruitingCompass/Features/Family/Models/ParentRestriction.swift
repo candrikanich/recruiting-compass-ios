@@ -8,7 +8,7 @@ enum ParentRestriction {
   static let fallbackAthleteName = "your athlete"
 
   static func completeTaskMessage(athleteName: String) -> String {
-    "Only \(athleteName) can mark tasks complete. You can still add notes, tasks and documents."
+    "Only \(athleteName) can mark tasks complete. You can still add notes and documents."
   }
 
   static func bannerDetail(athleteName: String) -> String {

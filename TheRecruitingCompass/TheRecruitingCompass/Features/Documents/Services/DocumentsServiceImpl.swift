@@ -192,6 +192,7 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
 
   func uploadDocument(
     userId: String,
+    uploadedBy: String,
     file: Data,
     fileName: String,
     mimeType: String,
@@ -205,7 +206,7 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
     logger.debug("Uploading document: \(title) type: \(type.rawValue)")
 
     let timestamp = Int(Date.now.timeIntervalSince1970 * 1000)
-    let storagePath = "\(userId)/\(type.rawValue)/\(timestamp)_\(fileName)"
+    let storagePath = Self.storagePath(uploadedBy: uploadedBy, type: type, timestamp: timestamp, fileName: fileName)
 
     _ = try await supabaseManager.client.storage
       .from("documents")
@@ -223,7 +224,7 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
     let payload = DocumentInsertPayload(
       userId: userId,
       familyUnitId: FamilyUnitID.normalized(familyUnitId),
-      uploadedBy: userId,
+      uploadedBy: uploadedBy,
       type: type.rawValue,
       title: title,
       description: description,
@@ -277,6 +278,12 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
       .execute()
 
     logger.info("Deleted document: \(id)")
+  }
+
+  /// The storage INSERT policy only admits `auth.uid()` as the first folder, so a parent uploading for an athlete
+  /// stores under their own uid while the row's `user_id` stays the athlete's (web `useDocumentUpload`).
+  static func storagePath(uploadedBy: String, type: DocumentType, timestamp: Int, fileName: String) -> String {
+    "\(uploadedBy)/\(type.rawValue)/\(timestamp)_\(fileName)"
   }
 
   /// The object this row owns, or nil when none may be removed. Uses the viewer's classifier so bare paths

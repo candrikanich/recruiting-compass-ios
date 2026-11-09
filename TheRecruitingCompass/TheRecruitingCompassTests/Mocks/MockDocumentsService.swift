@@ -10,6 +10,7 @@ final class MockDocumentsService: DocumentsManaging, @unchecked Sendable {
 
   var lastFetchDocumentsUserId: String?
   var lastUploadDocumentUserId: String?
+  var lastUploadDocumentUploadedBy: String?
   var lastUploadDocumentTitle: String?
   var lastUploadDocumentType: DocumentType?
   var lastDeleteDocumentId: String?
@@ -53,6 +54,7 @@ final class MockDocumentsService: DocumentsManaging, @unchecked Sendable {
 
   func uploadDocument(
     userId: String,
+    uploadedBy: String,
     file: Data,
     fileName: String,
     mimeType: String,
@@ -66,6 +68,7 @@ final class MockDocumentsService: DocumentsManaging, @unchecked Sendable {
     uploadDocumentCallCount += 1
     lastUploadDocumentFamilyUnitId = familyUnitId
     lastUploadDocumentUserId = userId
+    lastUploadDocumentUploadedBy = uploadedBy
     lastUploadDocumentTitle = title
     lastUploadDocumentType = type
     if shouldThrowUploadDocument {

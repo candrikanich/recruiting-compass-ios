@@ -126,6 +126,8 @@ final class DocumentsListViewModelTests: XCTestCase {
     XCTAssertNil(sut.uploadError)
     XCTAssertEqual(mockDocuments.lastUploadDocumentUserId, ParentViewingAthleteFixture.athleteUserId)
     XCTAssertEqual(mockDocuments.lastUploadDocumentFamilyUnitId, ParentViewingAthleteFixture.familyUnitId)
+    // Storage RLS only admits the signed-in uid as the first folder, so the uploader is the parent.
+    XCTAssertEqual(mockDocuments.lastUploadDocumentUploadedBy, ParentViewingAthleteFixture.parentUserId)
   }
 
   // MARK: - Filtered Documents
