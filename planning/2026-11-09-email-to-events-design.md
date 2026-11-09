@@ -1,11 +1,11 @@
 # Email → Events: turn forwarded camp/program emails into Events
 
-Status: design, pending Chris's approval · 2026-11-09 · Platforms: web (server + UI) and iOS
+Status: design, approved by Chris · 2026-11-09 · Platforms: web (server + UI) and iOS
 
 ## Why
 
 College programs email families about camps, prospect days and showcases. A typical example is Akron Baseball's
-off-season camp schedule (2026-11-07, from `meversol@uakron.edu`): two dated camps, one location and two
+off-season camp schedule (received 2026-11-07 from an Akron staff address): two dated camps, one location and two
 "Register Here" links. Today, putting that into TRC means typing each Event by hand, or forwarding the email to the
 family inbound address. Forwarding produces one plain `interactions` row, and the registration links are lost because
 the server keeps only the email's text part.
