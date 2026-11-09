@@ -143,6 +143,13 @@ struct RecruitingTimelineView: View {
           Text("Complete these tasks first: \(task.prerequisiteTasks.map(\.title).joined(separator: ", "))")
         }
       }
+      .alert("Only the athlete can do this", isPresented: Binding(
+        get: { viewModel.restrictionNotice != nil },
+        set: { if !$0 { viewModel.restrictionNotice = nil } }
+      )) {
+      } message: {
+        Text(viewModel.restrictionNotice ?? "")
+      }
       .navigationTitle("Timeline")
       .accessibilityIdentifier("recruiting_timeline_view")
     }

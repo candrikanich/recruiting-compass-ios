@@ -35,6 +35,8 @@ final class TasksListViewModel {
   var expandedTaskId: String?
   var showSuccessMessage = false
   var isViewingAsParent: Bool { familyManager.isParentViewingAthlete }
+  /// Friendly explanation shown when a parent tries an action that stays with the athlete.
+  var restrictionNotice: String?
   var currentAthleteId: String? {
     if let athlete = familyManager.selectedAthlete { return athlete.userId }
     return authManager.user?.id
@@ -190,7 +192,10 @@ final class TasksListViewModel {
   }
 
   func markComplete(taskId: String) async {
-    guard !isViewingAsParent else { return }
+    guard !isViewingAsParent else {
+      restrictionNotice = familyManager.completeTaskRestrictionNotice
+      return
+    }
     guard let userId = authManager.user?.id else { return }
 
     guard let task = tasks.first(where: { $0.id == taskId }) else { return }
