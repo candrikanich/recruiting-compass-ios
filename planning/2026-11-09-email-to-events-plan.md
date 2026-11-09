@@ -383,3 +383,8 @@ W7, I5             (independent; can ship first)
 - The web side can ship before iOS, because the server changes are additive.
 - The iOS issues (I1–I5) ride one iOS train.
 - The feature is turned on through `inbound_drafts` once I3 and W5 are both Verified.
+
+## Issues (filed 2026-11-09, Status Ready, P2, no train yet)
+
+Epic: web #1666 · W1 web #1667 · W2 web #1668 · W3 web #1669 · W4 web #1670 · W5 web #1671 · W6 web #1672 ·
+W7 web #1673 · I1 ios #557 · I2 ios #558 · I3 ios #559 · I4 ios #560 · I5 ios #561
