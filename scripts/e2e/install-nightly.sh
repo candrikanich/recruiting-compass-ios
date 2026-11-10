@@ -63,6 +63,7 @@ cat > "$PLIST" <<PLIST
     <key>PATH</key><string>$path</string>
     <key>NIGHTLY_E2E_WEB_DIR</key><string>$WEB_CLONE</string>
     <key>NIGHTLY_E2E_CLAUDE_BIN</key><string>$CLAUDE_BIN</string>
+    <key>NIGHTLY_E2E_RUNTIME</key><string>newest</string>
   </dict>
   <key>StartCalendarInterval</key>
   <dict>

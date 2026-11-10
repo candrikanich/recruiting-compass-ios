@@ -33,6 +33,10 @@ TRIAGE_DIR="${NIGHTLY_E2E_TRIAGE_DIR:-$HOME/nightly-triage}"
 CLAUDE_BIN="${NIGHTLY_E2E_CLAUDE_BIN:-}"
 TRIAGE_SECONDS=900
 SIM_NAME="Nightly E2E iPhone"
+# iOS version prefix ("18", "18.6") or "newest". Ad-hoc daytime runs default to
+# iOS 18: the iOS 27.2 beta runtime pins this Mac's CPU while people work on it.
+# The 02:30 launchd agent sets "newest" so iOS 27 still gets nightly coverage.
+SIM_RUNTIME="${NIGHTLY_E2E_RUNTIME:-18}"
 # Per-test allowances cap a single test at 300s, so 10 quiet minutes means the
 # run is wedged, not slow.
 STALL_SECONDS=600
@@ -227,30 +231,39 @@ XCCONFIG
 }
 
 ensure_simulator() {
-  SIM_UDID="$(xcrun simctl list devices available -j | python3 -c '
-import json, sys
-name = sys.argv[1]
-for devices in json.load(sys.stdin)["devices"].values():
-    for d in devices:
-        if d["name"] == name:
-            print(d["udid"]); sys.exit()
-' "$SIM_NAME")"
-  if [ -z "$SIM_UDID" ]; then
-    # Newest iOS runtime, and an iPhone that runtime supports: "iPhone 17" when
-    # present, else its newest plain-numbered iPhone.
-    local runtime devicetype
-    read -r runtime devicetype < <(xcrun simctl list runtimes available -j | python3 -c '
+  # The runtime is picked first and the device is looked up within it, so the
+  # launchd run (newest) and ad-hoc runs (iOS 18) each keep their own device.
+  local runtime devicetype
+  SIM_UDID=""
+  read -r runtime devicetype < <(xcrun simctl list runtimes available -j | python3 -c '
 import json, re, sys
-ios = [r for r in json.load(sys.stdin)["runtimes"] if r["platform"] == "iOS"][-1]
+want = sys.argv[1]
+ios = [r for r in json.load(sys.stdin)["runtimes"] if r["platform"] == "iOS"]
+if want != "newest":
+    ios = [r for r in ios if r["version"] == want or r["version"].startswith(want + ".")]
+if not ios:
+    sys.exit()
+ios = ios[-1]
+# "iPhone 17" when the runtime has it, else its newest plain-numbered iPhone.
 phones = [t for t in ios["supportedDeviceTypes"] if t["productFamily"] == "iPhone"]
 exact = [t for t in phones if t["name"] == "iPhone 17"]
-plain = [t for t in phones if re.fullmatch(r"iPhone \d+", t["name"])]
-print(ios["identifier"], (exact or plain or phones)[-1]["identifier"])')
+plain = sorted((t for t in phones if re.fullmatch(r"iPhone \d+", t["name"])),
+               key=lambda t: int(t["name"].split()[1]))
+print(ios["identifier"], (exact or plain or phones)[-1]["identifier"])' "$SIM_RUNTIME")
+  [ -n "$runtime" ] || { log "No available iOS $SIM_RUNTIME simulator runtime"; return 1; }
+  SIM_UDID="$(xcrun simctl list devices available -j | python3 -c '
+import json, sys
+name, runtime = sys.argv[1:]
+for d in json.load(sys.stdin)["devices"].get(runtime, []):
+    if d["name"] == name:
+        print(d["udid"]); sys.exit()
+' "$SIM_NAME" "$runtime")"
+  if [ -z "$SIM_UDID" ]; then
     SIM_UDID="$(xcrun simctl create "$SIM_NAME" "$devicetype" "$runtime")" || return 1
     log "Created simulator $SIM_NAME ($devicetype, $runtime)"
   fi
   [ -n "$SIM_UDID" ] || return 1
-  log "Simulator $SIM_NAME: $SIM_UDID"
+  log "Simulator $SIM_NAME: $SIM_UDID ($runtime)"
 }
 
 # Erase + boot only our own device. Other agents' simulators share this Mac, so
