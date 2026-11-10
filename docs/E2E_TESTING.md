@@ -36,7 +36,8 @@ is public (so the Mac is never a GitHub runner for it). A launchd agent runs
 - starts a throwaway stack from the web repo's `scripts/e2e/local-supabase.sh`
   (project `rc-ios-e2e`, ports 4632x — never your dev stack on 5432x), seeds it
   with `scripts/seed-e2e.ts`,
-- runs the smoke classes on a dedicated, erased "Nightly E2E iPhone" simulator,
+- runs the smoke classes on a dedicated, erased "Nightly E2E iPhone" simulator
+  on the newest iOS runtime (`NIGHTLY_E2E_RUNTIME=newest`, set in the plist),
 - opens/updates the issue "Nightly iOS E2E (local) is failing" on failure and
   closes it on the next pass. Logs: `~/Library/Logs/recruiting-compass/`.
 - on failure, has `claude -p` (Read/Write tools only) classify it as runner/env
@@ -49,6 +50,10 @@ launchctl kickstart gui/$(id -u)/com.recruitingcompass.ios-nightly-e2e   # run i
 scripts/e2e/nightly-local.sh --suite full   # whole target, this checkout, no issue
 scripts/e2e/install-nightly.sh --uninstall
 ```
+
+Run by hand (agents verifying E2E work in the daytime), the script uses an iOS 18
+"Nightly E2E iPhone" instead: the iOS 27.2 beta runtime pins this Mac's CPU.
+Override with `NIGHTLY_E2E_RUNTIME=newest` or a version prefix such as `27.2`.
 
 Needs Docker Desktop (started automatically if closed), the Supabase CLI, node,
 and `gh` signed in. A Mac asleep at 02:30 runs the job when it wakes.
