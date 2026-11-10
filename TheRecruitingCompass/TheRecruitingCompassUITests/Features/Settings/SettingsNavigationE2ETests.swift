@@ -44,7 +44,7 @@ final class SettingsNavigationE2ETests: XCTestCase {
     guard app.waitForLogin(timeout: 10) else {
       throw XCTSkip("Login failed - Supabase may not be configured")
     }
-    guard navigator.goToMoreSection("Settings") else {
+    guard navigator.goToSettings() else {
       throw XCTSkip("Settings screen not reachable - navigation may not be wired")
     }
   }

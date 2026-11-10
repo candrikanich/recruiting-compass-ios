@@ -48,14 +48,25 @@ struct MainTabNavigator {
   /// The rows are combined-accessibility `NavigationLink`s, so the label begins
   /// with the section title. Returns once the destination nav bar is present.
   @discardableResult
-  func goToMoreSection(_ title: String) -> Bool {
+  func goToMoreSection(_ title: String, navigationTitle: String? = nil) -> Bool {
     guard goToMore() else { return false }
     let row = app.buttons.matching(
       NSPredicate(format: "label BEGINSWITH %@", title)
     ).firstMatch
-    guard row.waitForExistence(timeout: 5) else { return false }
+    // Lower sections (e.g. "Player Settings") aren't in the lazy List until scrolled to.
+    for _ in 0..<6 where !(row.waitForExistence(timeout: 2) && row.isHittable) {
+      app.swipeUp()
+    }
+    guard row.exists else { return false }
     tapReliably(row)
-    return app.navigationBars[title].waitForExistence(timeout: 10)
+    return app.navigationBars[navigationTitle ?? title].waitForExistence(timeout: 10)
+  }
+
+  /// The More row for Settings is titled "Player Details" (`MoreMenuSection`), but the
+  /// screen it pushes is still titled "Settings".
+  @discardableResult
+  func goToSettings() -> Bool {
+    goToMoreSection("Player Details", navigationTitle: "Settings")
   }
 
   /// Taps even when XCUITest reports the element as not hittable.

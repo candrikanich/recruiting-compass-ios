@@ -86,6 +86,8 @@ struct AboutView: View {
                 Text("Direct Contact")
             }
 
+            dataSourcesSection
+
             Section {
                 LabeledContent("Version", value: AppInfo.displayVersion)
                     .textSelection(.enabled)
@@ -94,6 +96,27 @@ struct AboutView: View {
         }
         .navigationTitle("About")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    /// Wikipedia's CC BY-SA 4.0 license requires credit, a license link and a notice that the data was
+    /// adapted — row 1 must keep all three. Copy and URLs match web `pages/about.vue`. Each row is a
+    /// string literal so it stays a `LocalizedStringKey` and its Markdown links render.
+    @ViewBuilder
+    private var dataSourcesSection: some View {
+        Section {
+            Group {
+                // swiftlint:disable:next line_length
+                Text("School nicknames and team colors are adapted from [Wikipedia](https://en.wikipedia.org/wiki/Module:College_color/data), available under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Some Division I colors come from [ncaa-team-colors](https://github.com/glidej/ncaa-team-colors).")
+                Text("College search data comes from the U.S. Department of Education's [College Scorecard](https://collegescorecard.ed.gov/).")
+                Text("School logos are provided by [Logo.dev](https://logo.dev).")
+            }
+            .font(.brand(.subheadline))
+            .foregroundStyle(.secondary)
+            .tint(Color.primaryGreen)
+            .accessibilityIdentifier("aboutDataSources")
+        } header: {
+            Text("Data Sources")
+        }
     }
 }
 
