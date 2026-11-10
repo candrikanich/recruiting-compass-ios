@@ -13,15 +13,16 @@ final class SettingsNavigationE2ETests: XCTestCase {
 
   /// Settings rows that are value-based NavigationLinks (the ones the bug broke).
   /// Excludes the two Legal rows, which are sheet-presenting Buttons.
+  /// Kept in on-screen order: `settingsRow` only scrolls down the list.
   private let navigationRowTitles = [
     "Family Management",
-    "My Profile",
     "Home Location",
     "Player Details",
     "School Preferences",
     "Dashboard Customization",
     "Notifications",
     "Communication Templates",
+    "User Settings",
     "About & Feedback"
   ]
 
@@ -74,17 +75,17 @@ final class SettingsNavigationE2ETests: XCTestCase {
     )
   }
 
-  /// Core of the bug report: My Profile → the profile screen must open.
+  /// Core of the bug report: the "User Settings" row → the "My Profile" screen must open.
   @MainActor
   func testSettings_myProfile_opensProfileScreen() throws {
     try loginAndOpenSettings()
     add(app.takeScreenshot(name: "01-settings-list"))
 
-    settingsRow("My Profile").tap()
+    settingsRow("User Settings").tap()
 
     XCTAssertTrue(
       app.navigationBars["My Profile"].waitForExistence(timeout: 10),
-      "Tapping My Profile should push the profile screen"
+      "Tapping User Settings should push the My Profile screen"
     )
     add(app.takeScreenshot(name: "02-my-profile-open"))
   }
