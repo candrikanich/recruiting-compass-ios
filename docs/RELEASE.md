@@ -100,6 +100,20 @@ Rules:
 - Version 1.0 has no gate — it can never be forced off. Everything from 1.0.1 on can.
 - Malformed values are ignored by the app and rejected by a CHECK constraint.
 
+### Turning on trial expiry (IAP, web#1355)
+
+Trials never expire into read-only until every iOS build users can run can buy in-app. A daily server job
+(`/api/cron/hold-trial-expiry`) keeps trialing families' `trial_ends_at` at least 14 days ahead until
+`app_config.ios_iap_min_version` is set **and** `ios_minimum_version` ≥ it. Release order:
+
+1. Ship the IAP build; wait until it is approved and 100% released.
+2. `update public.app_config set ios_iap_min_version = '<IAP version>', updated_at = now() where id;`
+3. Raise `ios_minimum_version` to that version (rules above). Trials can now expire; held families have ~14 days left.
+
+Raising `ios_minimum_version` alone does nothing: a NULL `ios_iap_min_version` keeps trials held.
+`pricing_flip_at` is independent of this order. 1.0.0 has no update gate, so a 1.0.0 trial family that reaches
+read-only needs the support path in the paywall runbook §4.
+
 ## Backend compatibility (web + Supabase)
 
 The web app deploys continuously; iOS users update days to months later. Every server change must keep
