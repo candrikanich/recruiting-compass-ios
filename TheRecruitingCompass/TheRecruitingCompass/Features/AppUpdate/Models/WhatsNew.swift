@@ -19,5 +19,16 @@ struct WhatsNewRelease: Equatable, Sendable, Identifiable {
 /// something worth telling users about; versions without an entry upgrade silently.
 /// Keep in sync with `fastlane/metadata/en-US/release_notes.txt` (see docs/RELEASE.md).
 enum WhatsNewCatalog {
-  static let releases: [WhatsNewRelease] = []
+  static let releases: [WhatsNewRelease] = [
+    WhatsNewRelease(
+      version: AppVersion(major: 1, minor: 0, patch: 3),
+      highlights: [
+        WhatsNewHighlight(
+          systemImage: "person.2",
+          title: "Switch Families",
+          detail: "Parents in more than one family can now switch between them from the Dashboard."
+        )
+      ]
+    )
+  ]
 }

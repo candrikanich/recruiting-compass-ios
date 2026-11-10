@@ -1,7 +1,8 @@
-Recent Activity now shows your whole family's activity.
+If you're a parent in more than one family, you can now switch between them.
 
-• Recent Activity on your dashboard includes updates from everyone in your family, not just you.
-• Changing your email now tells you to open the confirmation link sent to each address.
-• Fixed Send Profile for parents: it now sends the selected athlete's profile.
-• Fixed the public profile editor saving over your profile when it hadn't loaded.
-• Video links now accept only web addresses that start with http:// or https://.
+• Switch families right from the Dashboard if you belong to more than one. Invites go to the family you've selected.
+• Coach emails and texts that include a transcript now use a link you can turn off later.
+• Parents see a clear note that only the athlete can mark tasks complete, and the Timeline now follows the same rule.
+• Parents can upload documents for their athlete.
+• Settings > About now credits the data sources behind school logos, mascots and colors.
+• Fixed documents not opening or deleting correctly for some files.
