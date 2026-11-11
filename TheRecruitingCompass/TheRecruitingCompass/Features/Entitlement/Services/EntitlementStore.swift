@@ -18,6 +18,10 @@ final class EntitlementStore {
   /// leave `subscription` nil, but only the latter should render `planLabel`/`canWrite` as final.
   private(set) var hasLoaded = false
 
+  /// Server flag hiding the trial day count while trials are held. Display-only; defaults to showing
+  /// the countdown whenever the signal is unavailable (older server, error).
+  private(set) var trialCountdownVisible = true
+
   /// The last completed load had no family to look up — a setup step, not a failure.
   private var loadedWithoutFamily = false
 
@@ -34,7 +38,7 @@ final class EntitlementStore {
   /// incorrectly read as read-only.
   var canWrite: Bool { subscription?.canWrite() ?? false }
   var planLabel: String {
-    if let subscription { return subscription.planLabel() }
+    if let subscription { return subscription.planLabel(countdownVisible: trialCountdownVisible) }
     return loadedWithoutFamily ? PlanLabel.noFamily : PlanLabel.unavailable
   }
 
@@ -46,6 +50,7 @@ final class EntitlementStore {
   func reset() {
     session += 1
     subscription = nil
+    trialCountdownVisible = true
     errorMessage = nil
     isLoading = false
     hasLoaded = false
@@ -62,12 +67,14 @@ final class EntitlementStore {
     }
     isLoading = true
     let loadSession = session
+    async let countdownVisible = fetchCountdownVisible()
     let result: Result<FamilySubscription?, Error>
     do {
       result = .success(try await service.fetchSubscription(familyUnitId: familyUnitId))
     } catch {
       result = .failure(error)
     }
+    let visible = await countdownVisible
     guard loadSession == session else { return }
     isLoading = false
     // A view's `.task` is cancelled when the view disappears — Settings' load is cancelled the moment
@@ -75,6 +82,7 @@ final class EntitlementStore {
     if case .failure(let error) = result, Self.isCancellation(error) { return }
     hasLoaded = true
     loadedWithoutFamily = false
+    trialCountdownVisible = visible
     switch result {
     case .success(let fetched):
       subscription = fetched
@@ -85,6 +93,15 @@ final class EntitlementStore {
       // errors) -- never surface that wording to the user directly.
       errorMessage = String(localized: "Unable to load your plan. Please try again.")
       logger.error("Failed to load entitlement: \(error.localizedDescription)")
+    }
+  }
+
+  private func fetchCountdownVisible() async -> Bool {
+    do {
+      return try await service.fetchTrialCountdownVisible()
+    } catch {
+      logger.info("Trial countdown flag unavailable, showing countdown: \(error.localizedDescription)")
+      return true
     }
   }
 

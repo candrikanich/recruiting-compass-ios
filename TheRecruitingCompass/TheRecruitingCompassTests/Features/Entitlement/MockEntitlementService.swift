@@ -4,6 +4,8 @@ import Foundation
 final class MockEntitlementService: EntitlementManaging, @unchecked Sendable {
   var subscription: FamilySubscription?
   var error: Error?
+  var countdownVisible = true
+  var countdownError: Error?
   private(set) var requestedFamilyIds: [String] = []
 
   /// Awaited inside `fetchSubscription` so tests can hold a fetch in flight.
@@ -14,5 +16,10 @@ final class MockEntitlementService: EntitlementManaging, @unchecked Sendable {
     await fetchGate?()
     if let error { throw error }
     return subscription
+  }
+
+  func fetchTrialCountdownVisible() async throws -> Bool {
+    if let countdownError { throw countdownError }
+    return countdownVisible
   }
 }
