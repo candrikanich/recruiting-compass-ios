@@ -24,4 +24,11 @@ final class EntitlementServiceImpl: EntitlementManaging, Sendable {
 
     return rows.first
   }
+
+  func fetchTrialCountdownVisible() async throws -> Bool {
+    try await supabaseManager.client
+      .rpc("trial_countdown_visible")
+      .execute()
+      .value
+  }
 }

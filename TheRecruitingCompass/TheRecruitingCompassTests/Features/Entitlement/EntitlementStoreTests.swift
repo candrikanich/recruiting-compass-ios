@@ -27,6 +27,46 @@ final class EntitlementStoreTests: XCTestCase {
     XCTAssertTrue(store.hasLoaded)
   }
 
+  private func trialing(daysLeft: Double) -> FamilySubscription {
+    FamilySubscription(
+      familyUnitId: "fam-1", status: .trialing, source: "trial",
+      trialEndsAt: Date().addingTimeInterval(daysLeft * 86_400 - 60), currentPeriodEnd: nil
+    )
+  }
+
+  func test_trialCountdownVisibleTrue_showsDaysLeft() async {
+    let (store, mock) = makeStore(trialing(daysLeft: 14))
+    mock.countdownVisible = true
+    await store.load(familyUnitId: "fam-1")
+    XCTAssertEqual(store.planLabel, "Free trial — 14 days left")
+  }
+
+  func test_trialCountdownVisibleFalse_hidesDayCountButKeepsWriteAccess() async {
+    let (store, mock) = makeStore(trialing(daysLeft: 14))
+    mock.countdownVisible = false
+    await store.load(familyUnitId: "fam-1")
+    XCTAssertEqual(store.planLabel, "Free trial")
+    XCTAssertTrue(store.canWrite)
+  }
+
+  func test_trialCountdownSignalError_fallsBackToCountdown() async {
+    struct Missing: Error {}
+    let (store, mock) = makeStore(trialing(daysLeft: 14))
+    mock.countdownVisible = false
+    mock.countdownError = Missing()
+    await store.load(familyUnitId: "fam-1")
+    XCTAssertEqual(store.planLabel, "Free trial — 14 days left")
+    XCTAssertNil(store.errorMessage)
+  }
+
+  func test_resetRestoresCountdownDefault() async {
+    let (store, mock) = makeStore(trialing(daysLeft: 14))
+    mock.countdownVisible = false
+    await store.load(familyUnitId: "fam-1")
+    store.reset()
+    XCTAssertTrue(store.trialCountdownVisible)
+  }
+
   func test_nilFamilyClearsState() async {
     let (store, mock) = makeStore(founding)
     await store.load(familyUnitId: "fam-1")

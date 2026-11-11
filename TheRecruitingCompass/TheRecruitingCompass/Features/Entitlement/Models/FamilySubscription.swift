@@ -50,7 +50,7 @@ struct FamilySubscription: Codable, Sendable, Equatable {
     return max(0, Int((remaining / 86_400).rounded(.up)))
   }
 
-  func planLabel(now: Date = .now) -> String {
+  func planLabel(now: Date = .now, countdownVisible: Bool = true) -> String {
     switch status {
     case .founding:
       return String(localized: "Founding Family — free for life")
@@ -59,6 +59,7 @@ struct FamilySubscription: Codable, Sendable, Equatable {
     case .readOnly, .unknown:
       return String(localized: "Read-only — subscription needed")
     case .trialing:
+      guard countdownVisible else { return String(localized: "Free trial") }
       return String(localized: "Free trial — \(trialDaysLeft(now: now) ?? 0) days left")
     case .active:
       guard let currentPeriodEnd else { return String(localized: "Active") }

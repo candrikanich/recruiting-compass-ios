@@ -32,6 +32,13 @@ final class FamilySubscriptionTests: XCTestCase {
     XCTAssertEqual(sub(.trialing, trialEndsAt: now.addingTimeInterval(-86_400)).trialDaysLeft(now: now), 0)
   }
 
+  func test_planLabel_trialCountdownHidden() {
+    let trial = sub(.trialing, trialEndsAt: now.addingTimeInterval(7 * 86_400))
+    XCTAssertEqual(trial.planLabel(now: now, countdownVisible: false), "Free trial")
+    XCTAssertEqual(trial.planLabel(now: now, countdownVisible: true), "Free trial — 7 days left")
+    XCTAssertEqual(sub(.founding).planLabel(now: now, countdownVisible: false), "Founding Family — free for life")
+  }
+
   func test_planLabel() {
     XCTAssertEqual(sub(.founding).planLabel(now: now), "Founding Family — free for life")
     XCTAssertEqual(sub(.comp).planLabel(now: now), "Complimentary access")
