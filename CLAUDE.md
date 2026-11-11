@@ -97,6 +97,7 @@ Start from `TheRecruitingCompass/UI/Screens/_ScreenTemplate/`; workflow in `TheR
 
 - **Never save working files to root** - use `planning/`, `docs/`, etc.
 - Test files mirror source structure
+- User-facing strings follow the web repo's `docs/design/voice-guide.md` (shared with web for parity); never show `error.localizedDescription` to users
 
 ---
 
