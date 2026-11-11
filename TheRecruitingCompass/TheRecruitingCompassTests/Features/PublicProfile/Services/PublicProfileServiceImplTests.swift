@@ -147,6 +147,88 @@ final class PublicProfileServiceImplTests: XCTestCase {
         XCTAssertTrue(queries.allSatisfy { $0 == nil })
     }
 
+    private func makeService(familyUnitId: String?) -> PublicProfileServiceImpl {
+        PublicProfileServiceImpl(
+            session: makeSession(),
+            baseURLOverride: URL(string: "https://test.local")!,
+            familyUnitIdProvider: { familyUnitId }
+        )
+    }
+
+    private let trackingLinkJSON =
+        #"{"id":"t1","profile_id":"p1","coach_id":"c1","ref_token":"r","view_count":0,"created_at":""}"#
+
+    func testTrackingLinkRequestsCarryFamilyUnitId() async throws {
+        seedCSRFCookie()
+        var queries: [[URLQueryItem]] = []
+        StubURLProtocol.handler = { [self] request in
+            if request.url?.path.contains("tracking-links") == true {
+                let items = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?.queryItems ?? []
+                queries.append(items)
+            }
+            return okResponse(request, Data(trackingLinkJSON.utf8))
+        }
+        let service = makeService(familyUnitId: "fam-1")
+        _ = try await service.fetchTrackingLink(coachId: "c1", athleteId: "athlete-9", accessToken: "tok")
+        _ = try await service.createTrackingLink(coachId: "c1", athleteId: "athlete-9", accessToken: "tok")
+        XCTAssertEqual(queries.count, 2)
+        for items in queries {
+            XCTAssertEqual(items.first { $0.name == "familyUnitId" }?.value, "fam-1")
+            XCTAssertEqual(items.first { $0.name == "athleteId" }?.value, "athlete-9")
+        }
+    }
+
+    func testTrackingLinkRequestsNeverSendEmptyFamilyUnitId() async throws {
+        seedCSRFCookie()
+        var queries: [String?] = []
+        StubURLProtocol.handler = { [self] request in
+            if request.url?.path.contains("tracking-links") == true { queries.append(request.url?.query) }
+            return okResponse(request, Data(trackingLinkJSON.utf8))
+        }
+        for blank in [nil, "", "  "] {
+            let service = makeService(familyUnitId: blank)
+            _ = try await service.fetchTrackingLink(coachId: "c1", athleteId: nil, accessToken: "tok")
+            _ = try await service.createTrackingLink(coachId: "c1", athleteId: nil, accessToken: "tok")
+        }
+        XCTAssertEqual(queries.count, 6)
+        XCTAssertTrue(queries.allSatisfy { $0 == nil })
+    }
+
+    func testTrackingLinkMapsFamilyContextErrorCodes() async {
+        let cases: [(String, PublicProfileAPIError)] = [
+            ("family_context_required", .familyContextRequired),
+            ("invalid_family_context", .invalidFamilyContext)
+        ]
+        for (code, expected) in cases {
+            StubURLProtocol.handler = { request in
+                let body = Data(#"{"statusCode":400,"message":"raw","data":{"code":"\#(code)"}}"#.utf8)
+                return (HTTPURLResponse(url: request.url!, statusCode: 400, httpVersion: nil, headerFields: nil)!, body)
+            }
+            do {
+                _ = try await makeService(familyUnitId: "fam-1")
+                    .fetchTrackingLink(coachId: "c1", athleteId: nil, accessToken: "tok")
+                XCTFail("expected throw for \(code)")
+            } catch {
+                XCTAssertEqual(error as? PublicProfileAPIError, expected)
+                XCTAssertNotEqual((error as? LocalizedError)?.errorDescription, "raw")
+            }
+        }
+    }
+
+    func testTrackingLink403ThrowsRatherThanReturningData() async {
+        StubURLProtocol.handler = { request in
+            let body = Data(#"{"statusCode":403,"message":"Not a member of this family"}"#.utf8)
+            return (HTTPURLResponse(url: request.url!, statusCode: 403, httpVersion: nil, headerFields: nil)!, body)
+        }
+        do {
+            _ = try await makeService(familyUnitId: "fam-1")
+                .fetchTrackingLink(coachId: "c1", athleteId: nil, accessToken: "tok")
+            XCTFail("expected throw")
+        } catch {
+            XCTAssertNotNil((error as? LocalizedError)?.errorDescription)
+        }
+    }
+
     func testUpdateSendsAthleteIdInBody() async throws {
         seedCSRFCookie()
         var putBody: [String: Any]?

@@ -6,6 +6,10 @@ enum PublicProfileAPIError: LocalizedError, Equatable {
     case slugInvalid
     case notMember
     case notConfigured
+    /// 400 `family_context_required`: a multi-family caller sent no family (web#1045).
+    case familyContextRequired
+    /// 400 `invalid_family_context`: the family id was malformed.
+    case invalidFamilyContext
     case server(Int)
     /// Server-provided message (403/404/400 from `/api/player/profile`), shown verbatim.
     case serverMessage(String)
@@ -17,6 +21,8 @@ enum PublicProfileAPIError: LocalizedError, Equatable {
         case .slugInvalid: return "That custom URL is invalid or reserved."
         case .notMember: return "You don't have permission to edit this profile."
         case .notConfigured: return "Public profile is not available."
+        case .familyContextRequired, .invalidFamilyContext:
+            return "We couldn't tell which family this is for. Switch families and try again."
         case .serverMessage(let message): return message
         case .server: return "Couldn't save changes. Please try again."
         }
