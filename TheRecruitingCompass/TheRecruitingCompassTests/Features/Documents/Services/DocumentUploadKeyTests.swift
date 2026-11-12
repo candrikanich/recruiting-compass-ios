@@ -30,6 +30,7 @@ final class DocumentUploadKeyTests: XCTestCase {
       (String(repeating: "a", count: 300) + ".pdf", String(repeating: "a", count: 100) + ".pdf"),
       ("a🎉.pdf", "a_.pdf"),
       ("a👨‍👩‍👧.pdf", "a_.pdf"),
+      ("a\u{332}.pdf", "a_.pdf"),
       (String(repeating: "a", count: 98) + "|||bcd.pdf", String(repeating: "a", count: 98) + "_b.pdf")
     ]
     for (input, expected) in vectors {
