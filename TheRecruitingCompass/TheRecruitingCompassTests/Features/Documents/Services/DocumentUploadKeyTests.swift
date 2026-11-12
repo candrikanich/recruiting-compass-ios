@@ -18,16 +18,23 @@ final class DocumentUploadKeyTests: XCTestCase {
   private func safe(_ name: String) -> String { StorageKey.safeFileName(name) }
 
   func testSharedVectors_matchWeb() {
-    XCTAssertEqual(safe("Bulldogs at Firelands | Scorebook | GameChanger.pdf"),
-                   "Bulldogs_at_Firelands_Scorebook_GameChanger.pdf")
-    XCTAssertEqual(safe("résumé 🎉.pdf"), "r_sum_.pdf")
-    XCTAssertEqual(safe("Rene\u{301}e.pdf"), "Ren_e.pdf")
-    XCTAssertEqual(safe("👨‍👩‍👧.pdf"), "file.pdf")
-    XCTAssertEqual(safe("履歴書.pdf"), "file.pdf")
-    XCTAssertEqual(safe("🎉"), "file")
-    XCTAssertEqual(safe("a." + String(repeating: "b", count: 30)), "a.bbbbbbbbbb")
-    XCTAssertEqual(safe("report.2024.final.pdf"), "report.2024.final.pdf")
-    XCTAssertEqual(safe(String(repeating: "a", count: 300) + ".pdf"), String(repeating: "a", count: 100) + ".pdf")
+    let vectors: [(String, String)] = [
+      ("Bulldogs at Firelands | Scorebook | GameChanger.pdf", "Bulldogs_at_Firelands_Scorebook_GameChanger.pdf"),
+      ("résumé 🎉.pdf", "r_sum_.pdf"),
+      ("Rene\u{301}e.pdf", "Ren_e.pdf"),
+      ("👨‍👩‍👧.pdf", "file.pdf"),
+      ("履歴書.pdf", "file.pdf"),
+      ("🎉", "file"),
+      ("a." + String(repeating: "b", count: 30), "a.bbbbbbbbbb"),
+      ("report.2024.final.pdf", "report.2024.final.pdf"),
+      (String(repeating: "a", count: 300) + ".pdf", String(repeating: "a", count: 100) + ".pdf"),
+      ("a🎉.pdf", "a_.pdf"),
+      ("a👨‍👩‍👧.pdf", "a_.pdf"),
+      (String(repeating: "a", count: 98) + "|||bcd.pdf", String(repeating: "a", count: 98) + "_b.pdf")
+    ]
+    for (input, expected) in vectors {
+      XCTAssertEqual(plan(input).path, "parent-p/resume/7_" + expected, input)
+    }
   }
 
   func testPipe_hashAndQuestionMark_areReplaced() {

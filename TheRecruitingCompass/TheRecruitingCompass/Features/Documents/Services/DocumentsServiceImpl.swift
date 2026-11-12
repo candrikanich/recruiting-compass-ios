@@ -339,8 +339,7 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
       isCurrent: true,
       sharedWithSchools: []
     )
-    let key = "\(uploadedBy)/\(type.rawValue)/\(timestamp)_\(StorageKey.safeFileName(fileName))"
-    return UploadPlan(path: key, draft: draft)
+    return UploadPlan(path: "\(uploadedBy)/\(type.rawValue)/\(timestamp)_\(fileName)", draft: draft)
   }
 
   /// The object this row owns, or nil when none may be removed. Uses the viewer's classifier so bare paths
