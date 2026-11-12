@@ -46,17 +46,24 @@ check "squash PR description is fetched" "$(printf '%s' "$out" | grep -q 'BODY-O
 # Clash: origin's v1.0.3 differs from the local one, so `git fetch --tags` is rejected.
 git clone -q "$TMP/origin.git" "$TMP/other" 2>/dev/null
 (cd "$TMP/other" && git tag -f -a v1.0.3 -m moved "$(git rev-parse HEAD)" >/dev/null && git push -q -f origin v1.0.3)
-origin_tag_before=$(git -C "$TMP/origin.git" rev-parse v1.0.3)
+local_tag_before=$(git rev-parse v1.0.3)
 out=$(sh "$SCRIPT" v1.0.3 2>&1); rc=$?
 check "tag clash is reported with the git error" "$(printf '%s' "$out" | grep -qi 'clobber' ; echo $?)"
 check "tag clash prints a --force hint" "$(printf '%s' "$out" | grep -q 'git fetch --tags --force origin'; echo $?)"
 check "tag clash still lists PRs from local tags" "$(printf '%s' "$out" | grep -q 'BODY-OF-PR-579'; echo $?)"
-check "tag clash never moves origin's tag" "$([ "$(git -C "$TMP/origin.git" rev-parse v1.0.3)" = "$origin_tag_before" ]; echo $?)"
+check "tag clash never moves the local tag" "$([ "$(git rev-parse v1.0.3)" = "$local_tag_before" ]; echo $?)"
 
-# Unreachable origin with no usable range must exit non-zero and say why.
-git remote set-url origin "$TMP/nope.git"
+# Bad base with a healthy origin: the specific reason, not a fetch warning.
 out=$(sh "$SCRIPT" v9.9.9 2>&1); rc=$?
 check "bad base exits non-zero" "$([ "$rc" != 0 ]; echo $?)"
-check "bad base prints a reason" "$([ -n "$out" ]; echo $?)"
+check "bad base names the revision" "$(printf '%s' "$out" | grep -q "unknown revision 'v9.9.9'"; echo $?)"
+
+# Unreachable origin with a valid base: stale origin/main must not produce notes.
+git remote set-url origin "$TMP/nope.git"
+stdout=$(sh "$SCRIPT" v1.0.3 2>"$TMP/stderr"); rc=$?
+check "unreachable origin exits non-zero" "$([ "$rc" != 0 ]; echo $?)"
+check "unreachable origin prints nothing on stdout" "$([ -z "$stdout" ]; echo $?)"
+check "unreachable origin explains on stderr" "$(grep -q "failed, so origin/main may be stale" "$TMP/stderr"; echo $?)"
+check "unreachable origin gets no --force hint" "$(grep -q -- '--force' "$TMP/stderr"; [ $? != 0 ]; echo $?)"
 
 [ "$fails" = 0 ] && echo "all passed" || { echo "$fails failed"; exit 1; }

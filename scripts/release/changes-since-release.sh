@@ -16,15 +16,24 @@ set -eu
 
 PBXPROJ_PATH="TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj"
 
-# A rejected fetch (typically a local tag that differs from origin's: "would clobber existing tag") must not
-# be silent or fatal: say why, then carry on with the tags already local. Never --force here; that would move
-# local tags without the user asking.
+# Only a tag clash ("would clobber existing tag", a local tag that differs from origin's) is survivable: the
+# refs fetched fine and local tags are good enough. Anything else (offline, auth, wrong remote) leaves
+# origin/main stale, so notes drafted from it would be wrong; stop and say why. Never --force here; that would
+# move local tags without the user asking.
 if ! fetch_err=$(git fetch --tags origin 2>&1); then
-  {
-    echo "warning: 'git fetch --tags origin' failed; continuing with local tags and refs, which may be stale:"
-    printf '%s\n' "$fetch_err" | sed 's/^/  /'
-    echo "hint: to realign local tags with origin, run: git fetch --tags --force origin"
-  } >&2
+  if printf '%s' "$fetch_err" | grep -q 'would clobber existing tag'; then
+    {
+      echo "warning: 'git fetch --tags origin' rejected a tag; continuing with local tags:"
+      printf '%s\n' "$fetch_err" | sed 's/^/  /'
+      echo "hint: to realign local tags with origin, run: git fetch --tags --force origin"
+    } >&2
+  else
+    {
+      echo "error: 'git fetch --tags origin' failed, so origin/main may be stale; not drafting notes from it:"
+      printf '%s\n' "$fetch_err" | sed 's/^/  /'
+    } >&2
+    exit 1
+  fi
 fi
 
 BASE=${1:-$(git tag --list 'v*' --sort=-version:refname | head -n 1)}
@@ -33,6 +42,12 @@ if [ -z "$BASE" ]; then
   exit 1
 fi
 END=${2:-origin/main}
+for ref in "$BASE" "$END"; do
+  if ! git rev-parse --verify --quiet "$ref^{commit}" >/dev/null; then
+    echo "error: unknown revision '$ref'; pass a valid tag or branch." >&2
+    exit 1
+  fi
+done
 
 VERSION=$(git show "$END:$PBXPROJ_PATH" | grep -o 'MARKETING_VERSION = [0-9.]*;' | sort -u \
   | sed 's/MARKETING_VERSION = //; s/;//')
