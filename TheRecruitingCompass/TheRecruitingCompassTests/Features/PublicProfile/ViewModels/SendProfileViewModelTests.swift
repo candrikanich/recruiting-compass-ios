@@ -233,15 +233,25 @@ final class SendProfileViewModelTests: XCTestCase {
         }
     }
 
+    private var otherErrors: [Error] {
+        [
+            PublicProfileAPIError.server(500), PublicProfileAPIError.serverMessage("raw"),
+            URLError(.notConnectedToInternet)
+        ]
+    }
+
     func testPrepareKeepsGenericMessageForOtherCreateErrors() async {
-        let service = MockPublicProfileManaging()
-        service.stubProfile = makeProfile()
-        service.createTrackingLinkError = PublicProfileAPIError.server(500)
-        let vm = makeVM(service: service, authManager: selfAuth())
+        for error in otherErrors {
+            let service = MockPublicProfileManaging()
+            service.stubProfile = makeProfile()
+            service.createTrackingLinkError = error
+            let vm = makeVM(service: service, authManager: selfAuth())
 
-        _ = await vm.prepare(for: makeCoach(email: "coach@x.edu"))
+            _ = await vm.prepare(for: makeCoach(email: "coach@x.edu"))
 
-        XCTAssertEqual(vm.errorMessage, "Couldn't prepare the profile to send. Please try again.")
+            XCTAssertEqual(vm.errorMessage, "Couldn't prepare the profile to send. Please try again.", "\(error)")
+            XCTAssertFalse(vm.errorMessage?.contains("raw") ?? false)
+        }
     }
 
     func testLoadTrackingInfoSurfacesFamilyContextError() async {
@@ -257,14 +267,16 @@ final class SendProfileViewModelTests: XCTestCase {
     }
 
     func testLoadTrackingInfoStaysSilentForOtherErrors() async {
-        let service = MockPublicProfileManaging()
-        service.stubProfile = makeProfile()
-        service.fetchTrackingLinkError = PublicProfileAPIError.server(500)
-        let vm = makeVM(service: service, authManager: selfAuth())
+        for error in otherErrors {
+            let service = MockPublicProfileManaging()
+            service.stubProfile = makeProfile()
+            service.fetchTrackingLinkError = error
+            let vm = makeVM(service: service, authManager: selfAuth())
 
-        await vm.loadTrackingInfo(for: "c1")
+            await vm.loadTrackingInfo(for: "c1")
 
-        XCTAssertNil(vm.errorMessage)
+            XCTAssertNil(vm.errorMessage, "\(error)")
+        }
     }
 
     func testPlayerPrepareSendsNoAthleteId() async {
