@@ -31,6 +31,8 @@ final class ParentOnboardingWizardViewModel {
   var isLoadingFamilyCode = false
 
   var isLoading = false
+  /// Dedicated re-entry guard: `isLoading` is shared with sendInvite, which must not block Finish.
+  private var isFinishing = false
   var errorMessage: String?
   var successMessage: String?
   var showSuccessToast = false
@@ -91,6 +93,11 @@ final class ParentOnboardingWizardViewModel {
     self.onboardingService = onboardingService ?? OnboardingServiceImpl(supabaseManager: .shared)
   }
 
+  /// Safe to call from every appearance of the wizard: OnboardingAnalytics reports once per user.
+  func trackOnboardingStarted() {
+    OnboardingAnalytics.onboardingStarted(user: authManager.user)
+  }
+
   func onSportChange() {
     playerPosition = ""
   }
@@ -137,8 +144,10 @@ final class ParentOnboardingWizardViewModel {
   /// dashboard — no invite step, no schools-recommendation step). Inviting the athlete happens later,
   /// from the dashboard's ParentOnboardingBanner (InviteAthleteView).
   func finishOnboarding() async {
-    guard isPlayerDetailsValid else { return }
+    guard isPlayerDetailsValid, !isFinishing else { return }
 
+    isFinishing = true
+    defer { isFinishing = false }
     isLoading = true
     errorMessage = nil
     defer { isLoading = false }
@@ -163,6 +172,7 @@ final class ParentOnboardingWizardViewModel {
       }
 
       didComplete = true
+      OnboardingAnalytics.onboardingComplete(role: .parent)
     } catch {
       logger.error("finishOnboarding failed: \(error.localizedDescription, privacy: .public) — full error: \(String(describing: error), privacy: .private)")
       errorMessage = (error as? FamilyError)?.errorDescription ?? "Couldn't save your athlete's details. Please try again."

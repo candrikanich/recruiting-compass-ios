@@ -96,6 +96,24 @@ struct OnboardingV2ViewModelTests {
     #expect(mockOnboardingService.lastStartingPhase == expectedPhase)
   }
 
+  @Test func completeOnboarding_reportsPlayerRoleAndSchoolCount() async {
+    let harness = AnalyticsHarness()
+    defer { harness.restore() }
+    let authManager = MockAuthManager()
+    authManager.setMockUser(User(
+      id: "user-1", email: "test@example.com", emailConfirmedAt: nil,
+      createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z", role: .player
+    ))
+    let vm = makeSUT(authManager: authManager)
+
+    _ = await vm.completeOnboarding()
+
+    let fired = harness.transport.events(named: "onboarding_v2_complete")
+    #expect(fired.count == 1)
+    #expect(fired.first?.properties["role"] as? String == "player")
+    #expect(fired.first?.properties["completedItems"] as? Int == 0)
+  }
+
   // MARK: - zipCodeError
 
   @Test func zipCodeErrorNilWhenEmpty() {

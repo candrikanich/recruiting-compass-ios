@@ -254,8 +254,8 @@ final class OnboardingV2ViewModel {
       recommendations.removeAll { $0.catalogKey == recommendation.catalogKey }
       schoolsAdded += 1
 
-      OnboardingAnalytics.schoolAdded(schoolName: recommendation.name)
-      logger.info("Added school from recommendation: \(recommendation.name)")
+      OnboardingAnalytics.schoolAdded()
+      logger.info("Added school from recommendation")
       return true
     } catch let error as FamilyUnitID.MissingError {
       logger.warning("No family unit found; refusing to create school")
@@ -301,7 +301,7 @@ final class OnboardingV2ViewModel {
         assessment: assessment,
         startingPhase: startingPhase
       )
-      OnboardingAnalytics.onboardingComplete(completedItems: schoolsAdded)
+      OnboardingAnalytics.onboardingComplete(role: .player, completedItems: schoolsAdded)
       logger.info("Onboarding v2 complete, schools added: \(self.schoolsAdded)")
       return true
     } catch {

@@ -214,6 +214,67 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     XCTAssertFalse(viewModel.didComplete)
   }
 
+  func testFinishOnboarding_success_firesParentOnboardingCompleteOnce() async {
+    let harness = AnalyticsHarness()
+    defer { harness.restore() }
+    let transport = harness.transport
+    viewModel.playerFirstName = "Alex"
+    viewModel.hasConfirmedDateOfBirth = true
+    viewModel.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit(id: "family-42")
+
+    await viewModel.finishOnboarding()
+
+    let fired = transport.events(named: "onboarding_v2_complete")
+    XCTAssertEqual(fired.count, 1)
+    XCTAssertEqual(fired.first?.properties["role"] as? String, "parent")
+    XCTAssertNil(fired.first?.properties["firstName"], "no names to PostHog")
+    XCTAssertNil(fired.first?.properties["completedItems"], "parents have no item count; never send 0")
+  }
+
+  func testFinishOnboarding_doubleTap_savesAndReportsOnce() async {
+    let harness = AnalyticsHarness()
+    defer { harness.restore() }
+    let transport = harness.transport
+    viewModel.playerFirstName = "Alex"
+    viewModel.hasConfirmedDateOfBirth = true
+    viewModel.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit(id: "family-42")
+
+    async let first: Void = viewModel.finishOnboarding()
+    async let second: Void = viewModel.finishOnboarding()
+    _ = await (first, second)
+
+    XCTAssertEqual(mockFamilyService.savePlayerDetailsCallCount, 1)
+    XCTAssertEqual(transport.events(named: "onboarding_v2_complete").count, 1)
+  }
+
+  func testFinishOnboarding_whileAnInviteIsInFlight_stillRuns() async {
+    viewModel.playerFirstName = "Alex"
+    viewModel.hasConfirmedDateOfBirth = true
+    viewModel.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit(id: "family-42")
+    viewModel.isLoading = true
+
+    await viewModel.finishOnboarding()
+
+    XCTAssertEqual(mockFamilyService.savePlayerDetailsCallCount, 1, "isLoading belongs to sendInvite, not Finish")
+  }
+
+  func testFinishOnboarding_failure_doesNotFireOnboardingComplete() async {
+    let harness = AnalyticsHarness()
+    defer { harness.restore() }
+    let transport = harness.transport
+    viewModel.playerFirstName = "Alex"
+    viewModel.hasConfirmedDateOfBirth = true
+    viewModel.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+    mockFamilyService.stubbedFamilyUnit = nil
+
+    await viewModel.finishOnboarding()
+
+    XCTAssertTrue(transport.events(named: "onboarding_v2_complete").isEmpty)
+  }
+
   func testFinishOnboarding_success_savesDetailsToTheExistingFamilyAndCompletes() async {
     viewModel.playerFirstName = "Alex"
     viewModel.playerLastName = "Rivera"

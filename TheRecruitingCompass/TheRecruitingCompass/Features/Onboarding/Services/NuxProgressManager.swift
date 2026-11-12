@@ -23,8 +23,14 @@ final class NuxProgressManager {
   private var session = 0
   @ObservationIgnored private var inFlightLoad: (userId: String, task: Task<Void, Never>)?
 
-  init(service: (any NuxProgressManaging)? = nil) {
+  private let roleProvider: @MainActor () -> UserRole?
+
+  init(
+    service: (any NuxProgressManaging)? = nil,
+    roleProvider: @escaping @MainActor () -> UserRole? = { AuthManager.shared.user?.role }
+  ) {
     self.service = service ?? NuxProgressServiceImpl(supabaseManager: .shared)
+    self.roleProvider = roleProvider
   }
 
   /// Joins a load already in flight for the same user: the app root and the dashboard both ask at launch.
@@ -60,7 +66,7 @@ final class NuxProgressManager {
     guard !progress.isItemCompleted(key) else { return }
     progress.completeItem(key)
     progress.updateChecklistCompletion()
-    OnboardingAnalytics.checklistItemCompleted(item: key.rawValue)
+    OnboardingAnalytics.checklistItemCompleted(item: key.rawValue, role: roleProvider())
     logger.info("NUX item completed: \(key.rawValue) (\(self.progress.checklist.completedCount)/\(NuxChecklistKey.allCases.count))")
     persistInBackground()
   }
