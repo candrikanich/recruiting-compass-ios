@@ -479,6 +479,22 @@ final class SignupViewModelTests: XCTestCase {
     XCTAssertFalse(sut.shouldNavigateToVerifyEmail)
   }
 
+  func testSignupMinor_firesSignupCompletedOnceForPlayer() async {
+    let transport = RecordingTransport()
+    let original = Analytics.transport
+    Analytics.transport = transport
+    defer { Analytics.transport = original }
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
+    sut.guardianEmail = "guardian@example.com"
+
+    await sut.signup()
+
+    let fired = transport.events(named: "signup_completed")
+    XCTAssertEqual(fired.count, 1)
+    XCTAssertEqual(fired.first?.properties["role"] as? String, "player")
+  }
+
   func testSignupMinorSurfacesServerErrorMessage() async {
     fillValidForm(role: .player)
     sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!

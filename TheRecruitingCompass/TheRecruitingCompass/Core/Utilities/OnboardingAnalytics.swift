@@ -7,9 +7,15 @@ enum OnboardingAnalytics {
     category: "OnboardingAnalytics"
   )
 
-  static func onboardingStarted() {
-    logger.info("onboarding_v2_started")
-    Analytics.capture("onboarding_v2_started")
+  /// Fires once per new account. Role only: never name, email or date of birth.
+  static func signupCompleted(role: UserRole) {
+    logger.info("signup_completed role=\(role.rawValue)")
+    Analytics.capture("signup_completed", properties: ["role": role.rawValue])
+  }
+
+  static func onboardingStarted(role: UserRole = .player) {
+    logger.info("onboarding_v2_started role=\(role.rawValue)")
+    Analytics.capture("onboarding_v2_started", properties: ["role": role.rawValue])
   }
 
   static func step1Complete(sport: String, gradYear: Int) {
@@ -20,17 +26,17 @@ enum OnboardingAnalytics {
     ])
   }
 
-  static func schoolAdded(schoolName: String) {
-    logger.info("onboarding_v2_school_added school=\(schoolName)")
-    Analytics.capture("onboarding_v2_school_added", properties: [
-      "schoolName": schoolName
-    ])
+  /// School names are not sent: a custom school is free text.
+  static func schoolAdded() {
+    logger.info("onboarding_v2_school_added")
+    Analytics.capture("onboarding_v2_school_added")
   }
 
-  static func onboardingComplete(completedItems: Int) {
-    logger.info("onboarding_v2_complete items=\(completedItems)")
+  static func onboardingComplete(completedItems: Int = 0, role: UserRole = .player) {
+    logger.info("onboarding_v2_complete role=\(role.rawValue) items=\(completedItems)")
     Analytics.capture("onboarding_v2_complete", properties: [
-      "completedItems": completedItems
+      "completedItems": completedItems,
+      "role": role.rawValue
     ])
   }
 

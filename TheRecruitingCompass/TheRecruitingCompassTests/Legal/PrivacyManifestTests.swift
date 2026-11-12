@@ -16,7 +16,7 @@ final class PrivacyManifestTests: XCTestCase {
     try XCTUnwrap(manifest()["NSPrivacyCollectedDataTypes"] as? [Entry])
   }
 
-  func test_emailAddress_declaresAppFunctionalityAnalyticsAndDeveloperAdvertising() throws {
+  func test_emailAddress_declaresAppFunctionalityAndDeveloperAdvertisingOnly() throws {
     let email = try XCTUnwrap(
       collectedTypes().first {
         $0["NSPrivacyCollectedDataType"] as? String == "NSPrivacyCollectedDataTypeEmailAddress"
@@ -24,7 +24,6 @@ final class PrivacyManifestTests: XCTestCase {
     let purposes = Set(try XCTUnwrap(email["NSPrivacyCollectedDataTypePurposes"] as? [String]))
     XCTAssertEqual(purposes, [
       "NSPrivacyCollectedDataTypePurposeAppFunctionality",
-      "NSPrivacyCollectedDataTypePurposeAnalytics",
       "NSPrivacyCollectedDataTypePurposeDeveloperAdvertising"
     ])
   }

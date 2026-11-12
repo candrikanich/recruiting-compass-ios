@@ -214,6 +214,39 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     XCTAssertFalse(viewModel.didComplete)
   }
 
+  func testFinishOnboarding_success_firesParentOnboardingCompleteOnce() async {
+    let transport = RecordingTransport()
+    let original = Analytics.transport
+    Analytics.transport = transport
+    defer { Analytics.transport = original }
+    viewModel.playerFirstName = "Alex"
+    viewModel.hasConfirmedDateOfBirth = true
+    viewModel.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit(id: "family-42")
+
+    await viewModel.finishOnboarding()
+
+    let fired = transport.events(named: "onboarding_v2_complete")
+    XCTAssertEqual(fired.count, 1)
+    XCTAssertEqual(fired.first?.properties["role"] as? String, "parent")
+    XCTAssertNil(fired.first?.properties["firstName"], "no names to PostHog")
+  }
+
+  func testFinishOnboarding_failure_doesNotFireOnboardingComplete() async {
+    let transport = RecordingTransport()
+    let original = Analytics.transport
+    Analytics.transport = transport
+    defer { Analytics.transport = original }
+    viewModel.playerFirstName = "Alex"
+    viewModel.hasConfirmedDateOfBirth = true
+    viewModel.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+    mockFamilyService.stubbedFamilyUnit = nil
+
+    await viewModel.finishOnboarding()
+
+    XCTAssertTrue(transport.events(named: "onboarding_v2_complete").isEmpty)
+  }
+
   func testFinishOnboarding_success_savesDetailsToTheExistingFamilyAndCompletes() async {
     viewModel.playerFirstName = "Alex"
     viewModel.playerLastName = "Rivera"

@@ -33,8 +33,9 @@
 	<!--
 		Data collected from users of this app.
 		Must match the App Store Connect App Privacy label (last aligned 2026-09-27).
-		PostHog (first-party analytics) adds the Analytics purpose to Email Address and
-		User ID and collects Product Interaction. None is used for tracking.
+		PostHog (first-party analytics) adds the Analytics purpose to User ID and collects Product
+		Interaction. Email is no longer sent to PostHog (ios#487), so Email Address has no Analytics
+		purpose. None is used for tracking.
 	-->
 	<key>NSPrivacyCollectedDataTypes</key>
 	<array>
@@ -51,7 +52,7 @@
 				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
 			</array>
 		</dict>
-		<!-- Email Address (account login + profile; sent to PostHog on identify) -->
+		<!-- Email Address (account login + profile + marketing email; never sent to PostHog) -->
 		<dict>
 			<key>NSPrivacyCollectedDataType</key>
 			<string>NSPrivacyCollectedDataTypeEmailAddress</string>
@@ -62,7 +63,6 @@
 			<key>NSPrivacyCollectedDataTypePurposes</key>
 			<array>
 				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
-				<string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
 				<string>NSPrivacyCollectedDataTypePurposeDeveloperAdvertising</string>
 			</array>
 		</dict>

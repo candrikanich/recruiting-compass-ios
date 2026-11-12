@@ -42,6 +42,7 @@ struct ParentOnboardingWizardView: View {
           }
         }
       }
+      .onAppear { viewModel.trackOnboardingStarted() }
       .onChange(of: viewModel.didComplete) { _, completed in
         if completed {
           onDismiss?()

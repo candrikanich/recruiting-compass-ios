@@ -91,6 +91,15 @@ final class ParentOnboardingWizardViewModel {
     self.onboardingService = onboardingService ?? OnboardingServiceImpl(supabaseManager: .shared)
   }
 
+  private var hasTrackedStart = false
+
+  /// Safe to call from every appearance of the wizard: only the first one reports.
+  func trackOnboardingStarted() {
+    guard !hasTrackedStart else { return }
+    hasTrackedStart = true
+    OnboardingAnalytics.onboardingStarted(role: .parent)
+  }
+
   func onSportChange() {
     playerPosition = ""
   }
@@ -163,6 +172,7 @@ final class ParentOnboardingWizardViewModel {
       }
 
       didComplete = true
+      OnboardingAnalytics.onboardingComplete(role: .parent)
     } catch {
       logger.error("finishOnboarding failed: \(error.localizedDescription, privacy: .public) — full error: \(String(describing: error), privacy: .private)")
       errorMessage = (error as? FamilyError)?.errorDescription ?? "Couldn't save your athlete's details. Please try again."

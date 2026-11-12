@@ -80,7 +80,7 @@ final class AuthManager: AuthManaging {
 
       // Save session to Keychain
       try keychain.save(session, forKey: sessionKey)
-      Analytics.identify(userId: user.id, email: email)
+      Analytics.identify(userId: user.id)
       logger.info("Login successful for user: \(user.id, privacy: .private)")
     } catch {
       self.isAuthenticated = false
@@ -110,7 +110,7 @@ final class AuthManager: AuthManaging {
       self.isAuthenticated = true
       self.errorMessage = nil
 
-      Analytics.identify(userId: user.id, email: user.email)
+      Analytics.identify(userId: user.id)
       logger.info("Session established for user: \(user.id, privacy: .private)")
     } catch {
       // The Supabase client may already hold a live session from verifyOTP
@@ -165,6 +165,7 @@ final class AuthManager: AuthManaging {
         skipVerificationEmail: skipVerificationEmail,
         marketingEmailOptIn: marketingEmailOptIn
       )
+      OnboardingAnalytics.signupCompleted(role: role)
       // Flush BEFORE publishing isAuthenticated (see login()'s equivalent comment) — a
       // signup that returns a session immediately (no email confirmation required) must
       // not let the onboarding container see this user as authenticated before their

@@ -254,7 +254,7 @@ final class OnboardingV2ViewModel {
       recommendations.removeAll { $0.catalogKey == recommendation.catalogKey }
       schoolsAdded += 1
 
-      OnboardingAnalytics.schoolAdded(schoolName: recommendation.name)
+      OnboardingAnalytics.schoolAdded()
       logger.info("Added school from recommendation: \(recommendation.name)")
       return true
     } catch let error as FamilyUnitID.MissingError {
