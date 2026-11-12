@@ -5,8 +5,8 @@ import Foundation
 /// (utils/legal.ts) and the "Last Updated" date shown on the web legal pages. Bump all
 /// three in lockstep whenever the legal documents materially change.
 enum LegalRevision {
-  /// October 2, 2026 — current Privacy Policy revision.
-  static let lastUpdated: Date = makeDate(year: 2026, month: 10, day: 2)
+  /// November 12, 2026 — current Privacy Policy revision (forwarded emails and Resend inbound retention).
+  static let lastUpdated: Date = makeDate(year: 2026, month: 11, day: 12)
 
   /// October 26, 2026 — Terms revision that made §22 billing per player (web#1510); Oct 19 removed website-billing language
   /// (restore with web billing, web#617).

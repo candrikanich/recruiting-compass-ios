@@ -43,12 +43,21 @@ final class PrivacyPolicyContentTests: XCTestCase {
     XCTAssertEqual(PrivacyPolicyContent.sections.map(\.heading), expectedHeadings)
   }
 
-  func testLastUpdatedIsOctober2_2026() {
+  func testLastUpdatedIsNovember12_2026() {
     let parts = Calendar(identifier: .gregorian).dateComponents(
       [.year, .month, .day], from: LegalRevision.lastUpdated)
-    XCTAssertEqual(parts.year, 2026)
-    XCTAssertEqual(parts.month, 10)
-    XCTAssertEqual(parts.day, 2)
+    XCTAssertEqual([parts.year, parts.month, parts.day], [2026, 11, 12])
+  }
+
+  func testDisclosesForwardedEmailsAndResendInboundRetention() throws {
+    let collected = try text(of: "2. Information We Collect")
+    XCTAssertTrue(collected.contains("Forwarded Emails: Emails you or a family member forward"))
+    XCTAssertTrue(allText.contains(
+      "Resend also receives the emails you forward to your family's Recruiting Compass address and passes them to us."))
+    let retention = try text(of: "7. Data Retention")
+    XCTAssertTrue(retention.contains(
+      "Our email provider, Resend, also keeps a copy of each email it receives for 30 days, and that copy cannot be " +
+        "deleted sooner."))
   }
 
   func testTermsRevisionIsOctober26_2026() {

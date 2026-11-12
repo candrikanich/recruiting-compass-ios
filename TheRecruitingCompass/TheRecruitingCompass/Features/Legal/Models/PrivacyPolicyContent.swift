@@ -63,6 +63,8 @@ enum PrivacyPolicyContent {
         "athletic stats, and recruiting preferences",
       "Recruiting Activity: Schools and college programs you track, coach contact information you enter, " +
         "and interaction notes and communication logs you create",
+      "Forwarded Emails: Emails you or a family member forward to your family's Recruiting Compass address, " +
+        "including the sender, subject, message text, and attachments, which we turn into drafts for you to review",
       "Family Unit Data: Email addresses of family members you invite to join your family unit, which are " +
         "retained until the invitation is accepted, declined, or expires",
       "Preference Data: Location preferences, school type preferences, and other customization settings"
@@ -132,8 +134,9 @@ enum PrivacyPolicyContent {
     ),
     .body(
       "We use Resend, an email service provider, to send email and to maintain our marketing email list. " +
-        "We share your email address and subscription status with Resend for that purpose only. We do not " +
-        "sell your personal information or share it for third-party advertising."
+        "We share your email address and subscription status with Resend for that purpose only. Resend also " +
+        "receives the emails you forward to your family's Recruiting Compass address and passes them to us. " +
+        "We do not sell your personal information or share it for third-party advertising."
     )
   ])
 
@@ -156,8 +159,8 @@ enum PrivacyPolicyContent {
     ),
     .bullets([
       "Service Providers: Third-party vendors who assist in operating our Service (e.g., hosting, email " +
-        "delivery), subject to confidentiality obligations. We use Resend to deliver email and to maintain " +
-        "our marketing email list.",
+        "delivery), subject to confidentiality obligations. We use Resend to deliver email, to receive " +
+        "forwarded emails, and to maintain our marketing email list.",
       "Family Unit Members: If you are part of a family unit, limited profile information is visible to " +
         "other members of that unit",
       "Legal Requirements: When required by law, court order, or government request",
@@ -192,6 +195,10 @@ enum PrivacyPolicyContent {
         "declined, or expires (invitations expire after 30 days)",
       "Deleted accounts: Following an account deletion request, your personal data is purged within 30 days. " +
         "You may cancel a deletion request within that 30-day window.",
+      "Forwarded emails: We keep the full original email for up to two weeks so we can process it, then " +
+        "delete it. The draft made from it, and anything you save from it, stays in your account like the rest " +
+        "of your data. Our email provider, Resend, also keeps a copy of each email it receives for 30 days, and " +
+        "that copy cannot be deleted sooner.",
       "Audit logs: Security- and account-related audit logs are retained for up to one year for fraud " +
         "prevention and legal compliance purposes"
     ])
