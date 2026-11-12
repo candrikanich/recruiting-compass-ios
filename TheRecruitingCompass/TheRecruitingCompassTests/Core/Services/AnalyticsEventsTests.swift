@@ -398,6 +398,79 @@ final class AnalyticsEventsTests: XCTestCase {
 
     XCTAssertEqual(transport.events(named: "onboarding_v2_started").count, 1)
   }
+
+  // MARK: - role known at appear, and role on login/establishSession identify
+
+  private func user(_ id: String, role: UserRole?) -> User {
+    User(
+      id: id, email: "x@example.com", emailConfirmedAt: nil,
+      createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z", role: role
+    )
+  }
+
+  private func session(for user: User) -> Session {
+    Session(
+      accessToken: "a", tokenType: "bearer", expiresIn: 3600, expiresAt: 4_000_000_000,
+      refreshToken: "r", user: user
+    )
+  }
+
+  func testTracking_roleKnownAtAppear_firesOnce() {
+    let window = UIWindow(frame: UIScreen.main.bounds)
+    window.rootViewController = UIHostingController(
+      rootView: Color.clear.modifier(OnboardingStartedTracking(user: user("known-1", role: .player)))
+    )
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true }
+    RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+
+    let started = transport.events(named: "onboarding_v2_started")
+    XCTAssertEqual(started.count, 1)
+    XCTAssertEqual(started.first?.properties["role"] as? String, "player")
+  }
+
+  func testLogin_identifiesWithRole() async throws {
+    let supabase = MockSupabaseManager()
+    let signedIn = user("login-1", role: .player)
+    supabase.signInResult = .success((user: signedIn, session: session(for: signedIn)))
+    let auth = AuthManager(supabaseManager: supabase, biometricService: MockBiometricService())
+
+    try await auth.login(email: "x@example.com", password: "password123", captchaToken: "t")
+
+    XCTAssertEqual(transport.identifies.map(\.userId), ["login-1"])
+    XCTAssertEqual(transport.identifies.first?.properties["role"] as? String, "player")
+    XCTAssertNil(transport.identifies.first?.properties["email"])
+  }
+
+  func testEstablishSession_identifiesWithRole() async throws {
+    let supabase = MockSupabaseManager()
+    let minor = user("minor-1", role: .player)
+    supabase.signInWithTokenHashResult = .success((user: minor, session: session(for: minor)))
+    let auth = AuthManager(supabaseManager: supabase, biometricService: MockBiometricService())
+
+    try await auth.establishSession(fromTokenHash: "hash")
+
+    XCTAssertEqual(transport.identifies.first?.properties["role"] as? String, "player")
+  }
+
+  func testPendingSignupThenSignedInSignup_identityEndsOnSecondAccount() async throws {
+    let supabase = MockSupabaseManager()
+    let auth = AuthManager(supabaseManager: supabase, biometricService: MockBiometricService())
+    supabase.signUpResult = .success((user: user("pending-1", role: .parent), session: nil))
+    try await auth.signup(
+      email: "a@example.com", password: "password123", fullName: "A A",
+      role: .parent, familyCode: nil, captchaToken: "t"
+    )
+    let second = user("live-2", role: .player)
+    supabase.signUpResult = .success((user: second, session: session(for: second)))
+    try await auth.signup(
+      email: "b@example.com", password: "password123", fullName: "B B",
+      role: .player, familyCode: nil, captchaToken: "t"
+    )
+
+    XCTAssertEqual(transport.order, ["identify", "signup_completed", "reset", "identify", "signup_completed"])
+    XCTAssertEqual(transport.identifies.map(\.userId), ["pending-1", "live-2"])
+  }
 }
 
 @Observable
