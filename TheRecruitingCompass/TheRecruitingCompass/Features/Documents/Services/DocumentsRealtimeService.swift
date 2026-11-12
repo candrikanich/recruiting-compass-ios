@@ -21,9 +21,8 @@ protocol DocumentsRealtimeManaging: Sendable {
 /// so the documents page updates live when a family member uploads, edits,
 /// or deletes a document from another device/session.
 ///
-/// Filters by `family_unit_id` — broader than the read query (which uses
-/// user_id) but ensures the page catches changes from any family member.
-/// The refetch callback re-queries with the composable's own user_id filter.
+/// Filters by `family_unit_id`, the same scope as the list's read query, so the page catches changes from
+/// any family member. The refetch callback re-queries the list by the active family.
 actor DocumentsRealtimeService: DocumentsRealtimeManaging {
   private let supabaseManager: SupabaseManager
   private var channel: RealtimeChannelV2?

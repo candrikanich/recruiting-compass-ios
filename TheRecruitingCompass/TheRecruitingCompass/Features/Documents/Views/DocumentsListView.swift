@@ -28,7 +28,8 @@ struct DocumentsListView: View {
       await viewModel.loadDocuments()
     }
     .searchable(text: $viewModel.searchQuery, prompt: "Search title or description...")
-    .task {
+    // The family id resolves asynchronously after sign-in or a family switch; keying on it reloads then.
+    .task(id: familyManager.familyUnitId) {
       await viewModel.loadDocuments()
       await viewModel.loadSchools()
       await subscribeRealtime()
@@ -232,7 +233,9 @@ struct DocumentsListView: View {
   }
 
   private func subscribeRealtime() async {
-    guard realtimeService == nil, let familyUnitId = familyManager.familyUnitId else { return }
+    await realtimeService?.unsubscribe()
+    realtimeService = nil
+    guard let familyUnitId = familyManager.familyUnitId else { return }
     let service = DocumentsRealtimeService()
     realtimeService = service
     do {
