@@ -75,14 +75,21 @@ final class SendProfileViewModel {
             return
         }
         guard case let .resolved(athleteId) = loadedTarget else { return }
-        let link = profile.isPublished
-            ? try? await service.fetchTrackingLink(coachId: coachId, athleteId: athleteId, accessToken: token)
-            : nil
+        var linkError: Error?
+        var link: ProfileTrackingLink?
+        if profile.isPublished {
+            do {
+                link = try await service.fetchTrackingLink(coachId: coachId, athleteId: athleteId, accessToken: token)
+            } catch {
+                linkError = error
+            }
+        }
         // A newer load owns the state once the selection moved on or another load started.
         guard isCurrent(generation, loadedTarget) else { return }
         isPublished = profile.isPublished
         guard let link else {
             clearTrackingInfo(keepingPublished: true)
+            if let message = Self.familyContextMessage(linkError) { errorMessage = message }
             return
         }
         trackingURL = buildURL(profile: profile, refToken: link.refToken)
@@ -134,12 +141,13 @@ final class SendProfileViewModel {
             fallback: details?.primaryPosition
         )
 
-        guard let link = try? await service.createTrackingLink(
-                  coachId: coach.id, athleteId: athleteId, accessToken: token
-              ),
-              let url = buildURL(profile: profile, refToken: link.refToken) else {
-            return failSend()
+        let link: ProfileTrackingLink
+        do {
+            link = try await service.createTrackingLink(coachId: coach.id, athleteId: athleteId, accessToken: token)
+        } catch {
+            return failSend(error)
         }
+        guard let url = buildURL(profile: profile, refToken: link.refToken) else { return failSend() }
         // The selection can change while the lookups above are in flight; never send for a different athlete.
         guard preparedTarget == target else { return failSend() }
         // Surface the link for copy + view stats now that it exists.
@@ -264,8 +272,15 @@ final class SendProfileViewModel {
         return lhs.caseInsensitiveCompare(rhs) == .orderedSame
     }
 
-    private func failSend() -> SendProfilePreparation {
-        errorMessage = String(localized: "Couldn't prepare the profile to send. Please try again.")
+    /// Only the family-context errors carry copy the person can act on; everything else stays generic.
+    private static func familyContextMessage(_ error: Error?) -> String? {
+        guard let apiError = error as? PublicProfileAPIError, apiError.isFamilyContext else { return nil }
+        return apiError.errorDescription
+    }
+
+    private func failSend(_ error: Error? = nil) -> SendProfilePreparation {
+        errorMessage = Self.familyContextMessage(error)
+            ?? String(localized: "Couldn't prepare the profile to send. Please try again.")
         return .failed
     }
 

@@ -10,6 +10,7 @@ final class MockPublicProfileManaging: PublicProfileManaging, @unchecked Sendabl
     var onCreateTrackingLink: (() async -> Void)?
     /// Thrown by `createTrackingLink` only, leaving link fetches alone.
     var createTrackingLinkError: Error?
+    var fetchTrackingLinkError: Error?
     /// Runs at the start of `fetchProfile`, i.e. while a load is mid-flight.
     var onFetchProfile: (() async -> Void)?
     var onFetchTrackingLink: (() async -> Void)?
@@ -48,6 +49,7 @@ final class MockPublicProfileManaging: PublicProfileManaging, @unchecked Sendabl
         -> ProfileTrackingLink? {
         await onFetchTrackingLink?()
         if let errorToThrow { throw errorToThrow }
+        if let fetchTrackingLinkError { throw fetchTrackingLinkError }
         fetchedTrackingCoachIds.append(coachId)
         fetchedTrackingAthleteIds.append(athleteId)
         return stubTrackingLink

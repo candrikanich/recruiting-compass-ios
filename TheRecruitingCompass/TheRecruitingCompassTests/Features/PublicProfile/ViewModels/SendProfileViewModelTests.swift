@@ -216,6 +216,57 @@ final class SendProfileViewModelTests: XCTestCase {
         XCTAssertEqual(service.createdTrackingAthleteIds, [athleteUserId])
     }
 
+    private let familyContextCopy = "Couldn't make the tracking link for this family. "
+        + "Pick the family in the switcher and try again."
+
+    func testPrepareSurfacesFamilyContextErrorOnCreate() async {
+        for error in [PublicProfileAPIError.familyContextRequired, .invalidFamilyContext] {
+            let service = MockPublicProfileManaging()
+            service.stubProfile = makeProfile()
+            service.createTrackingLinkError = error
+            let vm = makeVM(service: service, authManager: selfAuth())
+
+            let result = await vm.prepare(for: makeCoach(email: "coach@x.edu"))
+
+            guard case .failed = result else { return XCTFail("expected .failed, got \(result)") }
+            XCTAssertEqual(vm.errorMessage, familyContextCopy)
+        }
+    }
+
+    func testPrepareKeepsGenericMessageForOtherCreateErrors() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile()
+        service.createTrackingLinkError = PublicProfileAPIError.server(500)
+        let vm = makeVM(service: service, authManager: selfAuth())
+
+        _ = await vm.prepare(for: makeCoach(email: "coach@x.edu"))
+
+        XCTAssertEqual(vm.errorMessage, "Couldn't prepare the profile to send. Please try again.")
+    }
+
+    func testLoadTrackingInfoSurfacesFamilyContextError() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile()
+        service.fetchTrackingLinkError = PublicProfileAPIError.familyContextRequired
+        let vm = makeVM(service: service, authManager: selfAuth())
+
+        await vm.loadTrackingInfo(for: "c1")
+
+        XCTAssertEqual(vm.errorMessage, familyContextCopy)
+        XCTAssertNil(vm.trackingURL)
+    }
+
+    func testLoadTrackingInfoStaysSilentForOtherErrors() async {
+        let service = MockPublicProfileManaging()
+        service.stubProfile = makeProfile()
+        service.fetchTrackingLinkError = PublicProfileAPIError.server(500)
+        let vm = makeVM(service: service, authManager: selfAuth())
+
+        await vm.loadTrackingInfo(for: "c1")
+
+        XCTAssertNil(vm.errorMessage)
+    }
+
     func testPlayerPrepareSendsNoAthleteId() async {
         let service = MockPublicProfileManaging()
         service.stubProfile = makeProfile()

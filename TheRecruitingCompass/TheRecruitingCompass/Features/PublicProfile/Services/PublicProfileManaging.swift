@@ -14,6 +14,9 @@ enum PublicProfileAPIError: LocalizedError, Equatable {
     /// Server-provided message (403/404/400 from `/api/player/profile`), shown verbatim.
     case serverMessage(String)
 
+    /// The family-context errors are the ones the person can fix by switching family.
+    var isFamilyContext: Bool { self == .familyContextRequired || self == .invalidFamilyContext }
+
     var errorDescription: String? {
         switch self {
         case .unauthorized: return "Session expired. Please sign in again."
@@ -22,7 +25,7 @@ enum PublicProfileAPIError: LocalizedError, Equatable {
         case .notMember: return "You don't have permission to edit this profile."
         case .notConfigured: return "Public profile is not available."
         case .familyContextRequired, .invalidFamilyContext:
-            return "We couldn't tell which family this is for. Switch families and try again."
+            return "Couldn't make the tracking link for this family. Pick the family in the switcher and try again."
         case .serverMessage(let message): return message
         case .server: return "Couldn't save changes. Please try again."
         }

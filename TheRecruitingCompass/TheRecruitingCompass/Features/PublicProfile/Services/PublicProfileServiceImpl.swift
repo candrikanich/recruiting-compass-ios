@@ -113,7 +113,6 @@ struct PublicProfileServiceImpl: PublicProfileManaging {
         return url
     }
 
-    /// h3 error bodies carry `message`; used for statuses where the server's wording is the useful part.
     private static func errorCode(in data: Data) -> String? {
         struct ErrorBody: Decodable {
             struct Detail: Decodable { let code: String? }
@@ -122,6 +121,7 @@ struct PublicProfileServiceImpl: PublicProfileManaging {
         return (try? JSONDecoder().decode(ErrorBody.self, from: data))?.data?.code
     }
 
+    /// h3 error bodies carry `message`; used for statuses where the server's wording is the useful part.
     private static func serverMessage(in data: Data) -> String? {
         struct ErrorBody: Decodable { let message: String? }
         let text = (try? JSONDecoder().decode(ErrorBody.self, from: data))?.message?

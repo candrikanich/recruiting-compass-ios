@@ -195,22 +195,33 @@ final class PublicProfileServiceImplTests: XCTestCase {
     }
 
     func testTrackingLinkMapsFamilyContextErrorCodes() async {
+        seedCSRFCookie()
         let cases: [(String, PublicProfileAPIError)] = [
             ("family_context_required", .familyContextRequired),
             ("invalid_family_context", .invalidFamilyContext)
         ]
+        let expectedCopy = "Couldn't make the tracking link for this family. "
+            + "Pick the family in the switcher and try again."
         for (code, expected) in cases {
-            StubURLProtocol.handler = { request in
+            StubURLProtocol.handler = { [self] request in
+                guard request.url?.path.contains("tracking-links") == true else { return okResponse(request) }
                 let body = Data(#"{"statusCode":400,"message":"raw","data":{"code":"\#(code)"}}"#.utf8)
                 return (HTTPURLResponse(url: request.url!, statusCode: 400, httpVersion: nil, headerFields: nil)!, body)
             }
-            do {
-                _ = try await makeService(familyUnitId: "fam-1")
-                    .fetchTrackingLink(coachId: "c1", athleteId: nil, accessToken: "tok")
-                XCTFail("expected throw for \(code)")
-            } catch {
-                XCTAssertEqual(error as? PublicProfileAPIError, expected)
-                XCTAssertNotEqual((error as? LocalizedError)?.errorDescription, "raw")
+            let service = makeService(familyUnitId: "fam-1")
+            let calls: [(String, () async throws -> Void)] = [
+                ("fetch", { _ = try await service.fetchTrackingLink(coachId: "c1", athleteId: nil, accessToken: "t") }),
+                ("create", { _ = try await service.createTrackingLink(coachId: "c1", athleteId: nil, accessToken: "t") }
+                )
+            ]
+            for (name, call) in calls {
+                do {
+                    try await call()
+                    XCTFail("expected throw for \(name) \(code)")
+                } catch {
+                    XCTAssertEqual(error as? PublicProfileAPIError, expected, "\(name) \(code)")
+                    XCTAssertEqual((error as? LocalizedError)?.errorDescription, expectedCopy)
+                }
             }
         }
     }
