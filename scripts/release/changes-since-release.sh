@@ -16,24 +16,36 @@ set -eu
 
 PBXPROJ_PATH="TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj"
 
-# Only a tag clash ("would clobber existing tag", a local tag that differs from origin's) is survivable: the
-# refs fetched fine and local tags are good enough. Anything else (offline, auth, wrong remote) leaves
-# origin/main stale, so notes drafted from it would be wrong; stop and say why. Never --force here; that would
-# move local tags without the user asking.
-if ! fetch_err=$(git fetch --tags origin 2>&1); then
-  if printf '%s' "$fetch_err" | grep -q 'would clobber existing tag'; then
-    {
-      echo "warning: 'git fetch --tags origin' rejected a tag; continuing with local tags:"
-      printf '%s\n' "$fetch_err" | sed 's/^/  /'
-      echo "hint: to realign local tags with origin, run: git fetch --tags --force origin"
-    } >&2
-  else
+# Only a tag clash ("would clobber existing tag", a local tag that differs from origin's) is survivable, and
+# only when no other ref failed to update and the clashing tag is not an end of the range: otherwise the notes
+# would be drafted from a stale origin/main or the wrong commits. Never --force here; that would move local
+# tags without the user asking. LC_ALL=C keeps git's messages untranslated so they can be matched.
+CLOBBER_HINT="to realign local tags with origin, run: git fetch --tags --force origin"
+clobbered=""
+if ! fetch_err=$(LC_ALL=C git fetch --tags origin 2>&1); then
+  case "$fetch_err" in
+    *'would clobber existing tag'*)
+      clobbered=$(printf '%s\n' "$fetch_err" \
+        | sed -n 's/^ *! \[rejected\] *\([^ ]*\) *-> .*would clobber existing tag.*/\1/p')
+      # The tags were rejected as a whole fetch; confirm the branch refs themselves still update.
+      if ! refs_err=$(LC_ALL=C git fetch --no-tags origin 2>&1); then
+        fetch_err=$refs_err
+        clobbered=""
+      fi
+      ;;
+  esac
+  if [ -z "$clobbered" ]; then
     {
       echo "error: 'git fetch --tags origin' failed, so origin/main may be stale; not drafting notes from it:"
       printf '%s\n' "$fetch_err" | sed 's/^/  /'
     } >&2
     exit 1
   fi
+  {
+    echo "warning: 'git fetch --tags origin' rejected tags that differ from origin's; continuing with local tags:"
+    printf '%s\n' "$fetch_err" | sed 's/^/  /'
+    echo "hint: $CLOBBER_HINT"
+  } >&2
 fi
 
 BASE=${1:-$(git tag --list 'v*' --sort=-version:refname | head -n 1)}
@@ -47,6 +59,13 @@ for ref in "$BASE" "$END"; do
     echo "error: unknown revision '$ref'; pass a valid tag or branch." >&2
     exit 1
   fi
+  for tag in $clobbered; do
+    if [ "$ref" = "$tag" ]; then
+      echo "error: local tag '$tag' differs from origin's, so the range would be wrong." >&2
+      echo "hint: $CLOBBER_HINT" >&2
+      exit 1
+    fi
+  done
 done
 
 VERSION=$(git show "$END:$PBXPROJ_PATH" | grep -o 'MARKETING_VERSION = [0-9.]*;' | sort -u \
@@ -65,8 +84,8 @@ if [ -z "$COMMITS" ]; then
 fi
 
 pr_details() {
-  gh pr view "$1" --json labels,body \
-    --template '{{if .labels}}Labels: {{range $i, $l := .labels}}{{if $i}}, {{end}}{{$l.name}}{{end}}{{"\n\n"}}{{end}}{{.body}}{{"\n"}}'
+  gh pr view "$1" --json title,labels,body \
+    --template 'Title: {{.title}}{{"\n"}}{{if .labels}}Labels: {{range $i, $l := .labels}}{{if $i}}, {{end}}{{$l.name}}{{end}}{{"\n\n"}}{{end}}{{.body}}{{"\n"}}'
 }
 
 # Squash merges end in "(#N)"; merge commits start with "Merge pull request #N from".
