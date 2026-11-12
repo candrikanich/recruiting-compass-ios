@@ -7,8 +7,12 @@ import Observation
 final class LoginViewModel {
 
   nonisolated deinit {}
-  var email = ""
-  var password = ""
+  var email = "" {
+    didSet { if fieldErrors[.email] != nil { validateEmail() } }
+  }
+  var password = "" {
+    didSet { if fieldErrors[.password] != nil { validatePassword() } }
+  }
   var rememberMe = false
   var isLoading = false
   var isValidating = false
