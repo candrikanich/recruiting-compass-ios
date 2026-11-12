@@ -4,11 +4,19 @@ import OSLog
 struct PublicProfileServiceImpl: PublicProfileManaging {
     private let session: URLSession
     private let baseURLOverride: URL?
+    private let familyUnitIdProvider: @MainActor @Sendable () -> String?
     private let logger = Logger(subsystem: "com.recruitingcompass", category: "PublicProfile")
 
-    init(session: URLSession = .shared, baseURLOverride: URL? = nil) {
+    init(
+        session: URLSession = .shared,
+        baseURLOverride: URL? = nil,
+        familyUnitIdProvider: @escaping @MainActor @Sendable () -> String? = {
+            FamilyManager.shared.resolvedFamilyUnitId
+        }
+    ) {
         self.session = session
         self.baseURLOverride = baseURLOverride
+        self.familyUnitIdProvider = familyUnitIdProvider
     }
 
     private var baseURL: URL? { baseURLOverride ?? SupabaseConfig.apiBaseURL }
@@ -50,13 +58,16 @@ struct PublicProfileServiceImpl: PublicProfileManaging {
     ) async throws -> ProfileTrackingLink? {
         guard let baseURL, let token = accessToken, !token.isEmpty else { return nil }
         let safeId = coachId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? coachId
-        let url = Self.trackingLinkURL(baseURL: baseURL, safeCoachId: safeId, athleteId: athleteId)
+        let url = Self.trackingLinkURL(
+            baseURL: baseURL, safeCoachId: safeId, athleteId: athleteId,
+            familyUnitId: await activeFamilyUnitId()
+        )
         var request = URLRequest(url: url)
         request.addClientHeaders()
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         let (data, response) = try await session.data(for: request)
-        try Self.mapStatus(response)
+        try Self.mapStatus(response, body: data)
         guard !data.isEmpty, (try? JSONSerialization.jsonObject(with: data)) is [String: Any] else { return nil }
         return try JSONDecoder().decode(ProfileTrackingLink.self, from: data)
     }
@@ -69,7 +80,10 @@ struct PublicProfileServiceImpl: PublicProfileManaging {
         }
         let csrf = try await fetchCSRFToken(baseURL: baseURL)
         let safeId = coachId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? coachId
-        let url = Self.trackingLinkURL(baseURL: baseURL, safeCoachId: safeId, athleteId: athleteId)
+        let url = Self.trackingLinkURL(
+            baseURL: baseURL, safeCoachId: safeId, athleteId: athleteId,
+            familyUnitId: await activeFamilyUnitId()
+        )
         var request = URLRequest(url: url)
         request.addClientHeaders()
         request.httpMethod = "POST"
@@ -77,18 +91,34 @@ struct PublicProfileServiceImpl: PublicProfileManaging {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(csrf, forHTTPHeaderField: "x-csrf-token")
         let (data, response) = try await session.data(for: request)
-        try Self.mapStatus(response)
+        try Self.mapStatus(response, body: data)
         return try JSONDecoder().decode(ProfileTrackingLink.self, from: data)
     }
 
+    private func activeFamilyUnitId() async -> String? {
+        FamilyUnitID.normalized(await familyUnitIdProvider())
+    }
+
     /// `?athleteId=` makes the server resolve the selected athlete's profile for a parent; players omit it.
-    private static func trackingLinkURL(baseURL: URL, safeCoachId: String, athleteId: String?) -> URL {
+    /// `?familyUnitId=` names the active family: a multi-family caller without it gets a 400 (web#1045).
+    private static func trackingLinkURL(
+        baseURL: URL, safeCoachId: String, athleteId: String?, familyUnitId: String?
+    ) -> URL {
         var url = baseURL.appendingPathComponent("api/player/profile/tracking-links")
             .appendingPathComponent(safeCoachId)
-        if let athleteId {
-            url.append(queryItems: [URLQueryItem(name: "athleteId", value: athleteId)])
-        }
+        var items: [URLQueryItem] = []
+        if let athleteId { items.append(URLQueryItem(name: "athleteId", value: athleteId)) }
+        if let familyUnitId { items.append(URLQueryItem(name: "familyUnitId", value: familyUnitId)) }
+        if !items.isEmpty { url.append(queryItems: items) }
         return url
+    }
+
+    private static func errorCode(in data: Data) -> String? {
+        struct ErrorBody: Decodable {
+            struct Detail: Decodable { let code: String? }
+            let data: Detail?
+        }
+        return (try? JSONDecoder().decode(ErrorBody.self, from: data))?.data?.code
     }
 
     /// h3 error bodies carry `message`; used for statuses where the server's wording is the useful part.
@@ -106,6 +136,10 @@ struct PublicProfileServiceImpl: PublicProfileManaging {
         case 401: throw PublicProfileAPIError.unauthorized
         case 403:
             throw serverMessage(in: body).map(PublicProfileAPIError.serverMessage) ?? .notMember
+        case 400 where errorCode(in: body) == "family_context_required":
+            throw PublicProfileAPIError.familyContextRequired
+        case 400 where errorCode(in: body) == "invalid_family_context":
+            throw PublicProfileAPIError.invalidFamilyContext
         case 400, 404:
             throw serverMessage(in: body).map(PublicProfileAPIError.serverMessage)
                 ?? .server(http.statusCode)
