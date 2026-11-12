@@ -1,8 +1,3 @@
-If you're a parent in more than one family, you can now switch between them.
+This update fixes Send Profile for parents in more than one family.
 
-• Switch families right from the Dashboard if you belong to more than one. Invites go to the family you've selected.
-• Coach emails and texts that include a transcript now use a link you can turn off later.
-• Parents see a clear note that only the athlete can mark tasks complete, and the Timeline now follows the same rule.
-• Parents can upload documents for their athlete.
-• Settings > About now credits the data sources behind school logos, mascots and colors.
-• Fixed documents not opening or deleting correctly for some files.
+• Fixed tracking links in Send Profile for parents in more than one family. Links now use the family you've selected.
