@@ -38,13 +38,22 @@ final class DocumentUploadKeyTests: XCTestCase {
 
   func testNoExtension_andEmptyBase() {
     XCTAssertEqual(plan("notes").path, "parent-p/resume/7_notes")
-    XCTAssertEqual(plan("|.pdf").path, "parent-p/resume/7__.pdf")
+    XCTAssertEqual(plan("|.pdf").path, "parent-p/resume/7_file.pdf")
     XCTAssertEqual(plan("").path, "parent-p/resume/7_file")
   }
 
-  func testFirstFolderStaysUploadedBy_andTimestampKeepsKeysDistinct() {
+  func testAllUnderscoreBase_fallsBackToFile() {
+    XCTAssertEqual(plan("履歴書.pdf").path, "parent-p/resume/7_file.pdf")
+    XCTAssertEqual(plan("🎉.pdf").path, "parent-p/resume/7_file.pdf")
+    XCTAssertEqual(plan("👨‍👩‍👧.pdf").path, "parent-p/resume/7_file.pdf")
+  }
+
+  func testFirstFolderStaysUploadedBy() {
     XCTAssertTrue(plan("a|b.pdf").path.hasPrefix("parent-p/"))
-    XCTAssertNotEqual(plan("a|b.pdf", timestamp: 1).path, plan("a_b.pdf", timestamp: 2).path)
+  }
+
+  func testSameNameAtDifferentTimestamps_givesDifferentKeys() {
+    XCTAssertNotEqual(plan("a|b.pdf", timestamp: 1).path, plan("a|b.pdf", timestamp: 2).path)
   }
 
   func testUserVisibleTitle_isUntouched() {
@@ -56,9 +65,9 @@ final class DocumentUploadKeyTests: XCTestCase {
   }
 
   func testSanitizesPerUnicodeScalar_matchingWeb() {
-    XCTAssertEqual(plan("🎉.pdf").path, "parent-p/resume/7__.pdf")
+    XCTAssertEqual(plan("a🎉.pdf").path, "parent-p/resume/7_a_.pdf")
     XCTAssertEqual(plan("e\u{301}cole.pdf").path, "parent-p/resume/7_e_cole.pdf")
-    XCTAssertEqual(plan("👨‍👩‍👧.pdf").path, "parent-p/resume/7______.pdf")
+    XCTAssertEqual(plan("a👨‍👩‍👧.pdf").path, "parent-p/resume/7_a_____.pdf")
   }
 
   func testCapsCountScalars_notGraphemes() {

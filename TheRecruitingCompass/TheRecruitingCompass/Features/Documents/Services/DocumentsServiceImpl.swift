@@ -339,26 +339,8 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
       isCurrent: true,
       sharedWithSchools: []
     )
-    let key = "\(uploadedBy)/\(type.rawValue)/\(timestamp)_\(storageSafeFileName(fileName))"
+    let key = "\(uploadedBy)/\(type.rawValue)/\(timestamp)_\(StorageKey.safeFileName(fileName))"
     return UploadPlan(path: key, draft: draft)
-  }
-
-  /// Storage rejects keys with characters like `|` (ios#576). Per Unicode scalar (not grapheme, not UTF-16 unit,
-  /// so web can match): keep [A-Za-z0-9._-], map every other scalar to `_`, keep the extension, cap the base at
-  /// 100 and the extension at 10 scalars. Same rules as web#1709.
-  static func storageSafeFileName(_ name: String) -> String {
-    func clean(_ scalars: String.UnicodeScalarView.SubSequence, limit: Int) -> String {
-      let allowed = Set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-".unicodeScalars)
-      var out = String.UnicodeScalarView()
-      out.append(contentsOf: scalars.prefix(limit).map { allowed.contains($0) ? $0 : "_" })
-      return String(out)
-    }
-    let scalars = name.unicodeScalars
-    let dot = scalars.lastIndex(of: ".")
-    let base = clean(dot.map { scalars[..<$0] } ?? scalars[...], limit: 100)
-    let ext = clean(dot.map { scalars[scalars.index(after: $0)...] } ?? scalars[scalars.endIndex...], limit: 10)
-    let safeBase = base.isEmpty ? "file" : base
-    return ext.isEmpty ? safeBase : "\(safeBase).\(ext)"
   }
 
   /// The object this row owns, or nil when none may be removed. Uses the viewer's classifier so bare paths
