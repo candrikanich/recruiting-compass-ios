@@ -339,7 +339,23 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
       isCurrent: true,
       sharedWithSchools: []
     )
-    return UploadPlan(path: "\(uploadedBy)/\(type.rawValue)/\(timestamp)_\(fileName)", draft: draft)
+    let key = "\(uploadedBy)/\(type.rawValue)/\(timestamp)_\(storageSafeFileName(fileName))"
+    return UploadPlan(path: key, draft: draft)
+  }
+
+  /// Storage rejects keys with characters like `|` (ios#576). Keep [A-Za-z0-9._-], map the rest to `_`, keep the
+  /// extension, cap the base at 100 and the extension at 10. Same rules as web#1709.
+  static func storageSafeFileName(_ name: String) -> String {
+    func clean(_ s: Substring) -> String {
+      String(s.map { $0.isASCII && ($0.isLetter || $0.isNumber || "._-".contains($0)) ? $0 : "_" })
+    }
+    let dot = name.lastIndex(of: ".")
+    let base = dot.map { name[..<$0] } ?? name[...]
+    let ext = dot.map { name[name.index(after: $0)...] } ?? ""
+    let cleanBase = String(clean(base).prefix(100))
+    let cleanExt = String(clean(ext).prefix(10))
+    let safeBase = cleanBase.isEmpty ? "file" : cleanBase
+    return cleanExt.isEmpty ? safeBase : "\(safeBase).\(cleanExt)"
   }
 
   /// The object this row owns, or nil when none may be removed. Uses the viewer's classifier so bare paths
