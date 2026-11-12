@@ -51,19 +51,25 @@ struct DocumentInsertPayload: Encodable, Equatable {
 }
 
 final class DocumentsServiceImpl: DocumentsManaging, Sendable {
-  private let supabaseManager: SupabaseManager
+  private let client: SupabaseClient
 
-  init(supabaseManager: SupabaseManager = .shared) {
-    self.supabaseManager = supabaseManager
+  init(client: SupabaseClient) {
+    self.client = client
   }
 
-  func fetchDocuments(userId: String) async throws -> [Document] {
-    logger.debug("Fetching documents for user: \(userId)")
+  convenience init(supabaseManager: SupabaseManager = .shared) {
+    self.init(client: supabaseManager.client)
+  }
 
-    let documents: [Document] = try await supabaseManager.client
+  /// Family-wide: a document another member uploaded (web stamps `user_id` with the uploader) belongs in the
+  /// list too. RLS ("Users can view documents in their families") bounds what a family id can return.
+  func fetchDocuments(familyUnitId: String) async throws -> [Document] {
+    logger.debug("Fetching documents for family: \(familyUnitId)")
+
+    let documents: [Document] = try await client
       .from("documents")
       .select()
-      .eq("user_id", value: userId)
+      .eq("family_unit_id", value: familyUnitId)
       .order("created_at", ascending: false)
       .execute()
       .value
@@ -75,7 +81,7 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
   func fetchDocument(id: String) async throws -> Document {
     logger.debug("Fetching document: \(id)")
 
-    let document: Document = try await supabaseManager.client
+    let document: Document = try await client
       .from("documents")
       .select()
       .eq("id", value: id)
@@ -92,7 +98,7 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
 
     let payload = DocumentUpdatePayload(title: title, description: description, schoolId: schoolId)
 
-    let document: Document = try await supabaseManager.client
+    let document: Document = try await client
       .from("documents")
       .update(payload)
       .eq("id", value: id)
@@ -108,8 +114,8 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
   func fetchVersionHistory(documentId: String, document: Document) async throws -> [DocumentVersion] {
     logger.debug("Fetching version history for document: \(documentId)")
 
-    guard let userId = document.userId, !userId.isEmpty else {
-      logger.warning("No userId for version history")
+    guard let scope = VersionScope(document: document) else {
+      logger.warning("No family or user for version history")
       return []
     }
 
@@ -128,11 +134,11 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
     }
 
     do {
-      let rows: [VersionRow] = try await supabaseManager.client
+      let rows: [VersionRow] = try await client
         .from("documents")
         .select("id, version, file_url, is_current, created_at")
         .eq("document_id", value: documentId)
-        .eq("user_id", value: userId)
+        .eq(scope.column, value: scope.value)
         .order("version", ascending: false)
         .execute()
         .value
@@ -153,7 +159,7 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
   func updateDocumentIsCurrent(id: String, isCurrent: Bool) async throws {
     logger.debug("Updating document is_current: \(id) -> \(isCurrent)")
 
-    try await supabaseManager.client
+    try await client
       .from("documents")
       .update(["is_current": isCurrent])
       .eq("id", value: id)
@@ -173,7 +179,7 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
     }
     let newShared = currentShared + [schoolId]
 
-    try await supabaseManager.client
+    try await client
       .from("documents")
       .update(["shared_with_schools": newShared])
       .eq("id", value: documentId)
@@ -188,7 +194,7 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
     let document: Document = try await fetchDocument(id: documentId)
     let newShared = document.sharedWithSchools.filter { $0 != schoolId }
 
-    try await supabaseManager.client
+    try await client
       .from("documents")
       .update(["shared_with_schools": newShared])
       .eq("id", value: documentId)
@@ -219,7 +225,7 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
       schoolId: schoolId, version: version
     )
 
-    _ = try await supabaseManager.client.storage
+    _ = try await client.storage
       .from("documents")
       .upload(
         plan.path,
@@ -227,14 +233,14 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
         options: FileOptions(cacheControl: "3600", contentType: mimeType)
       )
 
-    let urlResponse = try supabaseManager.client.storage
+    let urlResponse = try client.storage
       .from("documents")
       .getPublicURL(path: plan.path)
     let publicURL = urlResponse.absoluteURL
 
     let payload = plan.payload(fileUrl: publicURL.absoluteString)
 
-    let document: Document = try await supabaseManager.client
+    let document: Document = try await client
       .from("documents")
       .insert(payload)
       .select()
@@ -249,7 +255,7 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
   func deleteDocument(id: String, userId: String) async throws {
     logger.debug("Deleting document: \(id)")
 
-    let document: Document = try await supabaseManager.client
+    let document: Document = try await client
       .from("documents")
       .select()
       .eq("id", value: id)
@@ -260,7 +266,7 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
 
     if let storagePath = Self.storageObjectPath(forDeleting: document.fileUrl, supabaseOrigin: SupabaseConfig.url) {
       do {
-        _ = try await supabaseManager.client.storage
+        _ = try await client.storage
           .from("documents")
           .remove(paths: [storagePath])
       } catch {
@@ -268,7 +274,7 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
       }
     }
 
-    try await supabaseManager.client
+    try await client
       .from("documents")
       .delete()
       .eq("id", value: id)
@@ -276,6 +282,28 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
       .execute()
 
     logger.info("Deleted document: \(id)")
+  }
+
+  /// Versions of a document are listed family-wide like the list itself; rows that predate `family_unit_id`
+  /// fall back to their uploader.
+  struct VersionScope: Equatable {
+    let column: String
+    let value: String
+
+    init?(document: Document) {
+      if let familyUnitId = FamilyUnitID.normalized(document.familyUnitId) {
+        self.init(column: "family_unit_id", value: familyUnitId)
+      } else if let userId = document.userId, !userId.isEmpty {
+        self.init(column: "user_id", value: userId)
+      } else {
+        return nil
+      }
+    }
+
+    private init(column: String, value: String) {
+      self.column = column
+      self.value = value
+    }
   }
 
   /// Where an upload lands and what row describes it. The storage INSERT policy only admits `auth.uid()` as the

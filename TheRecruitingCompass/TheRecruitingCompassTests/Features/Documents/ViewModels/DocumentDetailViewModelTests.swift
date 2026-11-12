@@ -454,4 +454,24 @@ final class DocumentDetailViewModelTests: XCTestCase {
       updatedAt: "2025-01-01T00:00:00Z"
     )
   }
+
+  func testDeleteDocument_parentViewingAthlete_invalidatesFamilyScopedListCache() async {
+    let familyManager = ParentViewingAthleteFixture.makeFamilyManager(authManager: mockAuth)
+    let cache = InMemoryCache()
+    let key = ListCacheKeys.documents(familyUnitId: ParentViewingAthleteFixture.familyUnitId)
+    await cache.set([Document.mock()], forKey: key, ttlSeconds: 60)
+    let detail = DocumentDetailViewModel(
+      documentId: "doc-1",
+      documentsService: mockDocuments,
+      schoolsService: mockSchools,
+      authManager: mockAuth,
+      familyManager: familyManager,
+      cache: cache
+    )
+
+    await detail.deleteDocument()
+
+    let cached = await cache.get([Document].self, forKey: key)
+    XCTAssertNil(cached)
+  }
 }

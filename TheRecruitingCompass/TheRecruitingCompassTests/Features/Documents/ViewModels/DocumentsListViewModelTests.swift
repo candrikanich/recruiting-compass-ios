@@ -71,7 +71,7 @@ final class DocumentsListViewModelTests: XCTestCase {
     XCTAssertEqual(sut.documents.count, 2)
     XCTAssertNil(sut.errorMessage)
     XCTAssertEqual(mockDocuments.fetchDocumentsCallCount, 1)
-    XCTAssertEqual(mockDocuments.lastFetchDocumentsUserId, "user-1")
+    XCTAssertEqual(mockDocuments.lastFetchDocumentsFamilyUnitId, "family-1")
   }
 
   func testLoadDocuments_onFailure_setsError() async {
@@ -83,15 +83,7 @@ final class DocumentsListViewModelTests: XCTestCase {
     XCTAssertNotNil(sut.errorMessage)
   }
 
-  func testLoadDocuments_noUser_skipsLoad() async {
-    mockAuth.user = nil
-
-    await sut.loadDocuments()
-
-    XCTAssertEqual(mockDocuments.fetchDocumentsCallCount, 0)
-  }
-
-  func testLoadDocuments_parentViewingAthlete_usesAthleteUserId() async {
+  func testLoadDocuments_parentViewingAthlete_listsByFamilyUnit() async {
     let familyManager = ParentViewingAthleteFixture.makeFamilyManager(authManager: mockAuth)
     sut = DocumentsListViewModel(
       documentsService: mockDocuments,
@@ -102,7 +94,38 @@ final class DocumentsListViewModelTests: XCTestCase {
 
     await sut.loadDocuments()
 
-    XCTAssertEqual(mockDocuments.lastFetchDocumentsUserId, ParentViewingAthleteFixture.athleteUserId)
+    XCTAssertEqual(mockDocuments.lastFetchDocumentsFamilyUnitId, ParentViewingAthleteFixture.familyUnitId)
+  }
+
+  func testLoadDocuments_documentUploadedByAnotherFamilyMember_appearsInList() async {
+    mockDocuments.stubbedDocuments = [
+      .mock(id: "by-athlete", userId: "user-1"),
+      .mock(id: "by-parent-on-web", userId: "parent-user-1")
+    ]
+
+    await sut.loadDocuments()
+
+    XCTAssertEqual(Set(sut.documents.map(\.id)), ["by-athlete", "by-parent-on-web"])
+  }
+
+  func testLoadDocuments_switchingFamily_refetchesForNewFamilyInsteadOfServingCache() async {
+    await sut.loadDocuments()
+    mockFamilyManager.currentMember = FamilyMember(
+      id: "member-2", userId: "user-1", familyUnitId: "family-2", role: "parent",
+      addedAt: "2024-01-01T00:00:00Z", user: nil
+    )
+
+    await sut.loadDocuments()
+
+    XCTAssertEqual(mockDocuments.fetchedFamilyUnitIds, ["family-1", "family-2"])
+  }
+
+  func testLoadDocuments_noFamilyYet_skipsLoad() async {
+    mockFamilyManager.currentMember = nil
+
+    await sut.loadDocuments()
+
+    XCTAssertEqual(mockDocuments.fetchDocumentsCallCount, 0)
   }
 
   func testUploadDocument_parentViewingAthlete_savesToAthleteAndFamily() async {
@@ -313,7 +336,7 @@ final class DocumentsListViewModelTests: XCTestCase {
 
     // Simulate what DocumentDetailViewModel does on edit/share/delete:
     // invalidate the same cache key via the shared ListCacheKeys builder.
-    await mockCache.remove(forKey: ListCacheKeys.documents(userId: "user-1"))
+    await mockCache.remove(forKey: ListCacheKeys.documents(familyUnitId: "family-1"))
 
     mockDocuments.stubbedDocuments = [.mock(id: "d1", title: "Alpha"), .mock(id: "d2", title: "Beta")]
     await sut.loadDocuments()

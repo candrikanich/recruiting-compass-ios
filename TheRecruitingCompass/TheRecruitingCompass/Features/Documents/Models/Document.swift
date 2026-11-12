@@ -15,6 +15,7 @@ struct Document: Codable, Identifiable, Equatable, Sendable {
   let uploadedBy: String?
   let createdAt: String?
   let updatedAt: String?
+  var familyUnitId: String?
 
   enum CodingKeys: String, CodingKey {
     case id
@@ -31,6 +32,7 @@ struct Document: Codable, Identifiable, Equatable, Sendable {
     case uploadedBy = "uploaded_by"
     case createdAt = "created_at"
     case updatedAt = "updated_at"
+    case familyUnitId = "family_unit_id"
   }
 
   var isShared: Bool {
