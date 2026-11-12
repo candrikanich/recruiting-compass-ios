@@ -173,11 +173,9 @@ final class ActivityFeedErrorStatesE2ETests: XCTestCase {
     app.terminate()
 
     app = XCUIApplication()
-    app.launchArguments = ["--uitesting", "--disable-animations"]
-    app.launchEnvironment = [
-      "SUPABASE_URL": "https://invalid-url-that-does-not-exist.supabase.co",
-      "SUPABASE_ANON_KEY": "invalid-key"
-    ]
+    E2ETestEnvironment.configure(app)
+    app.launchEnvironment["SUPABASE_URL"] = "https://invalid-url-that-does-not-exist.supabase.co"
+    app.launchEnvironment["SUPABASE_ANON_KEY"] = "invalid-key"
     app.launch()
 
     screen = ActivityFeedScreenObject(app: app)
