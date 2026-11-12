@@ -165,6 +165,8 @@ final class AuthManager: AuthManaging {
         skipVerificationEmail: skipVerificationEmail,
         marketingEmailOptIn: marketingEmailOptIn
       )
+      // Identify first so signup_completed and the onboarding events land on the user, not the anonymous ID.
+      if session != nil { Analytics.identify(userId: user.id) }
       OnboardingAnalytics.signupCompleted(role: role)
       // Flush BEFORE publishing isAuthenticated (see login()'s equivalent comment) — a
       // signup that returns a session immediately (no email confirmation required) must

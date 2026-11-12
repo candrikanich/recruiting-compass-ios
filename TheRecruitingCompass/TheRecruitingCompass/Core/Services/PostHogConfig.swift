@@ -49,6 +49,8 @@ enum Analytics {
     var properties: [String: Any] = ["platform": "ios"]
     if let role { properties["role"] = role }
     transport.identify(userId: userId, properties: properties)
+    // Profiles identified by builds before ios#487 still hold `email`; clean them as users return.
+    transport.unsetPersonProperties(["email"])
   }
 
   /// Reset identity on sign-out so the next user gets a clean anonymous ID.
@@ -67,6 +69,7 @@ enum Analytics {
 protocol AnalyticsTransport: Sendable {
   func identify(userId: String, properties: [String: Any])
   func reset()
+  func unsetPersonProperties(_ keys: [String])
   /// Installs from before ios#487 persisted `email` as a person property; the SDK merges and never
   /// removes, so it must be cleared explicitly.
   func clearPersistedPersonProperties()
@@ -83,6 +86,11 @@ struct PostHogTransport: AnalyticsTransport {
   func reset() {
     guard !Analytics.apiKey.isEmpty else { return }
     PostHogSDK.shared.reset()
+  }
+
+  func unsetPersonProperties(_ keys: [String]) {
+    guard !Analytics.apiKey.isEmpty else { return }
+    PostHogSDK.shared.capture("$set", properties: ["$unset": keys])
   }
 
   func clearPersistedPersonProperties() {

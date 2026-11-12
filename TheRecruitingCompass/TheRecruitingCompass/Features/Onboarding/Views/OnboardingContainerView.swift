@@ -67,7 +67,7 @@ struct OnboardingContainerView: View {
       }
     }
     .task {
-      OnboardingAnalytics.onboardingStarted()
+      OnboardingAnalytics.onboardingStarted(user: authManager.user)
       await resolveInitialStep()
     }
   }

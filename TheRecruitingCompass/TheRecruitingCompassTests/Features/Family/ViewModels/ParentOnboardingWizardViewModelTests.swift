@@ -215,10 +215,9 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
   }
 
   func testFinishOnboarding_success_firesParentOnboardingCompleteOnce() async {
-    let transport = RecordingTransport()
-    let original = Analytics.transport
-    Analytics.transport = transport
-    defer { Analytics.transport = original }
+    let harness = AnalyticsHarness()
+    defer { harness.restore() }
+    let transport = harness.transport
     viewModel.playerFirstName = "Alex"
     viewModel.hasConfirmedDateOfBirth = true
     viewModel.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
@@ -230,13 +229,13 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     XCTAssertEqual(fired.count, 1)
     XCTAssertEqual(fired.first?.properties["role"] as? String, "parent")
     XCTAssertNil(fired.first?.properties["firstName"], "no names to PostHog")
+    XCTAssertNil(fired.first?.properties["completedItems"], "parents have no item count; never send 0")
   }
 
   func testFinishOnboarding_doubleTap_savesAndReportsOnce() async {
-    let transport = RecordingTransport()
-    let original = Analytics.transport
-    Analytics.transport = transport
-    defer { Analytics.transport = original }
+    let harness = AnalyticsHarness()
+    defer { harness.restore() }
+    let transport = harness.transport
     viewModel.playerFirstName = "Alex"
     viewModel.hasConfirmedDateOfBirth = true
     viewModel.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
@@ -251,10 +250,9 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
   }
 
   func testFinishOnboarding_failure_doesNotFireOnboardingComplete() async {
-    let transport = RecordingTransport()
-    let original = Analytics.transport
-    Analytics.transport = transport
-    defer { Analytics.transport = original }
+    let harness = AnalyticsHarness()
+    defer { harness.restore() }
+    let transport = harness.transport
     viewModel.playerFirstName = "Alex"
     viewModel.hasConfirmedDateOfBirth = true
     viewModel.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now

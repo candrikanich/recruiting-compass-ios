@@ -91,13 +91,9 @@ final class ParentOnboardingWizardViewModel {
     self.onboardingService = onboardingService ?? OnboardingServiceImpl(supabaseManager: .shared)
   }
 
-  private var hasTrackedStart = false
-
-  /// Safe to call from every appearance of the wizard: only the first one reports.
+  /// Safe to call from every appearance of the wizard: OnboardingAnalytics reports once per user.
   func trackOnboardingStarted() {
-    guard !hasTrackedStart else { return }
-    hasTrackedStart = true
-    OnboardingAnalytics.onboardingStarted(role: .parent)
+    OnboardingAnalytics.onboardingStarted(user: authManager.user)
   }
 
   func onSportChange() {

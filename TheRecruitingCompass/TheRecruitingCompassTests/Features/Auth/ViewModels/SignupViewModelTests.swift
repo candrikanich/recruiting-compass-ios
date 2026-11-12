@@ -480,10 +480,9 @@ final class SignupViewModelTests: XCTestCase {
   }
 
   func testSignupMinor_firesSignupCompletedOnceForPlayer() async {
-    let transport = RecordingTransport()
-    let original = Analytics.transport
-    Analytics.transport = transport
-    defer { Analytics.transport = original }
+    let harness = AnalyticsHarness()
+    defer { harness.restore() }
+    let transport = harness.transport
     fillValidForm(role: .player)
     sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
     sut.guardianEmail = "guardian@example.com"
@@ -496,10 +495,9 @@ final class SignupViewModelTests: XCTestCase {
   }
 
   func testSignupMinor_signupCompletedNotFiredWhenGuardianCallThrows() async {
-    let transport = RecordingTransport()
-    let original = Analytics.transport
-    Analytics.transport = transport
-    defer { Analytics.transport = original }
+    let harness = AnalyticsHarness()
+    defer { harness.restore() }
+    let transport = harness.transport
     mockGuardianService.shouldThrowSignupMinorError = true
     fillValidForm(role: .player)
     sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!

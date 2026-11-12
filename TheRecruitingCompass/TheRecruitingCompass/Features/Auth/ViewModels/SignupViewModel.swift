@@ -409,7 +409,9 @@ final class SignupViewModel {
         gender: draftsStep1 ? (derivedGender ?? (gender.isEmpty ? nil : gender)) : nil,
         zipCode: draftsStep1 && !trimmedZipCode.isEmpty ? trimmedZipCode : nil
       )
-      OnboardingAnalytics.signupCompleted(role: .player)
+      // The account exists from here on, even if the session step below fails. Deferred so the event
+      // lands after establishSession/login identify the user instead of on the anonymous ID.
+      defer { OnboardingAnalytics.signupCompleted(role: .player) }
       if let tokenHash = result.tokenHash {
         try await authManager.establishSession(fromTokenHash: tokenHash)
       } else {

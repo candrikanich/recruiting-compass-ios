@@ -5,19 +5,17 @@ import XCTest
 @MainActor
 final class AnalyticsEventsTests: XCTestCase {
   nonisolated deinit {}
-  private var transport: RecordingTransport!
-  private var originalTransport: (any AnalyticsTransport)!
+  private var harness: AnalyticsHarness!
+  private var transport: RecordingTransport { harness.transport }
 
   override func setUp() {
     super.setUp()
-    originalTransport = Analytics.transport
-    transport = RecordingTransport()
-    Analytics.transport = transport
+    harness = AnalyticsHarness()
   }
 
   override func tearDown() {
-    Analytics.transport = originalTransport
-    transport = nil
+    harness.restore()
+    harness = nil
     super.tearDown()
   }
 
@@ -75,17 +73,71 @@ final class AnalyticsEventsTests: XCTestCase {
 
   // MARK: - parent onboarding
 
-  func testParentWizard_startedFiresOnceEvenIfShownTwice() {
-    let viewModel = ParentOnboardingWizardViewModel(
-      familyService: MockFamilyService(), authManager: MockAuthManager(), onboardingService: MockOnboardingService()
-    )
+  func testParentWizard_startedFiresOnceEvenAcrossViewModelInstances() {
+    let auth = MockAuthManager()
+    auth.setMockUser(userMock())
+    func makeViewModel() -> ParentOnboardingWizardViewModel {
+      ParentOnboardingWizardViewModel(
+        familyService: MockFamilyService(), authManager: auth, onboardingService: MockOnboardingService()
+      )
+    }
 
-    viewModel.trackOnboardingStarted()
-    viewModel.trackOnboardingStarted()
+    makeViewModel().trackOnboardingStarted()
+    makeViewModel().trackOnboardingStarted()
 
     let fired = transport.events(named: "onboarding_v2_started")
     XCTAssertEqual(fired.count, 1)
     XCTAssertEqual(fired.first?.properties["role"] as? String, "parent")
+  }
+
+  func testOnboardingStarted_playerFiresOncePerUserEvenIfTaskRerun() {
+    let player = User(
+      id: "p-1", email: "p@example.com", emailConfirmedAt: nil,
+      createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z", role: .player
+    )
+
+    OnboardingAnalytics.onboardingStarted(user: player)
+    OnboardingAnalytics.onboardingStarted(user: player)
+
+    XCTAssertEqual(transport.events(named: "onboarding_v2_started").count, 1)
+    XCTAssertEqual(transport.events(named: "onboarding_v2_started").first?.properties["role"] as? String, "player")
+  }
+
+  func testOnboardingStarted_unknownRoleSendsNothingThenFiresOnceRoleKnown() {
+    let noRole = User(
+      id: "p-2", email: "p@example.com", emailConfirmedAt: nil,
+      createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z", role: nil
+    )
+    OnboardingAnalytics.onboardingStarted(user: noRole)
+    OnboardingAnalytics.onboardingStarted(user: nil)
+    XCTAssertTrue(transport.events(named: "onboarding_v2_started").isEmpty, "never guess a role")
+
+    OnboardingAnalytics.onboardingStarted(role: .player, userId: "p-2")
+
+    XCTAssertEqual(transport.events(named: "onboarding_v2_started").count, 1)
+  }
+
+  func testIdentify_unsetsStoredEmailOnExistingProfiles() {
+    Analytics.identify(userId: "user-1")
+
+    XCTAssertEqual(transport.unsets, [["email"]])
+  }
+
+  func testSignupWithSession_identifiesBeforeSignupCompleted() async throws {
+    let (auth, supabase) = makeAuthManager()
+    let session = Session(
+      accessToken: "a", tokenType: "bearer", expiresIn: 3600, expiresAt: 4_000_000_000, refreshToken: "r", user: userMock()
+    )
+    supabase.signUpResult = .success((user: userMock(), session: session))
+
+    try await auth.signup(
+      email: "pat@example.com", password: "password123", fullName: "Pat Doe",
+      role: .parent, familyCode: nil, captchaToken: "t"
+    )
+
+    XCTAssertEqual(transport.identifies.map(\.userId), ["user-1"])
+    XCTAssertEqual(transport.events(named: "signup_completed").count, 1)
+    XCTAssertEqual(transport.order.first, "identify", "identify must precede signup_completed")
   }
 
   func testOnboardingAnalytics_schoolAddedCarriesNoSchoolName() {
@@ -140,12 +192,12 @@ final class AnalyticsEventsTests: XCTestCase {
     XCTAssertTrue(transport.events(named: "signup_completed").isEmpty)
   }
 
-  func testPlayerOnboarding_defaultsToPlayerRole() {
-    OnboardingAnalytics.onboardingStarted()
-    OnboardingAnalytics.onboardingComplete(completedItems: 2)
+  func testPlayerOnboardingComplete_carriesRoleAndItemCount() {
+    OnboardingAnalytics.onboardingComplete(role: .player, completedItems: 2)
 
-    XCTAssertEqual(transport.events(named: "onboarding_v2_started").first?.properties["role"] as? String, "player")
-    XCTAssertEqual(transport.events(named: "onboarding_v2_complete").first?.properties["role"] as? String, "player")
+    let fired = transport.events(named: "onboarding_v2_complete").first
+    XCTAssertEqual(fired?.properties["role"] as? String, "player")
+    XCTAssertEqual(fired?.properties["completedItems"] as? Int, 2)
   }
 
   func testChecklistItemCompleted_carriesRoleOfSignedInUser() {
