@@ -232,6 +232,24 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     XCTAssertNil(fired.first?.properties["firstName"], "no names to PostHog")
   }
 
+  func testFinishOnboarding_doubleTap_savesAndReportsOnce() async {
+    let transport = RecordingTransport()
+    let original = Analytics.transport
+    Analytics.transport = transport
+    defer { Analytics.transport = original }
+    viewModel.playerFirstName = "Alex"
+    viewModel.hasConfirmedDateOfBirth = true
+    viewModel.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit(id: "family-42")
+
+    async let first: Void = viewModel.finishOnboarding()
+    async let second: Void = viewModel.finishOnboarding()
+    _ = await (first, second)
+
+    XCTAssertEqual(mockFamilyService.savePlayerDetailsCallCount, 1)
+    XCTAssertEqual(transport.events(named: "onboarding_v2_complete").count, 1)
+  }
+
   func testFinishOnboarding_failure_doesNotFireOnboardingComplete() async {
     let transport = RecordingTransport()
     let original = Analytics.transport

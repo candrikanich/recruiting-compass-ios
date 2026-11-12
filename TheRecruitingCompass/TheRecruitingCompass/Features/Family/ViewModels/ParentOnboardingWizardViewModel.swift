@@ -146,7 +146,7 @@ final class ParentOnboardingWizardViewModel {
   /// dashboard — no invite step, no schools-recommendation step). Inviting the athlete happens later,
   /// from the dashboard's ParentOnboardingBanner (InviteAthleteView).
   func finishOnboarding() async {
-    guard isPlayerDetailsValid else { return }
+    guard isPlayerDetailsValid, !isLoading else { return }
 
     isLoading = true
     errorMessage = nil

@@ -185,6 +185,10 @@ final class AuthManager: AuthManaging {
       }
       logger.info("Signup successful for user: \(user.id, privacy: .private), session: \(session != nil)")
     } catch {
+      // The account was created even though the follow-up sign-in failed, so it still counts.
+      if case AuthError.accountCreatedButSignInFailed = error {
+        OnboardingAnalytics.signupCompleted(role: role)
+      }
       self.isAuthenticated = false
       self.errorMessage = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."
       logger.error("Signup failed: \(error.localizedDescription)")

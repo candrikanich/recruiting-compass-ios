@@ -40,10 +40,11 @@ enum OnboardingAnalytics {
     ])
   }
 
-  static func checklistItemCompleted(item: String) {
-    logger.info("checklist_item_completed item=\(item)")
+  static func checklistItemCompleted(item: String, role: UserRole) {
+    logger.info("checklist_item_completed item=\(item) role=\(role.rawValue)")
     Analytics.capture("checklist_item_completed", properties: [
-      "item": item
+      "item": item,
+      "role": role.rawValue
     ])
   }
 

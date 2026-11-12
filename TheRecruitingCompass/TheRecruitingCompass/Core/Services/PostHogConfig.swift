@@ -27,9 +27,17 @@ enum Analytics {
       logger.warning("POSTHOG_API_KEY not configured — analytics disabled")
       return
     }
-    let config = PostHogConfig(projectToken: key, host: host)
-    PostHogSDK.shared.setup(config)
+    PostHogSDK.shared.setup(makeConfig(key: key))
+    transport.clearPersistedPersonProperties()
     logger.info("PostHog initialized")
+  }
+
+  /// The app reads no PostHog feature flags, so nothing needs the person properties that the SDK
+  /// would otherwise attach to a launch-time /flags request.
+  static func makeConfig(key: String) -> PostHogConfig {
+    let config = PostHogConfig(projectToken: key, host: host)
+    config.preloadFeatureFlags = false
+    return config
   }
 
   /// Where events go. Tests swap in a recording double so nothing reaches PostHog.
@@ -59,6 +67,9 @@ enum Analytics {
 protocol AnalyticsTransport: Sendable {
   func identify(userId: String, properties: [String: Any])
   func reset()
+  /// Installs from before ios#487 persisted `email` as a person property; the SDK merges and never
+  /// removes, so it must be cleared explicitly.
+  func clearPersistedPersonProperties()
   func capture(_ event: String, properties: [String: Any])
 }
 
@@ -72,6 +83,11 @@ struct PostHogTransport: AnalyticsTransport {
   func reset() {
     guard !Analytics.apiKey.isEmpty else { return }
     PostHogSDK.shared.reset()
+  }
+
+  func clearPersistedPersonProperties() {
+    guard !Analytics.apiKey.isEmpty else { return }
+    PostHogSDK.shared.resetPersonPropertiesForFlags(reloadFeatureFlags: false)
   }
 
   func capture(_ event: String, properties: [String: Any]) {

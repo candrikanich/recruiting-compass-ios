@@ -1,3 +1,4 @@
+import PostHog
 import XCTest
 @testable import TheRecruitingCompass
 
@@ -91,5 +92,81 @@ final class AnalyticsEventsTests: XCTestCase {
     OnboardingAnalytics.schoolAdded()
 
     XCTAssertEqual(transport.events(named: "onboarding_v2_school_added").first?.properties.keys.sorted(), ["platform"])
+  }
+
+  // MARK: - hostile cases (from verifier)
+
+  func testSignup_accountCreatedButSignInFailed_stillCountsNewAccount() async {
+    let (auth, supabase) = makeAuthManager()
+    supabase.signUpResult = .failure(AuthError.accountCreatedButSignInFailed("sign-in failed"))
+
+    try? await auth.signup(
+      email: "a@example.com", password: "password123", fullName: "A B",
+      role: .parent, familyCode: nil, captchaToken: "t"
+    )
+
+    XCTAssertEqual(transport.events(named: "signup_completed").count, 1)
+    XCTAssertEqual(transport.events(named: "signup_completed").first?.properties["role"] as? String, "parent")
+  }
+
+  func testAdultPlayerSignup_reportsPlayerRole() async throws {
+    let (auth, _) = makeAuthManager()
+
+    try await auth.signup(
+      email: "e@example.com", password: "password123", fullName: "E F",
+      role: .player, familyCode: nil, captchaToken: "t"
+    )
+
+    XCTAssertEqual(transport.events(named: "signup_completed").first?.properties["role"] as? String, "player")
+  }
+
+  func testMinorSignupFailure_firesNoSignupCompleted() async {
+    let guardian = MockGuardianService()
+    guardian.shouldThrowSignupMinorError = true
+    guardian.mockErrorToThrow = GuardianServiceError.server(400, message: "nope")
+    let sut = SignupViewModel(
+      authManager: MockAuthManager(), guardianService: guardian, turnstileTokenProvider: MockTurnstileTokenProvider()
+    )
+    sut.selectRole(.player)
+    sut.firstName = "John"; sut.lastName = "Doe"; sut.email = "j@example.com"
+    sut.password = "StrongPass123"; sut.confirmPassword = "StrongPass123"; sut.termsAccepted = true
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
+    sut.guardianEmail = "g@example.com"
+    sut.graduationYear = 2028; sut.primarySport = "Soccer"
+
+    await sut.signup()
+
+    XCTAssertEqual(sut.errorMessage, "nope", "must reach the guardian call")
+    XCTAssertTrue(transport.events(named: "signup_completed").isEmpty)
+  }
+
+  func testPlayerOnboarding_defaultsToPlayerRole() {
+    OnboardingAnalytics.onboardingStarted()
+    OnboardingAnalytics.onboardingComplete(completedItems: 2)
+
+    XCTAssertEqual(transport.events(named: "onboarding_v2_started").first?.properties["role"] as? String, "player")
+    XCTAssertEqual(transport.events(named: "onboarding_v2_complete").first?.properties["role"] as? String, "player")
+  }
+
+  func testChecklistItemCompleted_carriesRoleOfSignedInUser() {
+    let manager = NuxProgressManager(service: MockNuxProgressService(), roleProvider: { .parent })
+
+    manager.completeItem(.sport)
+
+    let fired = transport.events(named: "checklist_item_completed")
+    XCTAssertEqual(fired.count, 1)
+    XCTAssertEqual(fired.first?.properties["role"] as? String, "parent")
+  }
+
+  // MARK: - stale person properties (email on upgraded installs)
+
+  func testConfig_doesNotPreloadFeatureFlags() {
+    XCTAssertFalse(Analytics.makeConfig(key: "phc_test").preloadFeatureFlags)
+  }
+
+  func testSetup_clearsPersistedPersonProperties() {
+    Analytics.setup()
+
+    XCTAssertEqual(transport.clearPersistedCount, 1)
   }
 }

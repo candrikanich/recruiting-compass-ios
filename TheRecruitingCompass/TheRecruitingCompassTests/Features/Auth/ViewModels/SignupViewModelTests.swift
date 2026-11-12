@@ -495,6 +495,21 @@ final class SignupViewModelTests: XCTestCase {
     XCTAssertEqual(fired.first?.properties["role"] as? String, "player")
   }
 
+  func testSignupMinor_signupCompletedNotFiredWhenGuardianCallThrows() async {
+    let transport = RecordingTransport()
+    let original = Analytics.transport
+    Analytics.transport = transport
+    defer { Analytics.transport = original }
+    mockGuardianService.shouldThrowSignupMinorError = true
+    fillValidForm(role: .player)
+    sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
+    sut.guardianEmail = "guardian@example.com"
+
+    await sut.signup()
+
+    XCTAssertTrue(transport.events(named: "signup_completed").isEmpty)
+  }
+
   func testSignupMinorSurfacesServerErrorMessage() async {
     fillValidForm(role: .player)
     sut.dateOfBirth = Calendar.current.date(byAdding: .year, value: -15, to: .now)!
