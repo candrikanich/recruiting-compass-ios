@@ -80,7 +80,7 @@ final class AuthManager: AuthManaging {
 
       // Save session to Keychain
       try keychain.save(session, forKey: sessionKey)
-      Analytics.identify(userId: user.id)
+      Analytics.identify(userId: user.id, role: user.role?.rawValue)
       logger.info("Login successful for user: \(user.id, privacy: .private)")
     } catch {
       self.isAuthenticated = false
@@ -110,7 +110,7 @@ final class AuthManager: AuthManaging {
       self.isAuthenticated = true
       self.errorMessage = nil
 
-      Analytics.identify(userId: user.id)
+      Analytics.identify(userId: user.id, role: user.role?.rawValue)
       logger.info("Session established for user: \(user.id, privacy: .private)")
     } catch {
       // The Supabase client may already hold a live session from verifyOTP
@@ -149,6 +149,7 @@ final class AuthManager: AuthManaging {
       logger.info("Signup blocked: COPPA age restriction")
       throw AuthError.coppaUnderAge
     }
+    var identifiedDuringSignup = false
     do {
       let (user, session) = try await supabaseManager.signUp(
         email: email,
@@ -165,9 +166,16 @@ final class AuthManager: AuthManaging {
         skipVerificationEmail: skipVerificationEmail,
         marketingEmailOptIn: marketingEmailOptIn
       )
-      // Identify first so signup_completed and the onboarding events land on the user, not the anonymous ID.
-      if session != nil { Analytics.identify(userId: user.id) }
+      // Identify first so signup_completed lands on the user, not the anonymous ID.
+      Analytics.identify(userId: user.id, role: user.role?.rawValue)
+      identifiedDuringSignup = true
       OnboardingAnalytics.signupCompleted(role: role)
+      if session == nil {
+        // Email confirmation pending: nobody is signed in on this device yet, so don't leave the
+        // analytics identity on an account that may never be used here.
+        Analytics.reset()
+        identifiedDuringSignup = false
+      }
       // Flush BEFORE publishing isAuthenticated (see login()'s equivalent comment) — a
       // signup that returns a session immediately (no email confirmation required) must
       // not let the onboarding container see this user as authenticated before their
@@ -187,10 +195,13 @@ final class AuthManager: AuthManaging {
       }
       logger.info("Signup successful for user: \(user.id, privacy: .private), session: \(session != nil)")
     } catch {
-      // The account was created even though the follow-up sign-in failed, so it still counts.
+      // The account was created even though the follow-up sign-in failed, so it still counts. The error
+      // carries no user ID, so this one event stays anonymous.
       if case AuthError.accountCreatedButSignInFailed = error {
         OnboardingAnalytics.signupCompleted(role: role)
       }
+      // A later step failed after identify: don't let the next account on this device log under this one.
+      if identifiedDuringSignup { Analytics.reset() }
       self.isAuthenticated = false
       self.errorMessage = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."
       logger.error("Signup failed: \(error.localizedDescription)")
@@ -367,7 +378,7 @@ final class AuthManager: AuthManaging {
         self.isAuthenticated = true
         self.errorMessage = nil
         try? keychain.save(newSession, forKey: sessionKey)
-        Analytics.identify(userId: updatedUser.id)
+        Analytics.identify(userId: updatedUser.id, role: updatedUser.role?.rawValue)
         logger.info("Session refreshed and saved for user: \(updatedUser.id, privacy: .private)")
       } else {
         logger.warning("No session returned after refresh, clearing state")

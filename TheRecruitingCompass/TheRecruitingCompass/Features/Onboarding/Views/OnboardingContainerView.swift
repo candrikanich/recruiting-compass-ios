@@ -66,8 +66,8 @@ struct OnboardingContainerView: View {
         }
       }
     }
+    .modifier(OnboardingStartedTracking(user: authManager.user))
     .task {
-      OnboardingAnalytics.onboardingStarted(user: authManager.user)
       await resolveInitialStep()
     }
   }

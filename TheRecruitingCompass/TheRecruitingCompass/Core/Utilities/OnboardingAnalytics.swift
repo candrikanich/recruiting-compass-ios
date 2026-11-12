@@ -14,15 +14,12 @@ enum OnboardingAnalytics {
     Analytics.capture("signup_completed", properties: ["role": role.rawValue])
   }
 
-  /// Where the once-per-user "started sent" flag lives. Tests swap in an isolated suite.
-  nonisolated(unsafe) static var defaults: UserDefaults = .standard
-
   /// Fires once per user, however often the onboarding screen appears. The flag is only set when the
   /// event is actually sent, so a call with no known role/user (see `startedIfKnown`) can retry later.
   static func onboardingStarted(role: UserRole, userId: String) {
     let key = "analytics.onboardingStartedSent.\(userId)"
-    guard !defaults.bool(forKey: key) else { return }
-    defaults.set(true, forKey: key)
+    guard !Analytics.defaults.bool(forKey: key) else { return }
+    Analytics.defaults.set(true, forKey: key)
     logger.info("onboarding_v2_started role=\(role.rawValue)")
     Analytics.capture("onboarding_v2_started", properties: ["role": role.rawValue])
   }

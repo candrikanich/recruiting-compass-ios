@@ -58,7 +58,7 @@ final class AnalyticsEventsTests: XCTestCase {
     XCTAssertEqual(fired.count, 1)
     XCTAssertEqual(fired.first?.properties["role"] as? String, "parent")
     XCTAssertEqual(Set(fired.first?.properties.keys.map { $0 } ?? []), ["role", "platform"])
-    XCTAssertTrue(transport.identifies.isEmpty, "no session yet, so nobody is signed in to identify")
+    XCTAssertEqual(transport.order.last, "reset", "no session yet, so no identity may be left behind")
   }
 
   func testSignup_failure_doesNotFireSignupCompleted() async {
@@ -128,7 +128,8 @@ final class AnalyticsEventsTests: XCTestCase {
   func testSignupWithSession_identifiesBeforeSignupCompleted() async throws {
     let (auth, supabase) = makeAuthManager()
     let session = Session(
-      accessToken: "a", tokenType: "bearer", expiresIn: 3600, expiresAt: 4_000_000_000, refreshToken: "r", user: userMock()
+      accessToken: "a", tokenType: "bearer", expiresIn: 3600, expiresAt: 4_000_000_000,
+      refreshToken: "r", user: userMock()
     )
     supabase.signUpResult = .success((user: userMock(), session: session))
 
@@ -138,6 +139,7 @@ final class AnalyticsEventsTests: XCTestCase {
     )
 
     XCTAssertEqual(transport.identifies.map(\.userId), ["user-1"])
+    XCTAssertEqual(transport.identifies.first?.properties["role"] as? String, "parent")
     XCTAssertEqual(transport.events(named: "signup_completed").count, 1)
     XCTAssertEqual(transport.order.first, "identify", "identify must precede signup_completed")
   }
@@ -318,7 +320,8 @@ final class AnalyticsEventsTests: XCTestCase {
   func testNoDirectIdentifierInAnyCapturedProperty() async throws {
     let supabase = MockSupabaseManager()
     let session = Session(
-      accessToken: "a", tokenType: "bearer", expiresIn: 3600, expiresAt: 4_000_000_000, refreshToken: "r", user: userMock()
+      accessToken: "a", tokenType: "bearer", expiresIn: 3600, expiresAt: 4_000_000_000,
+      refreshToken: "r", user: userMock()
     )
     supabase.signUpResult = .success((user: userMock(), session: session))
     let auth = AuthManager(supabaseManager: supabase, biometricService: MockBiometricService())
@@ -333,5 +336,79 @@ final class AnalyticsEventsTests: XCTestCase {
     for needle in ["pat@example.com", "Pat", "Doe", "John", "j@example.com", "g@example.com"] {
       XCTAssertFalse(values.contains { $0.contains(needle) }, "leaked \(needle)")
     }
+  }
+
+  // MARK: - identity hygiene around signup
+
+  func testSignupFailingAfterIdentify_resetsSoNextAccountIsNotMisattributed() async {
+    let (auth, supabase) = makeAuthManager()
+    let session = Session(
+      accessToken: "a", tokenType: "bearer", expiresIn: 3600, expiresAt: 4_000_000_000,
+      refreshToken: "r", user: userMock()
+    )
+    supabase.signUpResult = .success((user: userMock(), session: session))
+
+    do {
+      try await auth.signup(
+        email: "pat@example.com", password: "password123", fullName: "Pat Doe",
+        role: .parent, familyCode: nil, captchaToken: "t",
+        beforePublish: { throw AuthError.serverError("invite acceptance failed") }
+      )
+      XCTFail("expected the beforePublish failure to abort signup")
+    } catch {
+      XCTAssertEqual(transport.identifies.count, 1)
+      XCTAssertEqual(transport.resetCount, 1, "must drop the identity of an account that never signed in")
+      XCTAssertEqual(transport.order.last, "reset")
+    }
+  }
+
+  func testSignupWithoutSession_identifiesForTheEventThenLeavesDeviceAnonymous() async throws {
+    let (auth, _) = makeAuthManager()
+
+    try await auth.signup(
+      email: "pat@example.com", password: "password123", fullName: "Pat Doe",
+      role: .parent, familyCode: nil, captchaToken: "t"
+    )
+
+    XCTAssertEqual(transport.order.prefix(3), ["identify", "signup_completed", "reset"])
+  }
+
+  func testIdentify_unsetsEmailOncePerUserNotOnEveryLaunch() {
+    Analytics.identify(userId: "user-1")
+    Analytics.identify(userId: "user-1")
+    Analytics.identify(userId: "user-2")
+
+    XCTAssertEqual(transport.unsets.count, 2, "once for each of the two users")
+  }
+
+  func testOnboardingStartedTracking_firesWhenRoleResolvesAfterAppearing() throws {
+    let box = UserBox()
+    let window = UIWindow(frame: UIScreen.main.bounds)
+    window.rootViewController = UIHostingController(rootView: TrackingHost(box: box))
+    window.makeKeyAndVisible()
+    defer { window.isHidden = true }
+    RunLoop.main.run(until: Date().addingTimeInterval(0.2))
+    XCTAssertTrue(transport.events(named: "onboarding_v2_started").isEmpty, "role unknown yet")
+
+    box.user = User(
+      id: "late-1", email: "p@example.com", emailConfirmedAt: nil,
+      createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z", role: .player
+    )
+    RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+
+    XCTAssertEqual(transport.events(named: "onboarding_v2_started").count, 1)
+  }
+}
+
+@Observable
+@MainActor
+private final class UserBox {
+  var user: User?
+}
+
+private struct TrackingHost: View {
+  let box: UserBox
+  var body: some View {
+    Color.clear.modifier(OnboardingStartedTracking(user: box.user))
   }
 }

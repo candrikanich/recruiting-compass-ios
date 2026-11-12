@@ -40,6 +40,9 @@ enum Analytics {
     return config
   }
 
+  /// Per-user "already sent" flags (email unset, onboarding started). Tests swap in an isolated suite.
+  nonisolated(unsafe) static var defaults: UserDefaults = .standard
+
   /// Where events go. Tests swap in a recording double so nothing reaches PostHog.
   nonisolated(unsafe) static var transport: any AnalyticsTransport = PostHogTransport()
 
@@ -49,7 +52,10 @@ enum Analytics {
     var properties: [String: Any] = ["platform": "ios"]
     if let role { properties["role"] = role }
     transport.identify(userId: userId, properties: properties)
-    // Profiles identified by builds before ios#487 still hold `email`; clean them as users return.
+    // Profiles identified by builds before ios#487 still hold `email`. Clean each once, not on every launch.
+    let unsetKey = "analytics.emailUnsetDone.\(userId)"
+    guard !defaults.bool(forKey: unsetKey) else { return }
+    defaults.set(true, forKey: unsetKey)
     transport.unsetPersonProperties(["email"])
   }
 

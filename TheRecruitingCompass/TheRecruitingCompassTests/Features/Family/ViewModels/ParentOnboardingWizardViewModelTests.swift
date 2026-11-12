@@ -249,6 +249,18 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     XCTAssertEqual(transport.events(named: "onboarding_v2_complete").count, 1)
   }
 
+  func testFinishOnboarding_whileAnInviteIsInFlight_stillRuns() async {
+    viewModel.playerFirstName = "Alex"
+    viewModel.hasConfirmedDateOfBirth = true
+    viewModel.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit(id: "family-42")
+    viewModel.isLoading = true
+
+    await viewModel.finishOnboarding()
+
+    XCTAssertEqual(mockFamilyService.savePlayerDetailsCallCount, 1, "isLoading belongs to sendInvite, not Finish")
+  }
+
   func testFinishOnboarding_failure_doesNotFireOnboardingComplete() async {
     let harness = AnalyticsHarness()
     defer { harness.restore() }
