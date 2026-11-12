@@ -9,14 +9,23 @@
 # not main, or the notes would advertise unreleased work sitting on main.
 #
 # Output: markdown with the version being prepared (MARKETING_VERSION at the end ref), then one section
-# per first-parent commit (squash-merged PRs include labels + full description; direct commits, or PRs
+# per first-parent commit (PRs (squash or merge commit) include labels + full description; direct commits, or PRs
 # gh can't fetch, include the commit body). Used by the whats-new skill (.claude/skills/whats-new).
 
 set -eu
 
 PBXPROJ_PATH="TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj"
 
-git fetch --quiet --tags origin
+# A rejected fetch (typically a local tag that differs from origin's: "would clobber existing tag") must not
+# be silent or fatal: say why, then carry on with the tags already local. Never --force here; that would move
+# local tags without the user asking.
+if ! fetch_err=$(git fetch --tags origin 2>&1); then
+  {
+    echo "warning: 'git fetch --tags origin' failed; continuing with local tags and refs, which may be stale:"
+    printf '%s\n' "$fetch_err" | sed 's/^/  /'
+    echo "hint: to realign local tags with origin, run: git fetch --tags --force origin"
+  } >&2
+fi
 
 BASE=${1:-$(git tag --list 'v*' --sort=-version:refname | head -n 1)}
 if [ -z "$BASE" ]; then
@@ -45,9 +54,14 @@ pr_details() {
     --template '{{if .labels}}Labels: {{range $i, $l := .labels}}{{if $i}}, {{end}}{{$l.name}}{{end}}{{"\n\n"}}{{end}}{{.body}}{{"\n"}}'
 }
 
+# Squash merges end in "(#N)"; merge commits start with "Merge pull request #N from".
+pr_number() {
+  printf '%s' "$1" | sed -n -e 's/.*(#\([0-9][0-9]*\))$/\1/p' -e 's/^Merge pull request #\([0-9][0-9]*\) from .*/\1/p'
+}
+
 for sha in $COMMITS; do
   subject=$(git log -1 --format='%s' "$sha")
-  pr=$(printf '%s' "$subject" | sed -n 's/.*(#\([0-9][0-9]*\))$/\1/p')
+  pr=$(pr_number "$subject")
   echo "## COMMIT: $subject"
   echo
   # Bodies are quoted so their own markdown headings don't read as new commits.
