@@ -3,7 +3,7 @@ import XCTest
 
 /// Storage keys reject characters like `|` ("Invalid key", ios#576). The key is sanitized; the title the user
 /// sees is not. Rules mirror web#1709: keep [A-Za-z0-9._-], everything else becomes `_`, extension kept,
-/// base capped at 100 chars, extension at 10.
+/// per Unicode scalar; base capped at 100, extension at 10.
 final class DocumentUploadKeyTests: XCTestCase {
   nonisolated deinit {}
 
@@ -49,5 +49,20 @@ final class DocumentUploadKeyTests: XCTestCase {
 
   func testUserVisibleTitle_isUntouched() {
     XCTAssertEqual(plan("a|b.pdf").payload(fileUrl: "x").title, "a|b.pdf")
+  }
+
+  func testLongExtension_isCapped() {
+    XCTAssertEqual(plan("a." + String(repeating: "b", count: 30)).path, "parent-p/resume/7_a.bbbbbbbbbb")
+  }
+
+  func testSanitizesPerUnicodeScalar_matchingWeb() {
+    XCTAssertEqual(plan("🎉.pdf").path, "parent-p/resume/7__.pdf")
+    XCTAssertEqual(plan("e\u{301}cole.pdf").path, "parent-p/resume/7_e_cole.pdf")
+    XCTAssertEqual(plan("👨‍👩‍👧.pdf").path, "parent-p/resume/7______.pdf")
+  }
+
+  func testCapsCountScalars_notGraphemes() {
+    let decomposed = String(repeating: "e\u{301}", count: 60)
+    XCTAssertEqual(plan(decomposed + ".pdf").path, "parent-p/resume/7_" + String(repeating: "e_", count: 50) + ".pdf")
   }
 }
