@@ -180,7 +180,7 @@ final class DocumentsListViewModel {
   /// and removal unshares rather than deletes. Nil = the full Documents tab.
   let schoolScopeId: String?
 
-  /// The user whose documents we read/write. When a parent is viewing an
+  /// The user documents are written for (reads are family-wide). When a parent is viewing an
   /// athlete, documents belong to the athlete (mirrors web +
   /// OffersListViewModel); otherwise the logged-in user's own id.
   private var targetUserId: String? {
@@ -218,24 +218,24 @@ final class DocumentsListViewModel {
   /// refetches. Call after any mutation (upload, delete). `DocumentDetailViewModel`
   /// invalidates the same key (via `ListCacheKeys.documents`) after edit/share/delete.
   private func invalidateDocumentsListCache() async {
-    guard let userId = targetUserId else { return }
-    await (cache ?? InMemoryCache.shared).remove(forKey: ListCacheKeys.documents(userId: userId))
+    guard let familyUnitId = familyManager.resolvedFamilyUnitId else { return }
+    await (cache ?? InMemoryCache.shared).remove(forKey: ListCacheKeys.documents(familyUnitId: familyUnitId))
   }
 
   // MARK: - Load
 
   func loadDocuments() async {
-    guard let userId = targetUserId else {
-      logger.warning("No userId for documents")
+    guard let familyUnitId = familyManager.resolvedFamilyUnitId else {
+      logger.warning("No family for documents")
       return
     }
 
-    logger.debug("Loading documents for user: \(userId)")
+    logger.debug("Loading documents for family: \(familyUnitId)")
     isLoading = true
     errorMessage = nil
     defer { isLoading = false }
 
-    let cacheKey = ListCacheKeys.documents(userId: userId)
+    let cacheKey = ListCacheKeys.documents(familyUnitId: familyUnitId)
     let cacheToUse = cache ?? InMemoryCache.shared
 
     do {
@@ -244,7 +244,7 @@ final class DocumentsListViewModel {
         forKey: cacheKey,
         ttlSeconds: Self.documentsListCacheTTL
       ) {
-        try await documentsService.fetchDocuments(userId: userId)
+        try await documentsService.fetchDocuments(familyUnitId: familyUnitId)
       }
       documents = result.value
       if result.cacheHit {

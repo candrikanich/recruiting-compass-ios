@@ -57,13 +57,15 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
     self.supabaseManager = supabaseManager
   }
 
-  func fetchDocuments(userId: String) async throws -> [Document] {
-    logger.debug("Fetching documents for user: \(userId)")
+  /// Family-wide: a document another member uploaded (web stamps `user_id` with the uploader) belongs in the
+  /// list too. RLS ("Users can view documents in their families") bounds what a family id can return.
+  func fetchDocuments(familyUnitId: String) async throws -> [Document] {
+    logger.debug("Fetching documents for family: \(familyUnitId)")
 
     let documents: [Document] = try await supabaseManager.client
       .from("documents")
       .select()
-      .eq("user_id", value: userId)
+      .eq("family_unit_id", value: familyUnitId)
       .order("created_at", ascending: false)
       .execute()
       .value
@@ -108,8 +110,8 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
   func fetchVersionHistory(documentId: String, document: Document) async throws -> [DocumentVersion] {
     logger.debug("Fetching version history for document: \(documentId)")
 
-    guard let userId = document.userId, !userId.isEmpty else {
-      logger.warning("No userId for version history")
+    guard let scope = VersionScope(document: document) else {
+      logger.warning("No family or user for version history")
       return []
     }
 
@@ -132,7 +134,7 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
         .from("documents")
         .select("id, version, file_url, is_current, created_at")
         .eq("document_id", value: documentId)
-        .eq("user_id", value: userId)
+        .eq(scope.column, value: scope.value)
         .order("version", ascending: false)
         .execute()
         .value
@@ -276,6 +278,28 @@ final class DocumentsServiceImpl: DocumentsManaging, Sendable {
       .execute()
 
     logger.info("Deleted document: \(id)")
+  }
+
+  /// Versions of a document are listed family-wide like the list itself; rows that predate `family_unit_id`
+  /// fall back to their uploader.
+  struct VersionScope: Equatable {
+    let column: String
+    let value: String
+
+    init?(document: Document) {
+      if let familyUnitId = FamilyUnitID.normalized(document.familyUnitId) {
+        self.init(column: "family_unit_id", value: familyUnitId)
+      } else if let userId = document.userId, !userId.isEmpty {
+        self.init(column: "user_id", value: userId)
+      } else {
+        return nil
+      }
+    }
+
+    private init(column: String, value: String) {
+      self.column = column
+      self.value = value
+    }
   }
 
   /// Where an upload lands and what row describes it. The storage INSERT policy only admits `auth.uid()` as the

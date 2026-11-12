@@ -198,8 +198,8 @@ final class DocumentDetailViewModel {
   private func invalidateDocumentCache() async {
     let cacheToUse = cache ?? InMemoryCache.shared
     await cacheToUse.remove(forKey: "document:\(documentId)")
-    if let userId {
-      await cacheToUse.remove(forKey: ListCacheKeys.documents(userId: userId))
+    if let familyUnitId = familyManager.resolvedFamilyUnitId {
+      await cacheToUse.remove(forKey: ListCacheKeys.documents(familyUnitId: familyUnitId))
     }
   }
 

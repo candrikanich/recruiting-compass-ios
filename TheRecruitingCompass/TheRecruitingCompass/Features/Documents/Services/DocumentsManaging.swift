@@ -1,7 +1,7 @@
 import Foundation
 
 protocol DocumentsManaging: Sendable {
-  func fetchDocuments(userId: String) async throws -> [Document]
+  func fetchDocuments(familyUnitId: String) async throws -> [Document]
   func fetchDocument(id: String) async throws -> Document
   func updateDocument(id: String, title: String?, description: String?, schoolId: String?) async throws -> Document
   func uploadDocument(

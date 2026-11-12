@@ -8,7 +8,7 @@ final class MockDocumentsService: DocumentsManaging, @unchecked Sendable {
   var lastUploadDocumentFamilyUnitId: String?
   var deleteDocumentCallCount = 0
 
-  var lastFetchDocumentsUserId: String?
+  var lastFetchDocumentsFamilyUnitId: String?
   var lastUploadDocumentUserId: String?
   var lastUploadDocumentUploadedBy: String?
   var lastUploadDocumentTitle: String?
@@ -43,9 +43,12 @@ final class MockDocumentsService: DocumentsManaging, @unchecked Sendable {
   var stubbedDocument: Document?
   var stubbedVersions: [DocumentVersion] = []
 
-  func fetchDocuments(userId: String) async throws -> [Document] {
+  var fetchedFamilyUnitIds: [String] = []
+
+  func fetchDocuments(familyUnitId: String) async throws -> [Document] {
     fetchDocumentsCallCount += 1
-    lastFetchDocumentsUserId = userId
+    fetchedFamilyUnitIds.append(familyUnitId)
+    lastFetchDocumentsFamilyUnitId = familyUnitId
     if shouldThrowFetchDocuments {
       throw NSError(domain: "MockDocumentsService", code: 5, userInfo: [NSLocalizedDescriptionKey: "Mock fetch error"])
     }
@@ -160,6 +163,7 @@ final class MockDocumentsService: DocumentsManaging, @unchecked Sendable {
 extension Document {
   static func mock(
     id: String = "doc-1",
+    userId: String = "user-1",
     title: String = "Test Document",
     type: DocumentType = .highlightVideo,
     description: String? = nil,
@@ -170,7 +174,7 @@ extension Document {
   ) -> Document {
     Document(
       id: id,
-      userId: "user-1",
+      userId: userId,
       type: type,
       title: title,
       description: description,
