@@ -10,7 +10,7 @@ final class UITestLaunchConfigGuardTests: XCTestCase {
     let code = strippingComments(from: source)
 
     var found: [String] = []
-    let appCount = matchCount(of: "XCUIApplication(\\.init)?\\(|:\\s*XCUIApplication\\??\\s*=\\s*\\.init\\(", in: code)
+    let appCount = matchCount(of: "XCUIApplication(\\.init)?\\(|=\\s*\\.init\\(", in: code)
     let configureCount = matchCount(of: "E2ETestEnvironment\\.configure\\(", in: code)
     if appCount > configureCount {
       found.append("\(appCount) XCUIApplication constructions but \(configureCount) E2ETestEnvironment.configure(...)")
@@ -19,10 +19,10 @@ final class UITestLaunchConfigGuardTests: XCTestCase {
       found.append("hand-built \"--uitesting\" launch argument")
     }
     for property in ["launchArguments", "launchEnvironment"] {
-      if matchCount(of: "\(property)\\s*=[^=]", in: code) > 0 {
+      if matchCount(of: "\\b\(property)\\s*=[^=]", in: code) > 0 {
         found.append("whole-value \(property) assignment (use append / subscript after configure)")
       }
-      if matchCount(of: "\(property)\\.removeAll", in: code) > 0 {
+      if matchCount(of: "\\b\(property)\\.removeAll", in: code) > 0 {
         found.append("\(property).removeAll drops what configure set")
       }
     }
@@ -30,7 +30,8 @@ final class UITestLaunchConfigGuardTests: XCTestCase {
   }
 
   private static func matchCount(of pattern: String, in text: String) -> Int {
-    text.ranges(of: try! Regex(pattern)).count
+    // Swift Regex defaults to Unicode word boundaries, which treat `.launchArguments` oddly; `.simple` is ASCII-style.
+    text.ranges(of: try! Regex(pattern).wordBoundaryKind(.simple)).count
   }
 
   /// Drops block comments (multi-line too) and end-of-line comments; `://` in URLs is left alone.
@@ -132,6 +133,11 @@ final class UITestLaunchConfigGuardTests: XCTestCase {
     XCTAssertFalse(Self.violations(in: source).isEmpty)
   }
 
+  func testDoesNotFlagIdentifiersThatMerelyEndInLaunchArguments() {
+    let source = "app = XCUIApplication()\nE2ETestEnvironment.configure(app)\nlet relaunchArguments = [\"-x\"]"
+    XCTAssertEqual(Self.violations(in: source), [])
+  }
+
   func testIgnoresCommentedOutCode() {
     let source = """
     app = XCUIApplication()
@@ -144,6 +150,7 @@ final class UITestLaunchConfigGuardTests: XCTestCase {
   func testFlagsInitFormConstructions() {
     XCTAssertFalse(Self.violations(in: "let app: XCUIApplication = .init()").isEmpty)
     XCTAssertFalse(Self.violations(in: "let app = XCUIApplication.init()").isEmpty)
+    XCTAssertFalse(Self.violations(in: "private var app: XCUIApplication!\napp = .init()").isEmpty)
   }
 
   func testIgnoresConfigureInsideBlockComments() {
