@@ -10,12 +10,12 @@ enum StorageKey {
   private static let allowed = Set(
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-".unicodeScalars)
 
-  /// Splits at the last `.` and works per Unicode scalar (not grapheme, not UTF-16 unit). Keeps ASCII
-  /// `[A-Za-z0-9._-]` and maps every other scalar to `_`. The base is capped at `maxBaseLength` scalars and the
-  /// extension at `maxExtensionLength`. A base that is empty or only `_` becomes `fallbackBase`. Web mirrors
-  /// this rule (web#1709). The caller's timestamp prefix, not this function, keeps repeat uploads distinct.
+  /// NFC-normalizes, splits at the last `.`, maps every Unicode scalar outside ASCII `[A-Za-z0-9._-]` to `_`,
+  /// collapses runs of `_`, then caps the base at `maxBaseLength` and the extension at `maxExtensionLength`
+  /// scalars. A base that is empty or only `_` becomes `fallbackBase`. Web mirrors this rule (web#1709). The
+  /// caller's timestamp prefix, not this function, keeps repeat uploads of one name distinct.
   static func safeFileName(_ name: String) -> String {
-    let scalars = name.unicodeScalars
+    let scalars = name.precomposedStringWithCanonicalMapping.unicodeScalars
     let dot = scalars.lastIndex(of: ".")
     let base = clean(dot.map { scalars[..<$0] } ?? scalars[...], limit: maxBaseLength)
     let ext = clean(dot.map { scalars[scalars.index(after: $0)...] } ?? scalars[scalars.endIndex...],
@@ -26,7 +26,11 @@ enum StorageKey {
 
   private static func clean(_ scalars: String.UnicodeScalarView.SubSequence, limit: Int) -> String {
     var out = String.UnicodeScalarView()
-    out.append(contentsOf: scalars.prefix(limit).map { allowed.contains($0) ? $0 : "_" })
-    return String(out)
+    for scalar in scalars {
+      let mapped: Unicode.Scalar = allowed.contains(scalar) ? scalar : "_"
+      if mapped == "_", out.last == "_" { continue }
+      out.append(mapped)
+    }
+    return String(String.UnicodeScalarView(out.prefix(limit)))
   }
 }

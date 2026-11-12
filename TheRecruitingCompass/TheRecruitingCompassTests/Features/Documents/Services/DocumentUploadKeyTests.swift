@@ -2,8 +2,8 @@ import XCTest
 @testable import TheRecruitingCompass
 
 /// Storage keys reject characters like `|` ("Invalid key", ios#576). The key is sanitized; the title the user
-/// sees is not. Rules mirror web#1709: keep [A-Za-z0-9._-], everything else becomes `_`, extension kept,
-/// per Unicode scalar; base capped at 100, extension at 10.
+/// sees is not. Web (web#1709) mirrors the shared vectors:
+/// see StorageKey.safeFileName for the rule.
 final class DocumentUploadKeyTests: XCTestCase {
   nonisolated deinit {}
 
@@ -15,37 +15,39 @@ final class DocumentUploadKeyTests: XCTestCase {
       fileName: fileName, mimeType: "application/pdf", title: fileName, description: nil, schoolId: nil, version: 1)
   }
 
-  func testPipe_isReplaced() {
+  private func safe(_ name: String) -> String { StorageKey.safeFileName(name) }
+
+  func testSharedVectors_matchWeb() {
+    XCTAssertEqual(safe("Bulldogs at Firelands | Scorebook | GameChanger.pdf"),
+                   "Bulldogs_at_Firelands_Scorebook_GameChanger.pdf")
+    XCTAssertEqual(safe("résumé 🎉.pdf"), "r_sum_.pdf")
+    XCTAssertEqual(safe("Rene\u{301}e.pdf"), "Ren_e.pdf")
+    XCTAssertEqual(safe("👨‍👩‍👧.pdf"), "file.pdf")
+    XCTAssertEqual(safe("履歴書.pdf"), "file.pdf")
+    XCTAssertEqual(safe("🎉"), "file")
+    XCTAssertEqual(safe("a." + String(repeating: "b", count: 30)), "a.bbbbbbbbbb")
+    XCTAssertEqual(safe("report.2024.final.pdf"), "report.2024.final.pdf")
+    XCTAssertEqual(safe(String(repeating: "a", count: 300) + ".pdf"), String(repeating: "a", count: 100) + ".pdf")
+  }
+
+  func testPipe_hashAndQuestionMark_areReplaced() {
     XCTAssertEqual(plan("a|b.pdf").path, "parent-p/resume/7_a_b.pdf")
-  }
-
-  func testHashAndQuestionMark_areReplaced() {
     XCTAssertEqual(plan("c#1?.pdf").path, "parent-p/resume/7_c_1_.pdf")
-  }
-
-  func testEmojiAndAccents_areReplaced() {
-    XCTAssertEqual(plan("résumé 🎉.pdf").path, "parent-p/resume/7_r_sum___.pdf")
   }
 
   func testSafeCharacters_areKept() {
     XCTAssertEqual(plan("My-CV_v2.final.PDF").path, "parent-p/resume/7_My-CV_v2.final.PDF")
   }
 
-  func testLongName_isCappedAndKeepsExtension() {
-    let path = plan(String(repeating: "a", count: 300) + ".pdf").path
-    XCTAssertEqual(path, "parent-p/resume/7_" + String(repeating: "a", count: 100) + ".pdf")
+  func testNoExtension_andEmptyOrUnderscoreBase() {
+    XCTAssertEqual(safe("notes"), "notes")
+    XCTAssertEqual(safe("|.pdf"), "file.pdf")
+    XCTAssertEqual(safe(""), "file")
   }
 
-  func testNoExtension_andEmptyBase() {
-    XCTAssertEqual(plan("notes").path, "parent-p/resume/7_notes")
-    XCTAssertEqual(plan("|.pdf").path, "parent-p/resume/7_file.pdf")
-    XCTAssertEqual(plan("").path, "parent-p/resume/7_file")
-  }
-
-  func testAllUnderscoreBase_fallsBackToFile() {
-    XCTAssertEqual(plan("履歴書.pdf").path, "parent-p/resume/7_file.pdf")
-    XCTAssertEqual(plan("🎉.pdf").path, "parent-p/resume/7_file.pdf")
-    XCTAssertEqual(plan("👨‍👩‍👧.pdf").path, "parent-p/resume/7_file.pdf")
+  func testRunsCollapseBeforeTheCap() {
+    let name = "a" + String(repeating: "|", count: 200) + String(repeating: "b", count: 200)
+    XCTAssertEqual(safe(name), "a_" + String(repeating: "b", count: 98))
   }
 
   func testFirstFolderStaysUploadedBy() {
@@ -58,20 +60,5 @@ final class DocumentUploadKeyTests: XCTestCase {
 
   func testUserVisibleTitle_isUntouched() {
     XCTAssertEqual(plan("a|b.pdf").payload(fileUrl: "x").title, "a|b.pdf")
-  }
-
-  func testLongExtension_isCapped() {
-    XCTAssertEqual(plan("a." + String(repeating: "b", count: 30)).path, "parent-p/resume/7_a.bbbbbbbbbb")
-  }
-
-  func testSanitizesPerUnicodeScalar_matchingWeb() {
-    XCTAssertEqual(plan("a🎉.pdf").path, "parent-p/resume/7_a_.pdf")
-    XCTAssertEqual(plan("e\u{301}cole.pdf").path, "parent-p/resume/7_e_cole.pdf")
-    XCTAssertEqual(plan("a👨‍👩‍👧.pdf").path, "parent-p/resume/7_a_____.pdf")
-  }
-
-  func testCapsCountScalars_notGraphemes() {
-    let decomposed = String(repeating: "e\u{301}", count: 60)
-    XCTAssertEqual(plan(decomposed + ".pdf").path, "parent-p/resume/7_" + String(repeating: "e_", count: 50) + ".pdf")
   }
 }
