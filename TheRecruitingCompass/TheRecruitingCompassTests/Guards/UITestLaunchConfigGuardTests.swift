@@ -4,25 +4,40 @@ import XCTest
 /// to the committed generated config, which is production (ios #434). These checks keep every UI test on the local stack.
 final class UITestLaunchConfigGuardTests: XCTestCase {
   /// Launch-config problems found in one UI test source, one message per problem.
+  ///
+  /// Counting is per file, so a file that configures twice for one app can still hide an unconfigured second app.
   static func violations(in source: String) -> [String] {
-    let code = source.split(separator: "\n", omittingEmptySubsequences: false)
-      .filter { !$0.trimmingCharacters(in: .whitespaces).hasPrefix("//") }
-      .joined(separator: "\n")
+    let code = strippingComments(from: source)
 
     var found: [String] = []
-    let appCount = code.components(separatedBy: "XCUIApplication(").count - 1
-    let configureCount = code.components(separatedBy: "E2ETestEnvironment.configure(").count - 1
+    let appCount = matchCount(of: "XCUIApplication(\\.init)?\\(|:\\s*XCUIApplication\\??\\s*=\\s*\\.init\\(", in: code)
+    let configureCount = matchCount(of: "E2ETestEnvironment\\.configure\\(", in: code)
     if appCount > configureCount {
-      found.append("\(appCount) XCUIApplication(...) but \(configureCount) E2ETestEnvironment.configure(...)")
+      found.append("\(appCount) XCUIApplication constructions but \(configureCount) E2ETestEnvironment.configure(...)")
     }
     if code.contains("\"--uitesting\"") {
       found.append("hand-built \"--uitesting\" launch argument")
     }
-    for property in ["launchArguments", "launchEnvironment"]
-    where code.range(of: "\\b\(property)\\s*=[^=]", options: .regularExpression) != nil {
-      found.append("whole-value \(property) assignment (use append / subscript after configure)")
+    for property in ["launchArguments", "launchEnvironment"] {
+      if matchCount(of: "\(property)\\s*=[^=]", in: code) > 0 {
+        found.append("whole-value \(property) assignment (use append / subscript after configure)")
+      }
+      if matchCount(of: "\(property)\\.removeAll", in: code) > 0 {
+        found.append("\(property).removeAll drops what configure set")
+      }
     }
     return found
+  }
+
+  private static func matchCount(of pattern: String, in text: String) -> Int {
+    text.ranges(of: try! Regex(pattern)).count
+  }
+
+  /// Drops block comments (multi-line too) and end-of-line comments; `://` in URLs is left alone.
+  private static func strippingComments(from source: String) -> String {
+    source
+      .replacingOccurrences(of: "/\\*[\\s\\S]*?\\*/", with: "", options: .regularExpression)
+      .replacingOccurrences(of: "(?<!:)//.*", with: "", options: .regularExpression)
   }
 
   private static let uiTestsDirectory = URL(fileURLWithPath: #filePath)
@@ -124,5 +139,36 @@ final class UITestLaunchConfigGuardTests: XCTestCase {
     // app.launchArguments = ["--uitesting"]
     """
     XCTAssertEqual(Self.violations(in: source), [])
+  }
+
+  func testFlagsInitFormConstructions() {
+    XCTAssertFalse(Self.violations(in: "let app: XCUIApplication = .init()").isEmpty)
+    XCTAssertFalse(Self.violations(in: "let app = XCUIApplication.init()").isEmpty)
+  }
+
+  func testIgnoresConfigureInsideBlockComments() {
+    let single = "app = XCUIApplication()\n/* E2ETestEnvironment.configure(app) */"
+    let multi = "app = XCUIApplication()\n/*\n E2ETestEnvironment.configure(app)\n*/"
+    let trailing = "app = XCUIApplication()\nlet x = 1 // E2ETestEnvironment.configure(app)"
+    for source in [single, multi, trailing] {
+      XCTAssertFalse(Self.violations(in: source).isEmpty, source)
+    }
+  }
+
+  func testUrlSlashesDoNotHideTheRestOfALine() {
+    let source = "app = XCUIApplication()\nE2ETestEnvironment.configure(app); let u = \"http://x\"; app.launchArguments = []"
+    XCTAssertFalse(Self.violations(in: source).isEmpty)
+  }
+
+  func testFlagsUITestingArgumentInAnyForm() {
+    let base = "app = XCUIApplication()\nE2ETestEnvironment.configure(app)\n"
+    XCTAssertFalse(Self.violations(in: base + "app.launchArguments.append(\"--uitesting\")").isEmpty)
+    XCTAssertFalse(Self.violations(in: base + "app.launchArguments += [\"--x\", \"--uitesting\"]").isEmpty)
+  }
+
+  func testFlagsRemoveAllOnLaunchConfig() {
+    let base = "app = XCUIApplication()\nE2ETestEnvironment.configure(app)\n"
+    XCTAssertFalse(Self.violations(in: base + "app.launchArguments.removeAll()").isEmpty)
+    XCTAssertFalse(Self.violations(in: base + "app.launchEnvironment.removeAll()").isEmpty)
   }
 }
