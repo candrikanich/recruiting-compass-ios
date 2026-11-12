@@ -44,13 +44,7 @@ struct LoginView: View {
           }
           .scrollDismissesKeyboard(.interactively)
           .keyboardFieldNavigation(focusedField: $focusedField, order: ["email", "password"])
-          .onChange(of: focusedField) { previous, _ in
-            switch previous {
-            case "email": viewModel.validateEmail()
-            case "password": viewModel.validatePassword()
-            default: break
-            }
-          }
+          .onChange(of: focusedField) { previous, _ in viewModel.fieldDidLoseFocus(previous) }
           .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
             withAnimation(.easeOut(duration: 0.25)) {
               proxy.scrollTo(LoginView.ScrollAnchor.signInButton, anchor: .bottom)

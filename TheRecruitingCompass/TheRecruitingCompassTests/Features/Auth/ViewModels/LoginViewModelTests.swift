@@ -85,6 +85,35 @@ final class LoginViewModelTests: XCTestCase {
     XCTAssertTrue(sut.fieldErrors.isEmpty)
   }
 
+  func testPristinePasswordShowsNoErrorWhileTyping() {
+    sut.password = "a"
+    sut.password = "ab"
+    XCTAssertTrue(sut.fieldErrors.isEmpty)
+  }
+
+  func testBlurringEmailValidatesEmailOnly() {
+    sut.email = "abc"
+    sut.password = ""
+    sut.fieldDidLoseFocus("email")
+    XCTAssertNotNil(sut.fieldErrors[.email])
+    XCTAssertNil(sut.fieldErrors[.password])
+  }
+
+  func testBlurringPasswordValidatesPasswordOnly() {
+    sut.email = "abc"
+    sut.password = ""
+    sut.fieldDidLoseFocus("password")
+    XCTAssertNotNil(sut.fieldErrors[.password])
+    XCTAssertNil(sut.fieldErrors[.email])
+  }
+
+  func testBlurWithNothingFocusedDoesNothing() {
+    sut.email = "abc"
+    sut.password = ""
+    sut.fieldDidLoseFocus(nil)
+    XCTAssertTrue(sut.fieldErrors.isEmpty)
+  }
+
   func testEditingToStillInvalidValueKeepsError() {
     sut.email = "abc"
     sut.validateEmail()

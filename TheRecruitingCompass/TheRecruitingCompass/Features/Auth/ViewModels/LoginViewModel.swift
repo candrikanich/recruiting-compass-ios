@@ -86,6 +86,14 @@ final class LoginViewModel {
     fieldErrors[field] = validator()
   }
 
+  func fieldDidLoseFocus(_ fieldID: String?) {
+    switch fieldID {
+    case "email": validateEmail()
+    case "password": validatePassword()
+    default: break
+    }
+  }
+
   func validateEmail() { validate(.email) { formValidator.validateEmail(email) } }
   func validatePassword() { validate(.password) { formValidator.validatePassword(password) } }
 
