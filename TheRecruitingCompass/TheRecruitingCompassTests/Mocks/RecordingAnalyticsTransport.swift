@@ -12,8 +12,9 @@ final class RecordingTransport: AnalyticsTransport, @unchecked Sendable {
 
   func identify(userId: String, properties: [String: Any]) { order.append("identify"); identifies.append((userId, properties)) }
   func reset() { resetCount += 1 }
+  func recordOrder(_ label: String) { order.append(label) }
   func unsetPersonProperties(_ keys: [String]) { unsets.append(keys) }
-  func clearPersistedPersonProperties() { clearPersistedCount += 1 }
+  func clearPersistedPersonProperties() { order.append("clearPersisted"); clearPersistedCount += 1 }
   func capture(_ event: String, properties: [String: Any]) { order.append(event); events.append(Event(name: event, properties: properties)) }
 
   func events(named name: String) -> [Event] { events.filter { $0.name == name } }

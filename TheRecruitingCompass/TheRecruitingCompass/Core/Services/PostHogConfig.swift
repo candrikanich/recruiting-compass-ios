@@ -21,13 +21,13 @@ enum Analytics {
   private static let host = "https://us.i.posthog.com"
 
   /// Call once at app launch. Silently no-ops when the key is missing (debug without PostHog).
-  static func setup() {
-    let key = apiKey
+  /// `key` and `startSDK` are seams so tests can check the sequence without starting the real SDK.
+  static func setup(key: String = apiKey, startSDK: (PostHogConfig) -> Void = { PostHogSDK.shared.setup($0) }) {
     guard !key.isEmpty else {
       logger.warning("POSTHOG_API_KEY not configured — analytics disabled")
       return
     }
-    PostHogSDK.shared.setup(makeConfig(key: key))
+    startSDK(makeConfig(key: key))
     transport.clearPersistedPersonProperties()
     logger.info("PostHog initialized")
   }

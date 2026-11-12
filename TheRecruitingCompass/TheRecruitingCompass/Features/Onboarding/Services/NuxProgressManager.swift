@@ -23,11 +23,11 @@ final class NuxProgressManager {
   private var session = 0
   @ObservationIgnored private var inFlightLoad: (userId: String, task: Task<Void, Never>)?
 
-  private let roleProvider: @MainActor () -> UserRole
+  private let roleProvider: @MainActor () -> UserRole?
 
   init(
     service: (any NuxProgressManaging)? = nil,
-    roleProvider: @escaping @MainActor () -> UserRole = { AuthManager.shared.user?.role ?? .player }
+    roleProvider: @escaping @MainActor () -> UserRole? = { AuthManager.shared.user?.role }
   ) {
     self.service = service ?? NuxProgressServiceImpl(supabaseManager: .shared)
     self.roleProvider = roleProvider

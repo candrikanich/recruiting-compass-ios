@@ -56,12 +56,12 @@ enum OnboardingAnalytics {
     Analytics.capture("onboarding_v2_complete", properties: properties)
   }
 
-  static func checklistItemCompleted(item: String, role: UserRole) {
-    logger.info("checklist_item_completed item=\(item) role=\(role.rawValue)")
-    Analytics.capture("checklist_item_completed", properties: [
-      "item": item,
-      "role": role.rawValue
-    ])
+  /// A nil role (not loaded yet) is omitted rather than guessed, as with onboardingStarted.
+  static func checklistItemCompleted(item: String, role: UserRole?) {
+    logger.info("checklist_item_completed item=\(item) role=\(role?.rawValue ?? "unknown")")
+    var properties: [String: Any] = ["item": item]
+    if let role { properties["role"] = role.rawValue }
+    Analytics.capture("checklist_item_completed", properties: properties)
   }
 
   static func checklistDismissed() {
