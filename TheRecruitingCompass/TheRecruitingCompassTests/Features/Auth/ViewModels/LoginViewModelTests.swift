@@ -50,6 +50,77 @@ final class LoginViewModelTests: XCTestCase {
     XCTAssertFalse(sut.showTimeoutBanner)
   }
 
+  // MARK: - Stale Field Error (ios#575)
+
+  func testEditingEmailToValidValueClearsErrorAndEnablesSignIn() {
+    sut.email = "abc"
+    sut.password = "ValidPassword123"
+    sut.validateEmail()
+    XCTAssertNotNil(sut.fieldErrors[.email])
+    XCTAssertFalse(sut.isFormValid)
+
+    sut.email = "user@example.com"
+
+    XCTAssertNil(sut.fieldErrors[.email])
+    XCTAssertTrue(sut.fieldErrors.isEmpty)
+    XCTAssertTrue(sut.isFormValid)
+    XCTAssertEqual(sut.email, "user@example.com")
+  }
+
+  func testEditingPasswordToValidValueClearsError() {
+    sut.email = "user@example.com"
+    sut.password = ""
+    sut.validatePassword()
+    XCTAssertNotNil(sut.fieldErrors[.password])
+
+    sut.password = "ValidPassword123"
+
+    XCTAssertTrue(sut.fieldErrors.isEmpty)
+    XCTAssertTrue(sut.isFormValid)
+  }
+
+  func testPristineFieldShowsNoErrorWhileTyping() {
+    sut.email = "a"
+    sut.email = "ab"
+    XCTAssertTrue(sut.fieldErrors.isEmpty)
+  }
+
+  func testPristinePasswordShowsNoErrorWhileTyping() {
+    sut.password = "a"
+    sut.password = "ab"
+    XCTAssertTrue(sut.fieldErrors.isEmpty)
+  }
+
+  func testBlurringEmailValidatesEmailOnly() {
+    sut.email = "abc"
+    sut.password = ""
+    sut.fieldDidLoseFocus("email")
+    XCTAssertNotNil(sut.fieldErrors[.email])
+    XCTAssertNil(sut.fieldErrors[.password])
+  }
+
+  func testBlurringPasswordValidatesPasswordOnly() {
+    sut.email = "abc"
+    sut.password = ""
+    sut.fieldDidLoseFocus("password")
+    XCTAssertNotNil(sut.fieldErrors[.password])
+    XCTAssertNil(sut.fieldErrors[.email])
+  }
+
+  func testBlurWithNothingFocusedDoesNothing() {
+    sut.email = "abc"
+    sut.password = ""
+    sut.fieldDidLoseFocus(nil)
+    XCTAssertTrue(sut.fieldErrors.isEmpty)
+  }
+
+  func testEditingToStillInvalidValueKeepsError() {
+    sut.email = "abc"
+    sut.validateEmail()
+    sut.email = "abcd"
+    XCTAssertNotNil(sut.fieldErrors[.email])
+  }
+
   // MARK: - Happy Path Tests
 
   func testLoginWithValidCredentials() async {

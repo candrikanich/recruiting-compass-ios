@@ -7,8 +7,12 @@ import Observation
 final class LoginViewModel {
 
   nonisolated deinit {}
-  var email = ""
-  var password = ""
+  var email = "" {
+    didSet { if fieldErrors[.email] != nil { validateEmail() } }
+  }
+  var password = "" {
+    didSet { if fieldErrors[.password] != nil { validatePassword() } }
+  }
   var rememberMe = false
   var isLoading = false
   var isValidating = false
@@ -80,6 +84,14 @@ final class LoginViewModel {
     isValidating = true
     defer { isValidating = false }
     fieldErrors[field] = validator()
+  }
+
+  func fieldDidLoseFocus(_ fieldID: String?) {
+    switch fieldID {
+    case "email": validateEmail()
+    case "password": validatePassword()
+    default: break
+    }
   }
 
   func validateEmail() { validate(.email) { formValidator.validateEmail(email) } }
