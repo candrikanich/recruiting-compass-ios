@@ -2,7 +2,7 @@
 # Lists everything merged since the last release tag, as raw material for release notes.
 #
 #   scripts/release/changes-since-release.sh                          # newest v* tag → origin/main
-#   scripts/release/changes-since-release.sh v1.0.1                   # a specific tag/ref → origin/main
+#   scripts/release/changes-since-release.sh v1.0.1                   # a specific release tag or commit SHA → origin/main
 #   scripts/release/changes-since-release.sh v1.0.1 <tag-or-sha>      # hotfix: tag → the tag or commit being released
 #
 # Endpoints are release tags (resolved from origin, never from local tags) or commit SHAs.
@@ -51,6 +51,8 @@ resolve() {
     if ! git cat-file -e "$sha^{commit}" 2>/dev/null; then
       fetch_err=$(git fetch --no-tags origin "+refs/tags/$name" 2>&1) \
         || die "could not fetch tag '$name' from origin:" "$fetch_err"
+      git cat-file -e "$sha^{commit}" 2>/dev/null \
+        || die "tag '$name' is on origin but its commit '$sha' was not fetched."
     fi
     echo "$sha $name"
     return
@@ -58,10 +60,18 @@ resolve() {
   if git show-ref --verify --quiet "refs/tags/$name"; then
     die "tag '$name' exists only locally, not on origin; release notes use origin's tags."
   fi
+  # A SHA is resolved as an object, never as a ref: a hex-looking branch or tag must not stand in for it.
   case $1 in
-    *[!0-9a-f]*|?|??|???) die "unknown revision '$1'; endpoint must be a release tag on origin or a commit SHA." ;;
+    *[!0-9a-f]*) die "unknown revision '$1'; endpoint must be a release tag on origin or a commit SHA." ;;
   esac
-  sha=$(git rev-parse --verify --quiet "$1^{commit}") || die "unknown revision '$1'; pass a release tag or commit SHA."
+  if [ "${#1}" -lt 4 ] || [ "${#1}" -gt 40 ]; then
+    die "'$1' is not an endpoint: endpoint must be a release tag or commit SHA (4 to 40 hex characters)."
+  fi
+  if [ "${#1}" -lt 40 ] && [ -n "$(git rev-parse --symbolic-full-name --verify --quiet "$1" 2>/dev/null)" ]; then
+    die "ambiguous: '$1' is also a ref; pass the full SHA."
+  fi
+  sha=$(git -c advice.objectNameWarning=false rev-parse --verify --quiet "$1^{commit}") \
+    || die "unknown revision '$1'; endpoint must be a release tag or commit SHA."
   echo "$sha $1"
 }
 

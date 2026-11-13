@@ -50,6 +50,16 @@ chmod +x "$WRAP/up"
 wrap_on() { git config remote.origin.uploadpack "$WRAP/up"; rm -f "$WRAP/count" "$WRAP/warn" "$WRAP/fail_from"; }
 wrap_off() { git config --unset remote.origin.uploadpack; rm -f "$WRAP/count" "$WRAP/warn" "$WRAP/fail_from"; }
 
+# git shim: with $TMP/noop-tag-fetch present, the on-demand tag fetch "succeeds" without fetching anything.
+cat > "$TMP/bin/git" <<STUB
+#!/bin/sh
+if [ -f "$TMP/noop-tag-fetch" ]; then
+  case "\$*" in *"fetch --no-tags origin +refs/tags/"*) exit 0 ;; esac
+fi
+exec $(command -v git) "\$@"
+STUB
+chmod +x "$TMP/bin/git"
+
 PBX=TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj
 git init -q --bare -b main "$TMP/origin.git"
 git clone -q "$TMP/origin.git" "$TMP/work" 2>/dev/null
@@ -89,7 +99,7 @@ done
 run v1.0.2
 check "annotated tag exits zero" "$([ "$rc" = 0 ]; echo $?)"
 check "annotated tag range starts at the tagged commit" \
-  "$(has "$stdout" "($(git rev-parse --short "$ROOT"))"; echo $?)"
+  "$(has "$stdout" "($(git rev-parse --short "$ROOT" 2>/dev/null))"; echo $?)"
 check "annotated tag object sha is not used" "$(has "$stdout" "($(git rev-parse --short "$TAG_OBJECT"))"; [ $? != 0 ]; echo $?)"
 
 # Local tags are never read: v1.0.3 is moved to the tip locally, origin's still says "base".
@@ -124,6 +134,33 @@ run "$(git rev-parse --short=8 v1.0.2)"
 check "abbreviated commit SHA is accepted" "$([ "$rc" = 0 ]; echo $?)"
 run "$(git rev-parse v1.0.2)" "$(git rev-parse v1.0.3)"
 check "full commit SHAs are accepted" "$([ "$rc" = 0 ]; echo $?)"
+
+# SHAs resolve as objects, never as refs of the same name.
+run deadbeef
+fail_clean "unknown hex endpoint"
+check "unknown hex endpoint says what an endpoint is" "$(has "$stderr" 'endpoint must be a release tag or commit SHA'; echo $?)"
+run "${ROOT}0"
+fail_clean "41-hex endpoint"
+check "41-hex endpoint is above the maximum" "$(has "$stderr" '4 to 40 hex characters'; echo $?)"
+run 'v1.0.3^{}'
+fail_clean "endpoint v1.0.3^{}"
+check "endpoint v1.0.3^{} is rejected" "$(has "$stderr" 'endpoint must be a release tag'; echo $?)"
+git branch cafe main; git branch bad main
+run cafe
+fail_clean "hex branch as base"
+check "hex branch as base is ambiguous" "$(has "$stderr" "ambiguous: 'cafe' is also a ref; pass the full SHA"; echo $?)"
+run v1.0.3 cafe
+fail_clean "hex branch as end"
+check "hex branch as end is ambiguous" "$(has "$stderr" "ambiguous: 'cafe' is also a ref"; echo $?)"
+run bad
+fail_clean "3-character hex as base"
+check "3-character hex is below the minimum" "$(has "$stderr" '4 to 40 hex characters'; echo $?)"
+run v1.0.3 bad
+fail_clean "3-character hex as end"
+git update-ref "refs/heads/$ROOT" main
+run "$ROOT"
+check "40-hex SHA is an object even if a branch has that name" "$([ "$rc" = 0 ] && has "$stdout" "($(git rev-parse --short "$ROOT" 2>/dev/null))"; echo $?)"
+git update-ref -d "refs/heads/$ROOT"; git branch -q -D cafe bad
 
 # A new tag on origin with a stale lock for the same tag locally used to fail the tag fetch and leave a stale range.
 (cd "$TMP/other" && echo d > d && git add d && git commit -q -m "release commit (#601)" \
@@ -174,6 +211,15 @@ run v1.0.3 v1.0.3-hotfix
 check "tag on a branchless commit exits zero" "$([ "$rc" = 0 ]; echo $?)"
 check "tag on a branchless commit lists its PR" "$(has "$stdout" BODY-OF-PR-700; echo $?)"
 check "fetching the commit writes no local tag" "$([ -z "$(git tag --list v1.0.3-hotfix)" ]; echo $?)"
+
+# The tag fetch reports success but the commit is still missing: stop before any output.
+(cd "$TMP/other" && git checkout -q --detach && echo i > i && git add i && git commit -q -m "hotfix 2 (#701)" \
+  && git tag v1.0.3-hotfix2 && git push -q origin v1.0.3-hotfix2)
+touch "$TMP/noop-tag-fetch"
+run v1.0.3 v1.0.3-hotfix2
+rm -f "$TMP/noop-tag-fetch"
+fail_clean "tag fetch that fetches nothing"
+check "tag fetch that fetches nothing says so" "$(has "$stderr" 'was not fetched'; echo $?)"
 
 # A ref that fails to update stops the run, even with a clashing tag in the same fetch.
 git tag -f v0.9.0 main >/dev/null
