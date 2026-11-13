@@ -16,6 +16,11 @@
 
 set -eu
 
+if [ $# -gt 2 ]; then
+  echo "usage: changes-since-release.sh [<base-tag> [<end-tag-or-sha>]]" >&2
+  exit 1
+fi
+
 PBXPROJ_PATH="TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj"
 
 die() {

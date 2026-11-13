@@ -89,6 +89,11 @@ check "squash PR description is fetched" "$(has "$stdout" BODY-OF-PR-583; echo $
 check "PR title is requested from gh" "$(has "$stdout" '--json title,'; echo $?)"
 check "PR title line is rendered" "$(has "$stdout" 'Title: TITLE-OF-PR-579'; echo $?)"
 
+# A third argument is a usage error, not silently ignored.
+run v1.0.3 origin/main extra
+fail_clean "third argument"
+check "third argument prints usage" "$(has "$stderr" 'usage: changes-since-release.sh'; echo $?)"
+
 # refs/tags/ is the only accepted prefix.
 run refs/tags/v1.0.3
 check "refs/tags/ prefix matches v1.0.3" "$([ "$stdout" = "$healthy" ]; echo $?)"
