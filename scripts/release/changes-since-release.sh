@@ -1,13 +1,14 @@
 #!/bin/sh
 # Lists everything merged since the last release tag, as raw material for release notes.
 #
-#   scripts/release/changes-since-release.sh                          # newest v* tag → origin/main
-#   scripts/release/changes-since-release.sh v1.0.1                   # a specific release tag or commit SHA → origin/main
-#   scripts/release/changes-since-release.sh v1.0.1 <tag-or-sha>      # hotfix: tag → the tag or commit being released
+#   scripts/release/changes-since-release.sh                          # newest v* tag on origin → origin/main
+#   scripts/release/changes-since-release.sh v1.0.1                   # a release tag → origin/main
+#   scripts/release/changes-since-release.sh v1.0.1 <40-hex-sha>      # hotfix: tag → the commit being released
 #
-# Endpoints are release tags (resolved from origin, never from local tags) or commit SHAs.
-# The end must be whatever the release build is made from — for a hotfix that's the hotfix tag or commit,
-# not main, or the notes would advertise unreleased work sitting on main.
+# An endpoint is a release tag (vX.Y.Z, optionally refs/tags/-prefixed; resolved from origin, never from local
+# tags) or a full 40-character lowercase commit SHA; the end may also be omitted or origin/main. Nothing else.
+# The end must be whatever the release build is made from — for a hotfix that's the hotfix commit
+# (`git rev-parse origin/hotfix/x`), not main, or the notes would advertise unreleased work sitting on main.
 #
 # Output: markdown with the version being prepared (MARKETING_VERSION at the end ref), then one section
 # per first-parent commit (PRs (squash or merge commit) include labels + full description; direct commits, or PRs
@@ -41,59 +42,64 @@ origin_tag_commit() {
     END { print (peeled != "" ? peeled : direct) }'
 }
 
-# Endpoints are a release tag ("v1.0.3", "tags/v1.0.3", "refs/tags/v1.0.3", optionally suffixed ^0, ^{commit} or
-# ~0) or a commit SHA. Nothing else reaches rev-parse, so a local tag is never read through a suffix like ~1.
-# Prints "<commit-sha> <label>".
+BAD_ENDPOINT="endpoint must be a release tag (vX.Y.Z) or a full commit SHA"
+
+# Prints "<commit-sha> <label>". A 40-hex SHA is checked before any tag lookup and resolved as a commit object,
+# never as a ref. A tag is resolved only from origin.
 resolve() {
-  name=$(printf '%s' "$1" | sed -e 's/^refs\/tags\///' -e 's/^tags\///' -e 's/\^0$//' -e 's/\^{commit}$//' -e 's/~0$//')
-  sha=$(origin_tag_commit "$name") || exit 1
-  if [ -n "$sha" ]; then
-    if ! git cat-file -e "$sha^{commit}" 2>/dev/null; then
-      fetch_err=$(git fetch --no-tags origin "+refs/tags/$name" 2>&1) \
-        || die "could not fetch tag '$name' from origin:" "$fetch_err"
-      git cat-file -e "$sha^{commit}" 2>/dev/null \
-        || die "tag '$name' is on origin but its commit '$sha' was not fetched."
-    fi
-    echo "$sha $name"
-    return
-  fi
-  if git show-ref --verify --quiet "refs/tags/$name"; then
-    die "tag '$name' exists only locally, not on origin; release notes use origin's tags."
-  fi
-  # A SHA is resolved as an object, never as a ref: a hex-looking branch or tag must not stand in for it.
   case $1 in
-    *[!0-9a-f]*) die "unknown revision '$1'; endpoint must be a release tag on origin or a commit SHA." ;;
+    *[!0123456789abcdef]*) ;;
+    *)
+      if [ "${#1}" -eq 40 ]; then
+        sha=$(git -c advice.objectNameWarning=false rev-parse --verify --quiet "$1^{commit}") \
+          || die "$BAD_ENDPOINT: '$1' is not a commit in this repository."
+        echo "$sha $1"
+        return
+      fi
+      ;;
   esac
-  if [ "${#1}" -lt 4 ] || [ "${#1}" -gt 40 ]; then
-    die "'$1' is not an endpoint: endpoint must be a release tag or commit SHA (4 to 40 hex characters)."
+  name=${1#refs/tags/}
+  case $name in
+    *'
+'*) die "$BAD_ENDPOINT, got '$1'." ;;
+  esac
+  printf '%s' "$name" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$' || die "$BAD_ENDPOINT, got '$1'."
+  sha=$(origin_tag_commit "$name") || exit 1
+  if [ -z "$sha" ]; then
+    if git show-ref --verify --quiet "refs/tags/$name"; then
+      die "tag '$name' exists only locally, not on origin; release notes use origin's tags."
+    fi
+    die "unknown revision '$1': no such release tag on origin."
   fi
-  if [ "${#1}" -lt 40 ] && [ -n "$(git rev-parse --symbolic-full-name --verify --quiet "$1" 2>/dev/null)" ]; then
-    die "ambiguous: '$1' is also a ref; pass the full SHA."
+  if ! git cat-file -e "$sha^{commit}" 2>/dev/null; then
+    fetch_err=$(git fetch --no-tags origin "+refs/tags/$name" 2>&1) \
+      || die "could not fetch tag '$name' from origin:" "$fetch_err"
+    git cat-file -e "$sha^{commit}" 2>/dev/null \
+      || die "tag '$name' is on origin but its commit '$sha' was not fetched."
   fi
-  sha=$(git -c advice.objectNameWarning=false rev-parse --verify --quiet "$1^{commit}") \
-    || die "unknown revision '$1'; endpoint must be a release tag or commit SHA."
-  echo "$sha $1"
+  echo "$sha $name"
 }
 
-if [ -n "${1:-}" ]; then
+if [ $# -ge 1 ]; then
   BASE_REF=$1
 else
   listed=$(git ls-remote --tags --refs origin 'refs/tags/v*') \
     || die "'git ls-remote --tags origin' failed; not drafting notes from stale tags."
   newest=$(printf '%s\n' "$listed" | sed 's/.*refs\/tags\///' | sort -V | tail -n 1)
-  [ -n "$newest" ] || die "no v* release tag found on origin; pass a base ref explicitly."
+  [ -n "$newest" ] || die "no v* release tag found on origin; pass a release tag explicitly."
   BASE_REF=$newest
 fi
 
 # Assigned first, then split: `set -- $(...)` would swallow a failed resolve.
 resolved=$(resolve "$BASE_REF") || exit 1
 BASE_SHA=${resolved% *} BASE=${resolved#* }
-if [ -n "${2:-}" ] && [ "$2" != origin/main ]; then
-  resolved=$(resolve "$2") || exit 1
-  END_SHA=${resolved% *} END=${resolved#* }
-else
+# The default end is spelled out as a full ref so a local branch or tag named origin/main cannot take over.
+if [ $# -lt 2 ] || [ "$2" = origin/main ]; then
   END_SHA=$(git rev-parse --verify --quiet "refs/remotes/origin/main^{commit}") || die "origin/main not found."
   END=origin/main
+else
+  resolved=$(resolve "$2") || exit 1
+  END_SHA=${resolved% *} END=${resolved#* }
 fi
 
 VERSION=$(git show "$END_SHA:$PBXPROJ_PATH" | grep -o 'MARKETING_VERSION = [0-9.]*;' | sort -u \

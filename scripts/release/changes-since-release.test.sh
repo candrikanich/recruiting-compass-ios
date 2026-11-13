@@ -64,7 +64,7 @@ PBX=TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj
 git init -q --bare -b main "$TMP/origin.git"
 git clone -q "$TMP/origin.git" "$TMP/work" 2>/dev/null
 cd "$TMP/work" || exit 1
-git checkout -q -b main
+git checkout -q -b main; git config advice.objectNameWarning false
 mkdir -p "$(dirname "$PBX")"
 echo 'MARKETING_VERSION = 1.0.4;' > "$PBX"
 git add . && git commit -q -m "root"
@@ -89,11 +89,9 @@ check "squash PR description is fetched" "$(has "$stdout" BODY-OF-PR-583; echo $
 check "PR title is requested from gh" "$(has "$stdout" '--json title,'; echo $?)"
 check "PR title line is rendered" "$(has "$stdout" 'Title: TITLE-OF-PR-579'; echo $?)"
 
-# Every spelling of one tag is the same endpoint.
-for spelling in tags/v1.0.3 refs/tags/v1.0.3 'v1.0.3^0'; do
-  run "$spelling"
-  check "spelling $spelling matches v1.0.3" "$([ "$stdout" = "$healthy" ]; echo $?)"
-done
+# refs/tags/ is the only accepted prefix.
+run refs/tags/v1.0.3
+check "refs/tags/ prefix matches v1.0.3" "$([ "$stdout" = "$healthy" ]; echo $?)"
 
 # Annotated tags resolve to their commit, not the tag object.
 run v1.0.2
@@ -105,7 +103,7 @@ check "annotated tag object sha is not used" "$(has "$stdout" "($(git rev-parse 
 # Local tags are never read: v1.0.3 is moved to the tip locally, origin's still says "base".
 git tag -f v1.0.3 main >/dev/null
 local_tag_before=$(git rev-parse v1.0.3)
-git tag local-only main
+git tag v7.7.7 main
 (git clone -q "$TMP/origin.git" "$TMP/other" 2>/dev/null && cd "$TMP/other" \
   && echo c > c && git add c && git commit -q -m "new on origin (#600)" && git push -q origin HEAD:main)
 run v1.0.3
@@ -114,53 +112,57 @@ stale=$stdout
 check "stale local tag still lists origin's range" "$(has "$stdout" BODY-OF-PR-579; echo $?)"
 check "commits new on origin are listed" "$(has "$stdout" BODY-OF-PR-600; echo $?)"
 check "local tag is left alone" "$([ "$(git rev-parse v1.0.3)" = "$local_tag_before" ]; echo $?)"
-run local-only
+run v7.7.7
 fail_clean "tag that exists only locally"
 check "local-only tag error says so" "$(has "$stderr" "only locally"; echo $?)"
 
-# Spellings that read the stale local v1.0.3 must not (healthy run above was made before the tag moved).
-for spelling in 'v1.0.3^{commit}' 'v1.0.3~0' tags/v1.0.3 refs/tags/v1.0.3 'v1.0.3^0'; do
-  run "$spelling"
-  check "stale local tag: spelling $spelling matches v1.0.3" "$([ "$stdout" = "$stale" ]; echo $?)"
-done
-for spelling in 'v1.0.3~1' 'v1.0.3^1' 'v1.0.3~2' 'v1.0.3..main' main hotfix/1.0.2; do
-  run "$spelling"
-  fail_clean "endpoint $spelling"
-  check "endpoint $spelling is rejected as an endpoint" "$(has "$stderr" 'endpoint must be a release tag'; echo $?)"
-done
-run v1.0.3 origin/main
-check "explicit origin/main end is the default end" "$([ "$rc" = 0 ] && [ "$stdout" = "$stale" ]; echo $?)"
-run "$(git rev-parse --short=8 v1.0.2)"
-check "abbreviated commit SHA is accepted" "$([ "$rc" = 0 ]; echo $?)"
-run "$(git rev-parse v1.0.2)" "$(git rev-parse v1.0.3)"
-check "full commit SHAs are accepted" "$([ "$rc" = 0 ]; echo $?)"
-
-# SHAs resolve as objects, never as refs of the same name.
-run deadbeef
-fail_clean "unknown hex endpoint"
-check "unknown hex endpoint says what an endpoint is" "$(has "$stderr" 'endpoint must be a release tag or commit SHA'; echo $?)"
-run "${ROOT}0"
-fail_clean "41-hex endpoint"
-check "41-hex endpoint is above the maximum" "$(has "$stderr" '4 to 40 hex characters'; echo $?)"
-run 'v1.0.3^{}'
-fail_clean "endpoint v1.0.3^{}"
-check "endpoint v1.0.3^{} is rejected" "$(has "$stderr" 'endpoint must be a release tag'; echo $?)"
+# Every other spelling is rejected with the one message, even with a stale local v1.0.3 and an annotated v1.0.2.
 git branch cafe main; git branch bad main
-run cafe
-fail_clean "hex branch as base"
-check "hex branch as base is ambiguous" "$(has "$stderr" "ambiguous: 'cafe' is also a ref; pass the full SHA"; echo $?)"
-run v1.0.3 cafe
-fail_clean "hex branch as end"
-check "hex branch as end is ambiguous" "$(has "$stderr" "ambiguous: 'cafe' is also a ref"; echo $?)"
-run bad
-fail_clean "3-character hex as base"
-check "3-character hex is below the minimum" "$(has "$stderr" '4 to 40 hex characters'; echo $?)"
-run v1.0.3 bad
-fail_clean "3-character hex as end"
+
+BAD='endpoint must be a release tag (vX.Y.Z) or a full commit SHA'
+for spelling in tags/v1.0.3 'v1.0.3^0' 'v1.0.3^{commit}' 'v1.0.3~0' 'v1.0.3~1' 'v1.0.3^1' 'v1.0.3^{}' 'v1.0.2^{}' 'v1.0.2^0' \
+  'v1.0.3..main' main hotfix/1.0.2 cafe bad "$(git rev-parse --short=8 v1.0.2^{commit})" "$(git rev-parse v1.0.2^{commit} | tr a-f A-F)" \
+  "${ROOT}0" "$(printf 'v1.0.3\nx')" v1 v1.0 v1.0.3-rc.1 V1.0.3 ' v1.0.3'; do
+  run "$spelling"
+  fail_clean "endpoint '$spelling'"
+  check "endpoint '$spelling' gets the endpoint message" "$(has "$stderr" "$BAD"; echo $?)"
+  run v1.0.3 "$spelling"
+  fail_clean "end '$spelling'"
+  check "end '$spelling' gets the endpoint message" "$(has "$stderr" "$BAD"; echo $?)"
+done
+run ''
+fail_clean "empty endpoint"
+git branch -q -D cafe bad
+
+# Full SHAs are objects: even when a tag on origin or a branch has the same name; blobs and unknown SHAs are not.
+run "$(git rev-parse v1.0.2^{commit})" "$(git rev-parse v1.0.3)"
+check "full commit SHAs are accepted" "$([ "$rc" = 0 ]; echo $?)"
+SHA_TAG_COMMIT=$(git rev-parse v1.0.3)
+(cd "$TMP/other" && git tag -f "$ROOT" "$(git rev-parse HEAD)" >/dev/null && git push -q origin "refs/tags/$ROOT")
 git update-ref "refs/heads/$ROOT" main
 run "$ROOT"
-check "40-hex SHA is an object even if a branch has that name" "$([ "$rc" = 0 ] && has "$stdout" "($(git rev-parse --short "$ROOT" 2>/dev/null))"; echo $?)"
-git update-ref -d "refs/heads/$ROOT"; git branch -q -D cafe bad
+check "SHA that is also a tag on origin and a branch is the object" \
+  "$([ "$rc" = 0 ] && has "$stdout" "($(git rev-parse --short "$ROOT" 2>/dev/null))"; echo $?)"
+run "$ROOT" "$ROOT"
+check "SHA as both ends is an empty range" "$([ "$rc" = 0 ] && has "$stdout" 'No commits since'; echo $?)"
+git update-ref -d "refs/heads/$ROOT"
+(cd "$TMP/other" && git push -q origin ":refs/tags/$ROOT")
+run "$(git rev-parse main:base)"
+fail_clean "blob SHA"
+check "blob SHA gets the endpoint message" "$(has "$stderr" "$BAD"; echo $?)"
+run deadbeefdeadbeefdeadbeefdeadbeefdeadbeef
+fail_clean "unknown full SHA"
+check "unknown full SHA gets the endpoint message" "$(has "$stderr" "$BAD"; echo $?)"
+
+# origin/main as the end: a local tag or branch of that name changes nothing.
+git tag origin/main "$ROOT" 2>/dev/null
+git update-ref refs/heads/origin/main "$ROOT" 2>/dev/null
+run v1.0.3
+omitted=$stdout
+run v1.0.3 origin/main
+check "explicit origin/main end equals the omitted end" "$([ "$rc" = 0 ] && [ "$stdout" = "$omitted" ]; echo $?)"
+check "omitted end is the remote-tracking origin/main" "$(has "$omitted" "→  origin/main ($(git rev-parse --short refs/remotes/origin/main))"; echo $?)"
+git tag -d origin/main >/dev/null 2>&1; git update-ref -d refs/heads/origin/main 2>/dev/null
 
 # A new tag on origin with a stale lock for the same tag locally used to fail the tag fetch and leave a stale range.
 (cd "$TMP/other" && echo d > d && git add d && git commit -q -m "release commit (#601)" \
@@ -199,24 +201,24 @@ done
 
 # A tag whose commit is on no branch: fetched from origin on demand, without writing a local tag.
 (cd "$TMP/other" && git checkout -q --detach && echo h > h && git add h && git commit -q -m "hotfix (#700)" \
-  && git tag v1.0.3-hotfix && git push -q origin v1.0.3-hotfix)
+  && git tag v1.0.11 && git push -q origin v1.0.11)
 # Calls: 1 branch fetch, 2-3 ls-remote (base, end), 4 the commit fetch.
 wrap_on; echo 4 > "$WRAP/fail_from"
-run v1.0.3 v1.0.3-hotfix
+run v1.0.3 v1.0.11
 wrap_off
 fail_clean "failed commit fetch"
-check "failed commit fetch names the tag" "$(has "$stderr" "could not fetch tag 'v1.0.3-hotfix'"; echo $?)"
+check "failed commit fetch names the tag" "$(has "$stderr" "could not fetch tag 'v1.0.11'"; echo $?)"
 check "failed commit fetch shows git's error" "$(has "$stderr" 'simulated upload-pack failure'; echo $?)"
-run v1.0.3 v1.0.3-hotfix
+run v1.0.3 v1.0.11
 check "tag on a branchless commit exits zero" "$([ "$rc" = 0 ]; echo $?)"
 check "tag on a branchless commit lists its PR" "$(has "$stdout" BODY-OF-PR-700; echo $?)"
-check "fetching the commit writes no local tag" "$([ -z "$(git tag --list v1.0.3-hotfix)" ]; echo $?)"
+check "fetching the commit writes no local tag" "$([ -z "$(git tag --list v1.0.11)" ]; echo $?)"
 
 # The tag fetch reports success but the commit is still missing: stop before any output.
 (cd "$TMP/other" && git checkout -q --detach && echo i > i && git add i && git commit -q -m "hotfix 2 (#701)" \
-  && git tag v1.0.3-hotfix2 && git push -q origin v1.0.3-hotfix2)
+  && git tag v1.0.12 && git push -q origin v1.0.12)
 touch "$TMP/noop-tag-fetch"
-run v1.0.3 v1.0.3-hotfix2
+run v1.0.3 v1.0.12
 rm -f "$TMP/noop-tag-fetch"
 fail_clean "tag fetch that fetches nothing"
 check "tag fetch that fetches nothing says so" "$(has "$stderr" 'was not fetched'; echo $?)"
@@ -235,9 +237,9 @@ rm -f .git/refs/remotes/origin/main.lock
 run v9.9.9
 fail_clean "bad base"
 check "bad base names the revision" "$(has "$stderr" "unknown revision 'v9.9.9'"; echo $?)"
-run v1.0.3 nope/branch
+run v1.0.3 v9.9.8
 fail_clean "bad end"
-check "bad end names the revision" "$(has "$stderr" "unknown revision 'nope/branch'"; echo $?)"
+check "bad end names the revision" "$(has "$stderr" "unknown revision 'v9.9.8'"; echo $?)"
 
 # Unreachable origin with a valid base: stale origin/main must not produce notes.
 git remote set-url origin "$TMP/nope.git"
@@ -245,5 +247,13 @@ run v1.0.3
 fail_clean "unreachable origin"
 check "unreachable origin shows git's own error" "$(has "$stderr" "does not appear to be a git repository"; echo $?)"
 check "unreachable origin explains on stderr" "$(has "$stderr" "may be stale"; echo $?)"
+
+# No release tag on origin at all: the default base has nothing to start from.
+git init -q --bare -b main "$TMP/empty.git"
+git clone -q "$TMP/empty.git" "$TMP/emptywork" 2>/dev/null
+(cd "$TMP/emptywork" && git checkout -q -b main && echo x > x && git add x && git commit -q -m x && git push -q origin main)
+cd "$TMP/emptywork" && run
+fail_clean "origin without release tags"
+check "origin without release tags says so" "$(has "$stderr" 'no v* release tag found on origin'; echo $?)"
 
 [ "$fails" = 0 ] && echo "all passed" || { echo "$fails failed"; exit 1; }
