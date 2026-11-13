@@ -290,6 +290,34 @@ fail_clean "unreachable origin"
 check "unreachable origin shows git's own error" "$(has "$stderr" "does not appear to be a git repository"; echo $?)"
 check "unreachable origin explains on stderr" "$(has "$stderr" "may be stale"; echo $?)"
 
+# Fetch configuration and tags: a clone whose fetch refspec excludes main still gets a current origin/main, and
+# a normal run never adds tags the clone did not have (origin gains #900 and v2.0.0 on that commit).
+git clone -q "$TMP/origin.git" "$TMP/cfg" 2>/dev/null
+git clone -q "$TMP/origin.git" "$TMP/other2" 2>/dev/null
+(cd "$TMP/other2" && git checkout -q -B work origin/main && echo n > n && git add n && git commit -q -m "new on origin (#900)" \
+  && git tag v2.0.0 && git push -q origin HEAD:main v2.0.0)
+NEW_TIP=$(git -C "$TMP/other2" rev-parse HEAD)
+cd "$TMP/cfg" || exit 1
+git config remote.origin.fetch '+refs/heads/side:refs/remotes/origin/side'
+tags_before=$(git tag -l)
+run v1.0.3
+check "main-excluding fetch config exits zero" "$([ "$rc" = 0 ]; echo $?)"
+check "main-excluding fetch config lists the new commit" "$(has "$stdout" BODY-OF-PR-900; echo $?)"
+check "main-excluding fetch config ends at the new tip" "$(has "$stdout" "origin/main ($(git rev-parse --short "$NEW_TIP"))"; echo $?)"
+check "a normal run adds no tags" "$([ "$(git tag -l)" = "$tags_before" ]; echo $?)"
+check "the new origin tag is not fetched" "$([ -z "$(git tag -l v2.0.0)" ]; echo $?)"
+
+# A force-pushed (rewritten) origin main is followed, not rejected.
+git clone -q "$TMP/origin.git" "$TMP/fp" 2>/dev/null
+(cd "$TMP/other2" && git reset -q --hard HEAD~1 && echo r > r && git add r && git commit -q -m "rewritten (#901)" \
+  && git push -q -f origin HEAD:main)
+REWRITTEN=$(git -C "$TMP/other2" rev-parse HEAD)
+cd "$TMP/fp" || exit 1
+run v1.0.3
+check "force-pushed main exits zero" "$([ "$rc" = 0 ]; echo $?)"
+check "force-pushed main uses the new tip" "$(has "$stdout" "origin/main ($(git rev-parse --short "$REWRITTEN"))"; echo $?)"
+check "force-pushed main lists the rewritten commit" "$(has "$stdout" BODY-OF-PR-901; echo $?)"
+
 # Origin without a main branch: the main-only fetch fails, and the run says so instead of using anything stale.
 git init -q --bare -b dev "$TMP/nomain.git"
 git clone -q "$TMP/nomain.git" "$TMP/nomainwork" 2>/dev/null
