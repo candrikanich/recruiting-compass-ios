@@ -22,11 +22,11 @@ the raw material is written for code review, and the output has to make sense to
 ```bash
 scripts/release/changes-since-release.sh                        # newest v* tag → origin/main
 scripts/release/changes-since-release.sh v1.0.1                 # a specific tag → origin/main
-scripts/release/changes-since-release.sh v1.0.1 hotfix/1.0.2    # hotfix: tag → the hotfix branch
+scripts/release/changes-since-release.sh v1.0.1 <tag-or-sha>      # hotfix: tag → the hotfix tag or commit
 ```
 
 The range must end at whatever the release build is made from. For a normal release that's `main`; for a hotfix
-built from a release tag it's the hotfix branch — ending at `main` would advertise unreleased work to users.
+built from a release tag it's the hotfix tag or commit SHA (branch names are rejected) — ending at `main` would advertise unreleased work to users.
 
 It prints the version being prepared (`MARKETING_VERSION` at the end ref) and, for every commit in the range, the PR
 title plus its full description (quoted). If a PR description can't be fetched it says so and falls back to the
