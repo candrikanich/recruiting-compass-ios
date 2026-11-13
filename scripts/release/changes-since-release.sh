@@ -16,68 +16,79 @@ set -eu
 
 PBXPROJ_PATH="TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj"
 
-# Only a tag clash ("would clobber existing tag", a local tag that differs from origin's) is survivable, and
-# only when no other ref failed to update and the clashing tag is not an end of the range: otherwise the notes
-# would be drafted from a stale origin/main or the wrong commits. Never --force here; that would move local
-# tags without the user asking. LC_ALL=C keeps git's messages untranslated so they can be matched.
-CLOBBER_HINT="to realign local tags with origin, run: git fetch --tags --force origin"
-clobbered=""
-if ! fetch_err=$(LC_ALL=C git fetch --tags origin 2>&1); then
-  case "$fetch_err" in
-    *'would clobber existing tag'*)
-      clobbered=$(printf '%s\n' "$fetch_err" \
-        | sed -n 's/^ *! \[rejected\] *\([^ ]*\) *-> .*would clobber existing tag.*/\1/p')
-      # The tags were rejected as a whole fetch; confirm the branch refs themselves still update.
-      if ! refs_err=$(LC_ALL=C git fetch --no-tags origin 2>&1); then
-        fetch_err=$refs_err
-        clobbered=""
-      fi
-      ;;
-  esac
-  if [ -z "$clobbered" ]; then
-    {
-      echo "error: 'git fetch --tags origin' failed, so origin/main may be stale; not drafting notes from it:"
-      printf '%s\n' "$fetch_err" | sed 's/^/  /'
-    } >&2
-    exit 1
-  fi
-  {
-    echo "warning: 'git fetch --tags origin' rejected tags that differ from origin's; continuing with local tags:"
-    printf '%s\n' "$fetch_err" | sed 's/^/  /'
-    echo "hint: $CLOBBER_HINT"
-  } >&2
-fi
-
-BASE=${1:-$(git tag --list 'v*' --sort=-version:refname | head -n 1)}
-if [ -z "$BASE" ]; then
-  echo "error: no v* release tag found; pass a base ref explicitly." >&2
+die() {
+  echo "error: $1" >&2
+  [ -z "${2:-}" ] || printf '%s\n' "$2" | sed 's/^/  /' >&2
   exit 1
-fi
-END=${2:-origin/main}
-for ref in "$BASE" "$END"; do
-  if ! git rev-parse --verify --quiet "$ref^{commit}" >/dev/null; then
-    echo "error: unknown revision '$ref'; pass a valid tag or branch." >&2
-    exit 1
-  fi
-  for tag in $clobbered; do
-    if [ "$ref" = "$tag" ]; then
-      echo "error: local tag '$tag' differs from origin's, so the range would be wrong." >&2
-      echo "hint: $CLOBBER_HINT" >&2
-      exit 1
-    fi
-  done
-done
+}
 
-VERSION=$(git show "$END:$PBXPROJ_PATH" | grep -o 'MARKETING_VERSION = [0-9.]*;' | sort -u \
+# Branches come from a strict fetch with no tags: a stale origin/main would draft wrong notes, so any failure
+# stops here. Tags are never fetched or read locally (a local tag can be stale or differ from origin's, e.g.
+# "would clobber existing tag"); they are resolved from origin itself below.
+if ! fetch_err=$(git fetch --no-tags origin 2>&1); then
+  die "'git fetch --no-tags origin' failed, so origin/main may be stale; not drafting notes from it:" "$fetch_err"
+fi
+
+# "v1.0.3", "tags/v1.0.3", "refs/tags/v1.0.3" and "v1.0.3^0" all name the same tag.
+tag_name() {
+  printf '%s' "$1" | sed -e 's/^refs\/tags\///' -e 's/^tags\///' -e 's/\^0$//' -e 's/\^{commit}$//'
+}
+
+# Commit SHA of a tag on origin (peeled when annotated), or nothing when origin has no such tag.
+origin_tag_commit() {
+  tags=$(git ls-remote --tags origin "refs/tags/$1" "refs/tags/$1^{}" 2>&1) \
+    || die "'git ls-remote --tags origin' failed:" "$tags"
+  printf '%s\n' "$tags" | awk -v t="refs/tags/$1" -v p="refs/tags/$1^{}" '
+    $2 == t { direct = $1 }
+    $2 == p { peeled = $1 }
+    END { print (peeled != "" ? peeled : direct) }'
+}
+
+# Prints "<commit-sha> <label>". Tags resolve from origin; anything else (branch, SHA, origin/main) via git.
+resolve() {
+  name=$(tag_name "$1")
+  sha=$(origin_tag_commit "$name") || exit 1
+  if [ -n "$sha" ]; then
+    if ! git cat-file -e "$sha^{commit}" 2>/dev/null; then
+      fetch_err=$(git fetch --no-tags origin "+refs/tags/$name" 2>&1) \
+        || die "could not fetch tag '$name' from origin:" "$fetch_err"
+    fi
+    echo "$sha $name"
+    return
+  fi
+  if git show-ref --verify --quiet "refs/tags/$name"; then
+    die "tag '$name' exists only locally, not on origin; release notes use origin's tags."
+  fi
+  sha=$(git rev-parse --verify --quiet "$1^{commit}") || die "unknown revision '$1'; pass a valid tag or branch."
+  echo "$sha $1"
+}
+
+if [ -n "${1:-}" ]; then
+  BASE_REF=$1
+else
+  listed=$(git ls-remote --tags --refs origin 'refs/tags/v*' 2>&1) || die "'git ls-remote --tags origin' failed:" "$listed"
+  newest=$(printf '%s\n' "$listed" | sed 's/.*refs\/tags\///' | sort -V | tail -n 1)
+  [ -n "$newest" ] || die "no v* release tag found on origin; pass a base ref explicitly."
+  BASE_REF=$newest
+fi
+END_REF=${2:-origin/main}
+
+# Assigned first, then split: `set -- $(...)` would swallow a failed resolve.
+resolved=$(resolve "$BASE_REF") || exit 1
+BASE_SHA=${resolved% *} BASE=${resolved#* }
+resolved=$(resolve "$END_REF") || exit 1
+END_SHA=${resolved% *} END=${resolved#* }
+
+VERSION=$(git show "$END_SHA:$PBXPROJ_PATH" | grep -o 'MARKETING_VERSION = [0-9.]*;' | sort -u \
   | sed 's/MARKETING_VERSION = //; s/;//')
 
 echo "# Changes since $BASE"
 echo
 echo "- Version being prepared (MARKETING_VERSION at $END): $VERSION"
-echo "- Range: $BASE ($(git rev-parse --short "$BASE"))  →  $END ($(git rev-parse --short "$END"))"
+echo "- Range: $BASE ($(git rev-parse --short "$BASE_SHA"))  →  $END ($(git rev-parse --short "$END_SHA"))"
 echo
 
-COMMITS=$(git log --first-parent --reverse --format='%H' "$BASE..$END")
+COMMITS=$(git log --first-parent --reverse --format='%H' "$BASE_SHA..$END_SHA")
 if [ -z "$COMMITS" ]; then
   echo "_No commits since $BASE._"
   exit 0
