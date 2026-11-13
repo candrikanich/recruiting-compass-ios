@@ -34,6 +34,22 @@ fail_clean() { # name: the last run must have exited non-zero with nothing on st
   check "$1 prints nothing on stdout" "$([ -z "$stdout" ]; echo $?)"
 }
 
+# Upload-pack wrapper: counts calls; WRAP/fail_from makes call N onward fail, WRAP/warn adds a stderr line.
+WRAP="$TMP/wrap"; mkdir -p "$WRAP"
+cat > "$WRAP/up" <<'STUB'
+#!/bin/sh
+d=$(dirname "$0")
+n=$(( $(cat "$d/count" 2>/dev/null || echo 0) + 1 )); echo "$n" > "$d/count"
+[ -f "$d/warn" ] && echo "warning: redirecting to https://example.invalid/repo.git/" >&2
+if [ -f "$d/fail_from" ] && [ "$n" -ge "$(cat "$d/fail_from")" ]; then
+  echo "wrapper: simulated upload-pack failure" >&2; exit 128
+fi
+exec "$(git --exec-path)/git-upload-pack" "$@"
+STUB
+chmod +x "$WRAP/up"
+wrap_on() { git config remote.origin.uploadpack "$WRAP/up"; rm -f "$WRAP/count" "$WRAP/warn" "$WRAP/fail_from"; }
+wrap_off() { git config --unset remote.origin.uploadpack; rm -f "$WRAP/count" "$WRAP/warn" "$WRAP/fail_from"; }
+
 PBX=TheRecruitingCompass/TheRecruitingCompass.xcodeproj/project.pbxproj
 git init -q --bare -b main "$TMP/origin.git"
 git clone -q "$TMP/origin.git" "$TMP/work" 2>/dev/null
@@ -84,12 +100,30 @@ git tag local-only main
   && echo c > c && git add c && git commit -q -m "new on origin (#600)" && git push -q origin HEAD:main)
 run v1.0.3
 check "stale local tag exits zero" "$([ "$rc" = 0 ]; echo $?)"
+stale=$stdout
 check "stale local tag still lists origin's range" "$(has "$stdout" BODY-OF-PR-579; echo $?)"
 check "commits new on origin are listed" "$(has "$stdout" BODY-OF-PR-600; echo $?)"
 check "local tag is left alone" "$([ "$(git rev-parse v1.0.3)" = "$local_tag_before" ]; echo $?)"
 run local-only
 fail_clean "tag that exists only locally"
 check "local-only tag error says so" "$(has "$stderr" "only locally"; echo $?)"
+
+# Spellings that read the stale local v1.0.3 must not (healthy run above was made before the tag moved).
+for spelling in 'v1.0.3^{commit}' 'v1.0.3~0' tags/v1.0.3 refs/tags/v1.0.3 'v1.0.3^0'; do
+  run "$spelling"
+  check "stale local tag: spelling $spelling matches v1.0.3" "$([ "$stdout" = "$stale" ]; echo $?)"
+done
+for spelling in 'v1.0.3~1' 'v1.0.3^1' 'v1.0.3~2' 'v1.0.3..main' main hotfix/1.0.2; do
+  run "$spelling"
+  fail_clean "endpoint $spelling"
+  check "endpoint $spelling is rejected as an endpoint" "$(has "$stderr" 'endpoint must be a release tag'; echo $?)"
+done
+run v1.0.3 origin/main
+check "explicit origin/main end is the default end" "$([ "$rc" = 0 ] && [ "$stdout" = "$stale" ]; echo $?)"
+run "$(git rev-parse --short=8 v1.0.2)"
+check "abbreviated commit SHA is accepted" "$([ "$rc" = 0 ]; echo $?)"
+run "$(git rev-parse v1.0.2)" "$(git rev-parse v1.0.3)"
+check "full commit SHAs are accepted" "$([ "$rc" = 0 ]; echo $?)"
 
 # A new tag on origin with a stale lock for the same tag locally used to fail the tag fetch and leave a stale range.
 (cd "$TMP/other" && echo d > d && git add d && git commit -q -m "release commit (#601)" \
@@ -103,6 +137,43 @@ check "default base is origin's newest tag, not a stale one" \
 check "default base resolves to the new tag's commit" \
   "$(has "$stdout" "($(git rev-parse --short "$RELEASE"))  →"; echo $?)"
 rm -f .git/refs/tags/v1.0.4.lock
+
+# Version order, not lexical: v1.0.10 is newer than v1.0.9.
+(cd "$TMP/other" && git tag v1.0.9 && git tag v1.0.10 && git push -q origin v1.0.9 v1.0.10)
+run
+check "default base sorts versions numerically" "$(has "$stdout" "Changes since v1.0.10"; echo $?)"
+
+# ls-remote output on stderr is not tag data.
+wrap_on; touch "$WRAP/warn"
+run
+check "default base ignores remote stderr noise" "$(has "$stdout" "Changes since v1.0.10"; echo $?)"
+wrap_off
+
+# A transient failure after the branch fetch succeeded: call 1 is the fetch, later calls fail.
+for args in "v1.0.3" ""; do
+  wrap_on; echo 2 > "$WRAP/fail_from"
+  # shellcheck disable=SC2086
+  run $args
+  fail_clean "ls-remote failure (args: '$args')"
+  check "ls-remote failure (args: '$args') shows git's error" "$(has "$stderr" 'simulated upload-pack failure'; echo $?)"
+  check "ls-remote failure (args: '$args') says what failed" "$(has "$stderr" "git ls-remote --tags origin"; echo $?)"
+  wrap_off
+done
+
+# A tag whose commit is on no branch: fetched from origin on demand, without writing a local tag.
+(cd "$TMP/other" && git checkout -q --detach && echo h > h && git add h && git commit -q -m "hotfix (#700)" \
+  && git tag v1.0.3-hotfix && git push -q origin v1.0.3-hotfix)
+# Calls: 1 branch fetch, 2-3 ls-remote (base, end), 4 the commit fetch.
+wrap_on; echo 4 > "$WRAP/fail_from"
+run v1.0.3 v1.0.3-hotfix
+wrap_off
+fail_clean "failed commit fetch"
+check "failed commit fetch names the tag" "$(has "$stderr" "could not fetch tag 'v1.0.3-hotfix'"; echo $?)"
+check "failed commit fetch shows git's error" "$(has "$stderr" 'simulated upload-pack failure'; echo $?)"
+run v1.0.3 v1.0.3-hotfix
+check "tag on a branchless commit exits zero" "$([ "$rc" = 0 ]; echo $?)"
+check "tag on a branchless commit lists its PR" "$(has "$stdout" BODY-OF-PR-700; echo $?)"
+check "fetching the commit writes no local tag" "$([ -z "$(git tag --list v1.0.3-hotfix)" ]; echo $?)"
 
 # A ref that fails to update stops the run, even with a clashing tag in the same fetch.
 git tag -f v0.9.0 main >/dev/null

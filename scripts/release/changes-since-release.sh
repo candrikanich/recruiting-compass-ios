@@ -3,9 +3,10 @@
 #
 #   scripts/release/changes-since-release.sh                          # newest v* tag → origin/main
 #   scripts/release/changes-since-release.sh v1.0.1                   # a specific tag/ref → origin/main
-#   scripts/release/changes-since-release.sh v1.0.1 hotfix/1.0.2      # hotfix: tag → the branch being released
+#   scripts/release/changes-since-release.sh v1.0.1 <tag-or-sha>      # hotfix: tag → the tag or commit being released
 #
-# The end ref must be whatever the release build is made from — for a hotfix that's the hotfix branch,
+# Endpoints are release tags (resolved from origin, never from local tags) or commit SHAs.
+# The end must be whatever the release build is made from — for a hotfix that's the hotfix tag or commit,
 # not main, or the notes would advertise unreleased work sitting on main.
 #
 # Output: markdown with the version being prepared (MARKETING_VERSION at the end ref), then one section
@@ -29,24 +30,22 @@ if ! fetch_err=$(git fetch --no-tags origin 2>&1); then
   die "'git fetch --no-tags origin' failed, so origin/main may be stale; not drafting notes from it:" "$fetch_err"
 fi
 
-# "v1.0.3", "tags/v1.0.3", "refs/tags/v1.0.3" and "v1.0.3^0" all name the same tag.
-tag_name() {
-  printf '%s' "$1" | sed -e 's/^refs\/tags\///' -e 's/^tags\///' -e 's/\^0$//' -e 's/\^{commit}$//'
-}
-
-# Commit SHA of a tag on origin (peeled when annotated), or nothing when origin has no such tag.
+# Commit SHA of a tag on origin (peeled when annotated), or nothing when origin has no such tag. ls-remote's
+# stderr is left alone (it is not tag data and is the explanation if the call fails).
 origin_tag_commit() {
-  tags=$(git ls-remote --tags origin "refs/tags/$1" "refs/tags/$1^{}" 2>&1) \
-    || die "'git ls-remote --tags origin' failed:" "$tags"
+  tags=$(git ls-remote --tags origin "refs/tags/$1" "refs/tags/$1^{}") \
+    || die "'git ls-remote --tags origin' failed; not drafting notes from stale tags."
   printf '%s\n' "$tags" | awk -v t="refs/tags/$1" -v p="refs/tags/$1^{}" '
     $2 == t { direct = $1 }
     $2 == p { peeled = $1 }
     END { print (peeled != "" ? peeled : direct) }'
 }
 
-# Prints "<commit-sha> <label>". Tags resolve from origin; anything else (branch, SHA, origin/main) via git.
+# Endpoints are a release tag ("v1.0.3", "tags/v1.0.3", "refs/tags/v1.0.3", optionally suffixed ^0, ^{commit} or
+# ~0) or a commit SHA. Nothing else reaches rev-parse, so a local tag is never read through a suffix like ~1.
+# Prints "<commit-sha> <label>".
 resolve() {
-  name=$(tag_name "$1")
+  name=$(printf '%s' "$1" | sed -e 's/^refs\/tags\///' -e 's/^tags\///' -e 's/\^0$//' -e 's/\^{commit}$//' -e 's/~0$//')
   sha=$(origin_tag_commit "$name") || exit 1
   if [ -n "$sha" ]; then
     if ! git cat-file -e "$sha^{commit}" 2>/dev/null; then
@@ -59,25 +58,33 @@ resolve() {
   if git show-ref --verify --quiet "refs/tags/$name"; then
     die "tag '$name' exists only locally, not on origin; release notes use origin's tags."
   fi
-  sha=$(git rev-parse --verify --quiet "$1^{commit}") || die "unknown revision '$1'; pass a valid tag or branch."
+  case $1 in
+    *[!0-9a-f]*|?|??|???) die "unknown revision '$1'; endpoint must be a release tag on origin or a commit SHA." ;;
+  esac
+  sha=$(git rev-parse --verify --quiet "$1^{commit}") || die "unknown revision '$1'; pass a release tag or commit SHA."
   echo "$sha $1"
 }
 
 if [ -n "${1:-}" ]; then
   BASE_REF=$1
 else
-  listed=$(git ls-remote --tags --refs origin 'refs/tags/v*' 2>&1) || die "'git ls-remote --tags origin' failed:" "$listed"
+  listed=$(git ls-remote --tags --refs origin 'refs/tags/v*') \
+    || die "'git ls-remote --tags origin' failed; not drafting notes from stale tags."
   newest=$(printf '%s\n' "$listed" | sed 's/.*refs\/tags\///' | sort -V | tail -n 1)
   [ -n "$newest" ] || die "no v* release tag found on origin; pass a base ref explicitly."
   BASE_REF=$newest
 fi
-END_REF=${2:-origin/main}
 
 # Assigned first, then split: `set -- $(...)` would swallow a failed resolve.
 resolved=$(resolve "$BASE_REF") || exit 1
 BASE_SHA=${resolved% *} BASE=${resolved#* }
-resolved=$(resolve "$END_REF") || exit 1
-END_SHA=${resolved% *} END=${resolved#* }
+if [ -n "${2:-}" ] && [ "$2" != origin/main ]; then
+  resolved=$(resolve "$2") || exit 1
+  END_SHA=${resolved% *} END=${resolved#* }
+else
+  END_SHA=$(git rev-parse --verify --quiet "refs/remotes/origin/main^{commit}") || die "origin/main not found."
+  END=origin/main
+fi
 
 VERSION=$(git show "$END_SHA:$PBXPROJ_PATH" | grep -o 'MARKETING_VERSION = [0-9.]*;' | sort -u \
   | sed 's/MARKETING_VERSION = //; s/;//')
