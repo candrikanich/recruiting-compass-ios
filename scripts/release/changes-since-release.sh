@@ -24,9 +24,9 @@ die() {
   exit 1
 }
 
-# Branches come from a strict fetch with no tags: a stale origin/main would draft wrong notes, so any failure
-# stops here. Tags are never fetched or read locally (a local tag can be stale or differ from origin's, e.g.
-# "would clobber existing tag"); they are resolved from origin itself below.
+# Branches come from a strict fetch with --no-tags: a stale origin/main would draft wrong notes, so any failure
+# stops here. Local tags are never read (a local tag can be stale or differ from origin's); tags are resolved
+# from origin itself below, which fetches a tag's commit only when it is missing locally, and writes no tag.
 if ! fetch_err=$(git fetch --no-tags origin 2>&1); then
   die "'git fetch --no-tags origin' failed, so origin/main may be stale; not drafting notes from it:" "$fetch_err"
 fi
@@ -85,7 +85,8 @@ if [ $# -ge 1 ]; then
 else
   listed=$(git ls-remote --tags --refs origin 'refs/tags/v*') \
     || die "'git ls-remote --tags origin' failed; not drafting notes from stale tags."
-  newest=$(printf '%s\n' "$listed" | sed 's/.*refs\/tags\///' | sort -V | tail -n 1)
+  newest=$(printf '%s\n' "$listed" | sed 's/.*refs\/tags\///' \
+    | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
   [ -n "$newest" ] || die "no v* release tag found on origin; pass a release tag explicitly."
   BASE_REF=$newest
 fi

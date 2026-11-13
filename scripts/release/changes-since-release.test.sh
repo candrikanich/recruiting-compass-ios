@@ -134,6 +134,22 @@ run ''
 fail_clean "empty endpoint"
 git branch -q -D cafe bad
 
+# An uppercase SHA is rejected whatever the locale (a locale-aware [a-f] range would admit A-E).
+git checkout -q --detach
+for _ in $(seq 1 400); do
+  git commit -q --allow-empty -m "probe"; probe=$(git rev-parse HEAD)
+  case $probe in *f*) ;; *) break ;; esac
+done
+git checkout -q main
+UPPER=$(printf '%s' "$probe" | tr a-e A-E)
+export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+run v1.0.3 "$UPPER"
+fail_clean "uppercase SHA without an F (en_US.UTF-8)"
+check "uppercase SHA without an F gets the endpoint message" "$(has "$stderr" "$BAD"; echo $?)"
+run "$UPPER"
+fail_clean "uppercase SHA without an F as base (en_US.UTF-8)"
+unset LANG LC_ALL
+
 # Full SHAs are objects: even when a tag on origin or a branch has the same name; blobs and unknown SHAs are not.
 run "$(git rev-parse v1.0.2^{commit})" "$(git rev-parse v1.0.3)"
 check "full commit SHAs are accepted" "$([ "$rc" = 0 ]; echo $?)"
@@ -188,6 +204,15 @@ run
 check "default base ignores remote stderr noise" "$(has "$stdout" "Changes since v1.0.10"; echo $?)"
 wrap_off
 
+# The default base is the newest release tag, plain-named, even when that tag is annotated; non-release v* tags
+# (a beta, a peeled name) never become the base.
+(cd "$TMP/other" && git tag -a v1.0.20 -m rel HEAD && git tag v2.0.0-beta HEAD && git push -q origin v1.0.20 v2.0.0-beta)
+run
+check "default base with an annotated newest tag exits zero" "$([ "$rc" = 0 ]; echo $?)"
+check "default base is the annotated tag's plain name" "$(has "$stdout" "Changes since v1.0.20"; echo $?)"
+check "default base never carries a peeled name" "$(has "$stdout" '^{}'; [ $? != 0 ]; echo $?)"
+check "non-release v* tag is not the default base" "$(has "$stdout" 'v2.0.0-beta'; [ $? != 0 ]; echo $?)"
+
 # A transient failure after the branch fetch succeeded: call 1 is the fetch, later calls fail.
 for args in "v1.0.3" ""; do
   wrap_on; echo 2 > "$WRAP/fail_from"
@@ -233,6 +258,12 @@ fail_clean "ref lock"
 check "ref lock shows git's error" "$(has "$stderr" "cannot lock ref"; echo $?)"
 rm -f .git/refs/remotes/origin/main.lock
 
+FIRST=$(git -C "$TMP/other" rev-list --max-parents=0 HEAD)
+(cd "$TMP/other" && git tag "w/refs/tags/v0.9.0" HEAD && git push -q origin "refs/tags/w/refs/tags/v0.9.0")
+run v0.9.0
+check "tag name is matched exactly, not as a path suffix" \
+  "$([ "$rc" = 0 ] && has "$stdout" "($(git rev-parse --short "$FIRST"))  →"; echo $?)"
+
 # Bad base / bad end with a healthy origin: the specific reason, nothing on stdout.
 run v9.9.9
 fail_clean "bad base"
@@ -247,6 +278,16 @@ run v1.0.3
 fail_clean "unreachable origin"
 check "unreachable origin shows git's own error" "$(has "$stderr" "does not appear to be a git repository"; echo $?)"
 check "unreachable origin explains on stderr" "$(has "$stderr" "may be stale"; echo $?)"
+
+# No remote-tracking origin/main (fetch refspec excludes it): the omitted end must say so.
+git -C "$TMP/other" push -q origin HEAD:refs/heads/dev
+git clone -q "$TMP/origin.git" "$TMP/nomain" 2>/dev/null
+cd "$TMP/nomain" || exit 1
+git config remote.origin.fetch '+refs/heads/dev:refs/remotes/origin/dev'
+git update-ref -d refs/remotes/origin/main
+run v0.9.0
+fail_clean "missing origin/main"
+check "missing origin/main says so" "$(has "$stderr" "origin/main not found."; echo $?)"
 
 # No release tag on origin at all: the default base has nothing to start from.
 git init -q --bare -b main "$TMP/empty.git"
