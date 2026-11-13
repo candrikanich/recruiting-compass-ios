@@ -60,6 +60,9 @@ jobs:
       - name: Self-test guard
         run: scripts/ci/check-generated-config.test.sh
 
+      - name: Self-test release changes script
+        run: scripts/release/changes-since-release.test.sh
+
       - name: Config files still match the committed stubs
         run: scripts/ci/check-generated-config.sh stub
 
