@@ -1,7 +1,7 @@
 #!/bin/sh
 # Lists everything merged since the last release tag, as raw material for release notes.
 #
-#   scripts/release/changes-since-release.sh                          # newest v* tag on origin → origin/main
+#   scripts/release/changes-since-release.sh                          # newest vX.Y.Z release tag on origin → origin/main
 #   scripts/release/changes-since-release.sh v1.0.1                   # a release tag → origin/main
 #   scripts/release/changes-since-release.sh v1.0.1 <40-hex-sha>      # hotfix: tag → the commit being released
 #
@@ -29,11 +29,11 @@ die() {
   exit 1
 }
 
-# Branches come from a strict fetch with --no-tags: a stale origin/main would draft wrong notes, so any failure
+# origin/main comes from a strict, main-only fetch with --no-tags (another branch's ref must not matter): a stale origin/main would draft wrong notes, so any failure
 # stops here. Local tags are never read (a local tag can be stale or differ from origin's); tags are resolved
 # from origin itself below, which fetches a tag's commit only when it is missing locally, and writes no tag.
-if ! fetch_err=$(git fetch --no-tags origin 2>&1); then
-  die "'git fetch --no-tags origin' failed, so origin/main may be stale; not drafting notes from it:" "$fetch_err"
+if ! fetch_err=$(git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main 2>&1); then
+  die "fetching origin/main failed, so it may be stale; not drafting notes from it:" "$fetch_err"
 fi
 
 # Commit SHA of a tag on origin (peeled when annotated), or nothing when origin has no such tag. ls-remote's
@@ -92,7 +92,7 @@ else
     || die "'git ls-remote --tags origin' failed; not drafting notes from stale tags."
   newest=$(printf '%s\n' "$listed" | sed 's/.*refs\/tags\///' \
     | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
-  [ -n "$newest" ] || die "no v* release tag found on origin; pass a release tag explicitly."
+  [ -n "$newest" ] || die "no vX.Y.Z release tag found on origin; pass a release tag explicitly."
   BASE_REF=$newest
 fi
 

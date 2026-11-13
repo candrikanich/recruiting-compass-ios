@@ -54,7 +54,7 @@ wrap_off() { git config --unset remote.origin.uploadpack; rm -f "$WRAP/count" "$
 cat > "$TMP/bin/git" <<STUB
 #!/bin/sh
 if [ -f "$TMP/noop-tag-fetch" ]; then
-  case "\$*" in *"fetch --no-tags origin +refs/tags/"*) exit 0 ;; esac
+  case "\$*" in *fetch*+refs/tags/*) exit 0 ;; esac
 fi
 exec $(command -v git) "\$@"
 STUB
@@ -185,18 +185,16 @@ check "explicit origin/main end equals the omitted end" "$([ "$rc" = 0 ] && [ "$
 check "omitted end is the remote-tracking origin/main" "$(has "$omitted" "→  origin/main ($(git rev-parse --short refs/remotes/origin/main))"; echo $?)"
 git tag -d origin/main >/dev/null 2>&1; git update-ref -d refs/heads/origin/main 2>/dev/null
 
-# A new tag on origin with a stale lock for the same tag locally used to fail the tag fetch and leave a stale range.
+# Default base: the newest release tag on origin.
 (cd "$TMP/other" && echo d > d && git add d && git commit -q -m "release commit (#601)" \
   && git tag v1.0.4 && git push -q origin HEAD:main v1.0.4)
 RELEASE=$(git -C "$TMP/other" rev-parse HEAD)
-touch .git/refs/tags/v1.0.4.lock
 run
-check "default base with a locked new tag exits zero" "$([ "$rc" = 0 ]; echo $?)"
-check "default base is origin's newest tag, not a stale one" \
+check "default base exits zero" "$([ "$rc" = 0 ]; echo $?)"
+check "default base is origin's newest release tag" \
   "$(has "$stdout" "Changes since v1.0.4"; echo $?)"
 check "default base resolves to the new tag's commit" \
   "$(has "$stdout" "($(git rev-parse --short "$RELEASE"))  →"; echo $?)"
-rm -f .git/refs/tags/v1.0.4.lock
 
 # Version order, not lexical: v1.0.10 is newer than v1.0.9.
 (cd "$TMP/other" && git tag v1.0.9 && git tag v1.0.10 && git push -q origin v1.0.9 v1.0.10)
@@ -269,6 +267,14 @@ run v0.9.0
 check "tag name is matched exactly, not as a path suffix" \
   "$([ "$rc" = 0 ] && has "$stdout" "($(git rev-parse --short "$FIRST"))  →"; echo $?)"
 
+# A stale lock on another branch's remote-tracking ref must not matter: only origin/main is fetched.
+git -C "$TMP/other" push -q origin HEAD:refs/heads/side
+mkdir -p .git/refs/remotes/origin; touch .git/refs/remotes/origin/side.lock
+run v1.0.3
+rm -f .git/refs/remotes/origin/side.lock
+check "lock on another branch's tracking ref exits zero" "$([ "$rc" = 0 ]; echo $?)"
+check "lock on another branch's tracking ref still lists PRs" "$(has "$stdout" BODY-OF-PR-579; echo $?)"
+
 # Bad base / bad end with a healthy origin: the specific reason, nothing on stdout.
 run v9.9.9
 fail_clean "bad base"
@@ -284,15 +290,16 @@ fail_clean "unreachable origin"
 check "unreachable origin shows git's own error" "$(has "$stderr" "does not appear to be a git repository"; echo $?)"
 check "unreachable origin explains on stderr" "$(has "$stderr" "may be stale"; echo $?)"
 
-# No remote-tracking origin/main (fetch refspec excludes it): the omitted end must say so.
-git -C "$TMP/other" push -q origin HEAD:refs/heads/dev
-git clone -q "$TMP/origin.git" "$TMP/nomain" 2>/dev/null
-cd "$TMP/nomain" || exit 1
-git config remote.origin.fetch '+refs/heads/dev:refs/remotes/origin/dev'
-git update-ref -d refs/remotes/origin/main
-run v0.9.0
-fail_clean "missing origin/main"
-check "missing origin/main says so" "$(has "$stderr" "origin/main not found."; echo $?)"
+# Origin without a main branch: the main-only fetch fails, and the run says so instead of using anything stale.
+git init -q --bare -b dev "$TMP/nomain.git"
+git clone -q "$TMP/nomain.git" "$TMP/nomainwork" 2>/dev/null
+(cd "$TMP/nomainwork" && git checkout -q -b dev && echo x > x && git add x && git commit -q -m x \
+  && git tag v1.0.0 && git push -q origin dev v1.0.0)
+cd "$TMP/nomainwork" || exit 1
+run v1.0.0
+fail_clean "origin without main"
+check "origin without main says the fetch failed" "$(has "$stderr" 'fetching origin/main failed'; echo $?)"
+check "origin without main shows git's error" "$(has "$stderr" "couldn't find remote ref"; echo $?)"
 
 # No release tag on origin at all: the default base has nothing to start from.
 git init -q --bare -b main "$TMP/empty.git"
@@ -300,6 +307,6 @@ git clone -q "$TMP/empty.git" "$TMP/emptywork" 2>/dev/null
 (cd "$TMP/emptywork" && git checkout -q -b main && echo x > x && git add x && git commit -q -m x && git push -q origin main)
 cd "$TMP/emptywork" && run
 fail_clean "origin without release tags"
-check "origin without release tags says so" "$(has "$stderr" 'no v* release tag found on origin'; echo $?)"
+check "origin without release tags says so" "$(has "$stderr" 'no vX.Y.Z release tag found on origin'; echo $?)"
 
 [ "$fails" = 0 ] && echo "all passed" || { echo "$fails failed"; exit 1; }

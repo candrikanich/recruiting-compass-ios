@@ -20,10 +20,10 @@ the raw material is written for code review, and the output has to make sense to
 ### 1. Gather what shipped
 
 ```bash
-scripts/release/changes-since-release.sh             # newest v* tag → origin/main
+scripts/release/changes-since-release.sh             # newest vX.Y.Z release tag → origin/main
 scripts/release/changes-since-release.sh v1.0.1      # a specific tag → origin/main
 # hotfix: end at the hotfix commit
-git fetch origin && scripts/release/changes-since-release.sh v1.0.1 "$(git rev-parse origin/hotfix/1.0.2)"
+git fetch --no-tags origin && scripts/release/changes-since-release.sh v1.0.1 "$(git rev-parse origin/hotfix/1.0.2)"
 ```
 
 The range must end at whatever the release build is made from. For a normal release that's `main`; for a hotfix
