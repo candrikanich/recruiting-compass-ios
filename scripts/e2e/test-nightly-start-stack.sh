@@ -10,9 +10,9 @@ SCRIPT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/nightly-local.sh"
 FAILURES=0
 
 # $1 = stub behaviour: comma-separated per-attempt results for `start`
-# (ok|fail), plus env mode (env-ok|env-empty).
+# (ok|fail), plus env mode (env-ok|env-empty), plus optional free disk in KB.
 run_nightly() {
-  local starts=$1 env_mode=$2 tmp
+  local starts=$1 env_mode=$2 free_kb=${3:-104857600} tmp
   tmp="$(mktemp -d)"
   mkdir -p "$tmp/web/scripts/e2e" "$tmp/bin" "$tmp/state" "$tmp/logs"
   git -C "$tmp/web" init -q
@@ -36,7 +36,8 @@ EOF
   chmod +x "$tmp/web/scripts/e2e/local-supabase.sh"
   printf '#!/bin/sh\necho "stub-docker $*"\n' > "$tmp/bin/docker"
   printf '#!/bin/sh\nexit 1\n' > "$tmp/bin/npm"
-  chmod +x "$tmp/bin/docker" "$tmp/bin/npm"
+  printf '#!/bin/sh\necho "Filesystem 1024-blocks Used Available Capacity Mounted on"\necho "/dev/stub 500000000 1 %s 99%% /"\n' "$free_kb" > "$tmp/bin/df"
+  chmod +x "$tmp/bin/docker" "$tmp/bin/npm" "$tmp/bin/df"
   mkdir -p "$tmp/docker-logs/vm" "$tmp/docker-logs/host"
   echo "stub-engine-api-line" > "$tmp/docker-logs/vm/init.log"
   echo "stub-backend-line" > "$tmp/docker-logs/host/com.docker.backend.log"
@@ -94,8 +95,16 @@ expect "first try" "$out" "Local Supabase at http://stub"
 expect_not "first try" "$out" "attempt 1 of 2"
 expect_not "first try" "$out" "stack diagnostics"
 
+out="$(run_nightly ok env-ok 5242880)"
+expect "low disk" "$out" "FAILED: low disk space: 5 GB free, need 20 GB"
+expect_not "low disk" "$out" "Local Supabase at"
+
+out="$(run_nightly ok env-ok)"
+expect "enough disk" "$out" "Disk: 100 GB free"
+expect_not "enough disk" "$out" "low disk space"
+
 if [ "$FAILURES" -gt 0 ]; then
   echo "$FAILURES expectation(s) failed"
   exit 1
 fi
-echo "all start_stack expectations passed"
+echo "all nightly expectations passed"
