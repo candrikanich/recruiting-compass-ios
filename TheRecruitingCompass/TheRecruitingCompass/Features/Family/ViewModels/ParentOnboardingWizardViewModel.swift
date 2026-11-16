@@ -147,7 +147,9 @@ final class ParentOnboardingWizardViewModel {
     guard isPlayerDetailsValid, !isFinishing else { return }
 
     isFinishing = true
-    defer { isFinishing = false }
+    // After a successful finish the wizard is leaving: stay latched: the wizard is
+    // leaving, so Finish can't be tapped again while resolveExit's read is in flight.
+    defer { if !didComplete { isFinishing = false } }
     isLoading = true
     errorMessage = nil
     defer { isLoading = false }
@@ -176,6 +178,38 @@ final class ParentOnboardingWizardViewModel {
     } catch {
       logger.error("finishOnboarding failed: \(error.localizedDescription, privacy: .public) — full error: \(String(describing: error), privacy: .private)")
       errorMessage = (error as? FamilyError)?.errorDescription ?? "Couldn't save your athlete's details. Please try again."
+    }
+  }
+
+  /// Where the parent goes when the wizard closes.
+  enum ExitDestination: Equatable {
+    case dashboard
+    /// The first-run school step, for the connected athlete with this user id.
+    case schoolStep(athleteUserId: String)
+  }
+
+  private var hasResolvedExit = false
+
+  /// The school step is only offered after the details were saved AND an athlete has already joined the
+  /// family; Cancel, or a failed members read, goes to the dashboard and no school is ever written.
+  /// Only the first report counts: the wizard reports both Cancel and completion, so a later one returns
+  /// nil and must not finish onboarding twice or reroute a parent who already left.
+  func resolveExit() async -> ExitDestination? {
+    guard !hasResolvedExit else { return nil }
+    hasResolvedExit = true
+
+    guard didComplete, let athlete = await connectedAthlete() else { return .dashboard }
+    return .schoolStep(athleteUserId: athlete.userId)
+  }
+
+  private func connectedAthlete() async -> FamilyMember? {
+    do {
+      let family = try await existingFamily()
+      let members = try await familyService.fetchFamilyMembers(familyUnitId: family.id)
+      return FirstRunCopy.connectedAthlete(in: members)
+    } catch {
+      logger.error("connectedAthlete failed: \(error.localizedDescription, privacy: .public)")
+      return nil
     }
   }
 

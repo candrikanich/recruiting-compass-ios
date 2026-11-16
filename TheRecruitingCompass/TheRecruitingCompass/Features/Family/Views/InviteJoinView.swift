@@ -210,6 +210,11 @@ private struct InviteJoinInviteContent: View {
           )
           .font(.brand(.body))
           .foregroundStyle(.secondary)
+          Text(FirstRunCopy.intro)
+            .font(.brand(.subheadline))
+            .foregroundStyle(.secondary)
+            .multilineTextAlignment(.center)
+            .padding(.top, 4)
         }
         .padding(.top, 16)
 

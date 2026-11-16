@@ -8,7 +8,8 @@ import SwiftUI
 /// Step 1: "Tell Us About You" — sport, graduation year, zip code. Skipped when
 /// `AccountProvisioningService.flushPendingOnboardingStep1()` (called on every
 /// authenticated session) already landed this data in canonical preferences.
-/// Step 2: "Schools to Explore" — recommendation carousel + push priming. Always shown.
+/// Step 2: "Your first school" — search first, recommendations below, "Not sure yet" skips. Always shown.
+/// The intro sentence sits on step 1, or on this step when step 1 is skipped.
 struct OnboardingContainerView: View {
   enum Step { case tellAboutYou, schoolsToExplore }
 
@@ -84,6 +85,7 @@ struct OnboardingContainerView: View {
       return
     }
     showsTwoSteps = !viewModel.isStep1Valid
+    viewModel.playerSawStepOne = showsTwoSteps
     currentStep = viewModel.isStep1Valid ? .schoolsToExplore : .tellAboutYou
   }
 

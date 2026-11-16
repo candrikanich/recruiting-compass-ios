@@ -44,7 +44,7 @@ final class HelpFamilyCopyTests: XCTestCase {
   }
 
   func test_lastReviewedIsBumpedAndOldCopyIsGone() {
-    XCTAssertEqual(HelpFamilyCopy.lastReviewed, "October 2026")
+    XCTAssertEqual(HelpFamilyCopy.lastReviewed, "November 2026")
     XCTAssertTrue(HelpFamilyCopy.addingFamilyIntro.hasPrefix("Your family already exists"))
   }
 

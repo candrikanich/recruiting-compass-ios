@@ -18,20 +18,78 @@ struct OnboardingWrapperView: View {
   }
 }
 
-/// Parent onboarding: single player-details step, saved directly, straight to dashboard — matches
-/// production web. Inviting the athlete is deferred to the dashboard's "Invite Athlete" banner.
-/// No skip: web's wizard has none, and the family now comes from signup, not from finishing this step.
+/// Parent onboarding: single player-details step, saved directly — matches production web. Inviting the
+/// athlete is deferred to the dashboard's "Invite Athlete" banner. No skip: web's wizard has none, and the
+/// family now comes from signup, not from finishing this step.
+/// After the details, a parent whose family already has a connected athlete gets the first-run school step
+/// ("Which school is your athlete most excited about?"); with no connected athlete they go straight to the
+/// dashboard, and no school is written (that path is #492).
 private struct ParentOnboardingWrapperContent: View {
   var onComplete: () -> Void
   @Environment(AuthManager.self) private var authManager
   @Environment(OnboardingManager.self) private var onboardingManager
+  @Environment(FamilyManager.self) private var familyManager
   @State private var viewModel = ParentOnboardingWizardViewModel()
+  @State private var schoolViewModel = OnboardingV2ViewModel()
+  @State private var showsSchoolStep = false
 
   var body: some View {
-    ParentOnboardingWizardView(viewModel: viewModel, onDismiss: {
-      onboardingManager.markComplete()
+    if showsSchoolStep {
+      NavigationStack {
+        ZStack {
+          Color.Brand.forest600.ignoresSafeArea()
+          OnboardingStepTwoView(viewModel: schoolViewModel, completesOnboarding: false, onFinish: finish)
+            .background(Color.white.opacity(0.95))
+            .clipShape(.rect(cornerRadius: 16))
+            .colorScheme(.light)
+            .padding(24)
+        }
+      }
+    } else if onboardingManager.parentFirstRun == .schoolStepOnly {
+      ZStack {
+        Color.Brand.forest600.ignoresSafeArea()
+        ProgressView().tint(.white)
+      }
+      .task { await routeInvitedParent() }
+    } else {
+      ParentOnboardingWizardView(viewModel: viewModel, onDismiss: {
+        Task { await wizardDismissed() }
+      })
+      .environment(authManager)
+    }
+  }
+
+  /// An invited parent skips the wizard: the school step for the athlete already in the family, else the dashboard.
+  private func routeInvitedParent() async {
+    await familyManager.loadFamilyData()
+    guard let route = onboardingManager.parentFirstRun else { return }
+    switch OnboardingGate.invitedParentDestination(for: route, members: familyManager.familyMembers) {
+    case .schoolStep(let athleteUserId):
+      schoolViewModel.recommendationAthleteId = athleteUserId
+      showsSchoolStep = true
+    case .dashboard:
+      finish()
+    case nil:
+      break
+    }
+  }
+
+  private func wizardDismissed() async {
+    switch await viewModel.resolveExit() {
+    case .schoolStep(let athleteUserId):
+      schoolViewModel.recommendationAthleteId = athleteUserId
+      showsSchoolStep = true
+    case .dashboard:
+      finish()
+    case nil:
+      break
+    }
+  }
+
+  private func finish() {
+    Task {
+      guard await onboardingManager.finishParentFirstRun() else { return }
       onComplete()
-    })
-    .environment(authManager)
+    }
   }
 }

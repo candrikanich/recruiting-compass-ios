@@ -46,6 +46,9 @@ struct OnboardingStepOneView: View {
 
   @ViewBuilder private var headerSection: some View {
     VStack(alignment: .leading, spacing: 8) {
+      Text(FirstRunCopy.intro)
+        .font(.brand(.body))
+        .accessibilityIdentifier("firstRunIntro")
       Text("Let's personalize your experience")
         .font(.brand(.body))
         .foregroundStyle(.secondary)

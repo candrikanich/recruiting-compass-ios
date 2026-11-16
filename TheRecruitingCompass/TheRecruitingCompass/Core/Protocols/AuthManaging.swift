@@ -17,6 +17,9 @@ protocol AuthManaging: AnyObject {
   var session: Session? { get }
   /// Whether Face ID / Touch ID unlock is currently enabled for this device.
   var biometricEnabled: Bool { get }
+  /// How a parent who signed up in this session got their family, or nil. Signup creates the family itself, so
+  /// the family rule alone can't tell a new parent from an existing one. Cleared on sign-out.
+  var parentSignupThisSession: ParentSignupKind? { get }
   /// Set to `true` to show the biometric enrollment prompt after a successful login.
   var pendingBiometricEnrollmentOffer: Bool { get set }
 
@@ -78,4 +81,15 @@ protocol AuthManaging: AnyObject {
   func disableBiometrics()
   /// Presents the Face ID / Touch ID prompt and throws `BiometricError` on failure or cancellation.
   func authenticateWithBiometrics() async throws
+}
+
+extension AuthManaging {
+  var parentSignupThisSession: ParentSignupKind? { nil }
+}
+
+/// `ordinary`: a plain signup, which web sends to the parent wizard. `invited`: an invite signup, which joins an
+/// existing family and (on web) goes to /onboarding only if the accept left onboarding incomplete.
+enum ParentSignupKind: Equatable {
+  case ordinary
+  case invited
 }

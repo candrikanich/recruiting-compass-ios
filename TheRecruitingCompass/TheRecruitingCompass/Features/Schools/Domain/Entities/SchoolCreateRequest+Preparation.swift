@@ -23,7 +23,8 @@ extension SchoolCreateRequest {
     form: SchoolFormState,
     scorecardData: CollegeDataResult? = nil,
     userId: String,
-    familyUnitId: String?
+    familyUnitId: String?,
+    isFavorite: Bool? = nil
   ) throws -> SchoolCreateRequest {
     // Required: name (trim whitespace)
     let name = form.name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -90,7 +91,8 @@ extension SchoolCreateRequest {
       notes: notes,
       status: status,
       academicInfo: academicInfo,
-      faviconUrl: nil
+      faviconUrl: nil,
+      isFavorite: isFavorite
     )
   }
 

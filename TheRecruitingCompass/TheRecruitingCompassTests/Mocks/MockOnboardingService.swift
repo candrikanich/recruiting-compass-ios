@@ -13,6 +13,8 @@ final class MockOnboardingService: OnboardingManaging, @unchecked Sendable {
 
   /// Awaited inside `isOnboardingComplete` so tests can hold a status check in flight.
   var isOnboardingCompleteGate: (@Sendable () async -> Void)?
+  /// Awaited inside `completeOnboarding` so tests can hold the write in flight.
+  var completeOnboardingGate: (@Sendable () async -> Void)?
 
   func isOnboardingComplete(userId: String) async throws -> Bool {
     isOnboardingCompleteCallCount += 1
@@ -28,6 +30,7 @@ final class MockOnboardingService: OnboardingManaging, @unchecked Sendable {
     startingPhase: String
   ) async throws {
     completeOnboardingCallCount += 1
+    await completeOnboardingGate?()
     lastStartingPhase = startingPhase
     if shouldThrowError { throw mockError }
   }

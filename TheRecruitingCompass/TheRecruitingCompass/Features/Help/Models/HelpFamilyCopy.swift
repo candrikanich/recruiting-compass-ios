@@ -5,7 +5,7 @@ import Foundation
 /// messages: iOS has no refused-save for a missing family, because a signed-in user without one is held on the
 /// create-or-join screen before reaching anything that saves.
 enum HelpFamilyCopy {
-  static let lastReviewed = "October 2026"
+  static let lastReviewed = "November 2026"
 
   static let sectionTitle = "Every account has a family"
 

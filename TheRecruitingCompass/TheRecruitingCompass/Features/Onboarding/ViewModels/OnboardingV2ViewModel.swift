@@ -24,6 +24,16 @@ final class OnboardingV2ViewModel {
   var recommendations: [SchoolRecommendation] = []
   var isLoadingRecommendations = false
   var schoolsAdded: Int = 0
+  /// The school the player picked from search, shown as a confirmation under the search field.
+  var pickedSchoolName: String?
+  var searchResults: [CollegeSearchResult] = []
+  var isSearching = false
+  var searchError: String?
+  /// True while a search pick is being saved; blocks a second tap from inserting twice.
+  private(set) var isPickingSchool = false
+  /// Whose recommendations to load and dismiss. Nil means the signed-in user; a parent on the school step
+  /// sets the connected athlete's id, since recommendations belong to the athlete.
+  var recommendationAthleteId: String?
 
   // MARK: - Shared state
 
@@ -37,6 +47,26 @@ final class OnboardingV2ViewModel {
     let trimmed = sportSearchText.trimmingCharacters(in: .whitespaces)
     guard !trimmed.isEmpty else { return OnboardingConstants.commonSports }
     return OnboardingConstants.commonSports.filter { $0.localizedCaseInsensitiveContains(trimmed) }
+  }
+
+  var schoolPrompt: String {
+    FirstRunCopy.schoolPrompt(for: authManager.user?.role)
+  }
+
+  var hasAddedSchool: Bool { schoolsAdded > 0 || pickedSchoolName != nil }
+
+  /// Set by the player container: true when step 1 was shown, so the intro already appeared there.
+  var playerSawStepOne = false
+
+  /// The intro sits on step 1; the school step carries it only when step 1 did not (player) or for a parent,
+  /// whose first first-run screen is the school step (web#1536 shows it on the school-only step).
+  var schoolStepIntro: String? {
+    let isParent = authManager.user?.role == .parent
+    return isParent || !playerSawStepOne ? FirstRunCopy.intro : nil
+  }
+
+  var finishButtonTitle: String {
+    hasAddedSchool ? "Go to dashboard" : FirstRunCopy.skipLabel
   }
 
   var graduationYearDisplay: String {
@@ -181,7 +211,7 @@ final class OnboardingV2ViewModel {
   // MARK: - Step 2
 
   func loadRecommendations() async {
-    guard let userId = authManager.user?.id else { return }
+    guard let userId = recommendationAthleteId ?? authManager.user?.id else { return }
 
     isLoadingRecommendations = true
     defer { isLoadingRecommendations = false }
@@ -203,57 +233,24 @@ final class OnboardingV2ViewModel {
     guard let userId = authManager.user?.id else { return false }
 
     do {
-      let familyUnit = try await familyService.getFamilyUnit(forUserId: userId)
-      let familyUnitId = try FamilyUnitID.require(familyUnit?.id)
-
-      var division = recommendation.division.flatMap(Division.init(rawValue:))
-      var conference = recommendation.conference
-      if division == nil || conference == nil,
-         let ncaaResult = await ncaaDatabase.lookup(schoolName: recommendation.name) {
-        division = division ?? ncaaResult.division
-        conference = conference ?? ncaaResult.conference
-      }
-
-      var scorecardData: CollegeDataResult?
-      do {
-        scorecardData = try await collegeScorecardService.lookupCollege(name: recommendation.name)
-      } catch {
-        // Best-effort: an enrichment failure must not block adding the school itself —
-        // it just saves without location/academic data instead.
-        logger.warning("Scorecard enrichment failed for \(recommendation.name): \(error.localizedDescription)")
-      }
-
-      let city = scorecardData?.city ?? ""
-      let state = recommendation.state ?? scorecardData?.state ?? ""
-      let form = SchoolFormState(
+      let familyUnitId = try await requireFamilyUnitId(userId: userId)
+      let request = try await makeRequest(
         name: recommendation.name,
-        location: [city, state].filter { !$0.isEmpty }.joined(separator: ", "),
-        city: city,
-        state: state,
-        division: division,
-        conference: conference ?? "",
-        website: recommendation.website ?? scorecardData?.website ?? "",
-        status: .researching
-      )
-      let request = try SchoolCreateRequest.from(
-        form: form,
-        scorecardData: scorecardData,
+        state: recommendation.state,
+        division: recommendation.division.flatMap(Division.init(rawValue:)),
+        conference: recommendation.conference,
+        website: recommendation.website,
+        scorecardLookup: { [collegeScorecardService] in
+          try await collegeScorecardService.lookupCollege(name: recommendation.name)
+        },
+        isFavorite: nil,
         userId: userId,
         familyUnitId: familyUnitId
       )
-      let created = try await schoolsRepository.createSchool(request: request)
-
-      // Fire-and-forget, matching AddSchoolViewModel+DuplicateDetection.swift's
-      // createSchoolInternal — awaiting here would leave the Add button re-tappable
-      // on the same recommendation until the favicon fetch resolves.
-      let favicon = faviconService
-      Task {
-        await favicon.fetchAndPersist(school: created)
-      }
-
-      recommendations.removeAll { $0.catalogKey == recommendation.catalogKey }
+      try await persist(request)
       schoolsAdded += 1
 
+      recommendations.removeAll { $0.catalogKey == recommendation.catalogKey }
       OnboardingAnalytics.schoolAdded()
       logger.info("Added school from recommendation")
       return true
@@ -268,8 +265,175 @@ final class OnboardingV2ViewModel {
     }
   }
 
+  /// First-run pick from search: the school is added and starred as a favorite (web#1536). A school already
+  /// on the family's list is starred instead of duplicated, so picking it again still means "favorite".
+  func pickSchool(_ college: CollegeSearchResult) async -> Bool {
+    guard !isPickingSchool, let userId = authManager.user?.id else { return false }
+    isPickingSchool = true
+    defer { isPickingSchool = false }
+    // A pending or in-flight search must not put results back over a school that was just picked.
+    searchDebounceTask?.cancel()
+    searchGeneration += 1
+    // The superseded search's own defer no longer clears the spinner, so release it here.
+    isSearching = false
+
+    do {
+      let familyUnitId = try await requireFamilyUnitId(userId: userId)
+      let request = try await makeRequest(
+        name: college.name,
+        state: college.state,
+        division: nil,
+        conference: nil,
+        website: college.website,
+        scorecardLookup: { [collegeScorecardService] in
+          try await collegeScorecardService.lookupCollege(id: college.id)
+        },
+        isFavorite: true,
+        userId: userId,
+        familyUnitId: familyUnitId
+      )
+
+      let existing = try await schoolsRepository.fetchSchools(familyUnitId: familyUnitId)
+      if let duplicate = DuplicateDetector.findDuplicate(in: existing, for: request).duplicate {
+        // Already starred: nothing was added, so it neither counts nor reports again.
+        if duplicate.isFavorite {
+          pickedSchoolName = duplicate.name
+          searchResults = []
+          return true
+        }
+        // The name is set only once the star is saved, so a failure never shows "Added" next to the error.
+        try await schoolsRepository.toggleFavorite(id: duplicate.id, isFavorite: true)
+        pickedSchoolName = duplicate.name
+      } else {
+        try await persist(request)
+        pickedSchoolName = college.name
+      }
+      schoolsAdded += 1
+
+      searchResults = []
+      OnboardingAnalytics.schoolAdded()
+      logger.info("Picked first-run school from search")
+      return true
+    } catch {
+      logger.error("Failed to pick school: \(error.localizedDescription)")
+      errorMessage = "Couldn't add \(college.name). Try again in a moment."
+      return false
+    }
+  }
+
+  private func requireFamilyUnitId(userId: String) async throws -> String {
+    let familyUnit = try await familyService.getFamilyUnit(forUserId: userId)
+    return try FamilyUnitID.require(familyUnit?.id)
+  }
+
+  private func makeRequest(
+    name: String,
+    state: String?,
+    division: Division?,
+    conference: String?,
+    website: String?,
+    scorecardLookup: () async throws -> CollegeDataResult?,
+    isFavorite: Bool?,
+    userId: String,
+    familyUnitId: String
+  ) async throws -> SchoolCreateRequest {
+    var division = division
+    var conference = conference
+    if division == nil || conference == nil,
+       let ncaaResult = await ncaaDatabase.lookup(schoolName: name) {
+      division = division ?? ncaaResult.division
+      conference = conference ?? ncaaResult.conference
+    }
+
+    var scorecardData: CollegeDataResult?
+    do {
+      scorecardData = try await scorecardLookup()
+    } catch {
+      // Best-effort: an enrichment failure must not block adding the school itself —
+      // it just saves without location/academic data instead.
+      logger.warning("Scorecard enrichment failed for \(name): \(error.localizedDescription)")
+    }
+
+    let city = scorecardData?.city ?? ""
+    let resolvedState = state ?? scorecardData?.state ?? ""
+    let form = SchoolFormState(
+      name: name,
+      location: [city, resolvedState].filter { !$0.isEmpty }.joined(separator: ", "),
+      city: city,
+      state: resolvedState,
+      division: division,
+      conference: conference ?? "",
+      website: website ?? scorecardData?.website ?? "",
+      status: .researching
+    )
+    return try SchoolCreateRequest.from(
+      form: form,
+      scorecardData: scorecardData,
+      userId: userId,
+      familyUnitId: familyUnitId,
+      isFavorite: isFavorite
+    )
+  }
+
+  private func persist(_ request: SchoolCreateRequest) async throws {
+    let created = try await schoolsRepository.createSchool(request: request)
+
+    // Fire-and-forget, matching AddSchoolViewModel+DuplicateDetection.swift's
+    // createSchoolInternal — awaiting here would leave the Add button re-tappable
+    // on the same recommendation until the favicon fetch resolves.
+    let favicon = faviconService
+    Task {
+      await favicon.fetchAndPersist(school: created)
+    }
+  }
+
+  // MARK: - Search
+
+  private var searchDebounceTask: Task<Void, Never>?
+  private var searchGeneration = 0
+
+  func handleSearchQueryChanged(_ text: String) {
+    searchDebounceTask?.cancel()
+    searchDebounceTask = Task {
+      try? await Task.sleep(for: .milliseconds(300))
+      if !Task.isCancelled { await performSearch(query: text) }
+    }
+  }
+
+  func performSearch(query: String) async {
+    searchGeneration += 1
+    let generation = searchGeneration
+    let trimmed = query.trimmingCharacters(in: .whitespaces)
+    guard trimmed.count >= 3 else {
+      searchResults = []
+      searchError = nil
+      isSearching = false
+      return
+    }
+
+    isSearching = true
+    searchError = nil
+    // Only the newest search owns the spinner; a cancelled or superseded one must still release it.
+    defer { if searchGeneration == generation { isSearching = false } }
+
+    do {
+      let results = try await collegeScorecardService.searchColleges(query: trimmed)
+      guard !Task.isCancelled, searchGeneration == generation else { return }
+      searchResults = results
+    } catch is CancellationError {
+      return
+    } catch let error as URLError where error.code == .cancelled {
+      return
+    } catch {
+      guard searchGeneration == generation else { return }
+      logger.error("First-run school search failed: \(error.localizedDescription)")
+      searchResults = []
+      searchError = "Couldn't search schools. Check your connection and try again."
+    }
+  }
+
   func dismissRecommendation(_ recommendation: SchoolRecommendation) async {
-    guard let userId = authManager.user?.id else { return }
+    guard let userId = recommendationAthleteId ?? authManager.user?.id else { return }
 
     recommendations.removeAll { $0.catalogKey == recommendation.catalogKey }
 

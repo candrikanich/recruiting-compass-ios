@@ -2,6 +2,7 @@ import Testing
 import Foundation
 @testable import TheRecruitingCompass
 
+extension OnboardingV2Suites {
 @Suite("OnboardingV2ViewModel — validation and derived state")
 @MainActor
 struct OnboardingV2ViewModelTests {
@@ -21,7 +22,7 @@ struct OnboardingV2ViewModelTests {
       preferenceService: preferenceService ?? StubPreferenceService(),
       authManager: authManager ?? MockAuthManager(),
       schoolsRepository: schoolsRepository ?? SpySchoolsRepository(),
-      recommendationService: StubRecommendationService(),
+      recommendationService: RecordingRecommendationService(),
       familyService: familyService ?? StubFamilyService(),
       ncaaDatabase: ncaaDatabase ?? StubNcaaDatabase(),
       collegeScorecardService: collegeScorecardService ?? StubCollegeScorecardService(),
@@ -365,10 +366,11 @@ struct OnboardingV2ViewModelTests {
     #expect(vm.errorMessage == nil)
   }
 }
+}
 
 // MARK: - Minimal stubs for non-tested dependencies
 
-private final class StubPreferenceService: PreferenceManaging, @unchecked Sendable {
+final class StubPreferenceService: PreferenceManaging, @unchecked Sendable {
   var errorToThrow: Error?
   var storedPlayerDetails: PlayerDetails?
   private(set) var saveCallCount = 0
@@ -390,22 +392,32 @@ private final class StubPreferenceService: PreferenceManaging, @unchecked Sendab
   func deletePreferences(category: PreferenceCategory) async throws {}
 }
 
-private final class SpySchoolsRepository: SchoolsRepository, @unchecked Sendable {
+final class SpySchoolsRepository: SchoolsRepository, @unchecked Sendable {
   private static let placeholder = School.mock(id: "stub", name: "Stub U")
 
   private(set) var lastCreateRequest: SchoolCreateRequest?
+  private(set) var createCallCount = 0
+  private(set) var favoriteToggles: [(id: String, isFavorite: Bool)] = []
+  var existingSchools: [School] = []
+  var createDelay: Duration?
+  var toggleError: Error?
 
   func createSchool(request: SchoolCreateRequest) async throws -> School {
     lastCreateRequest = request
+    createCallCount += 1
+    if let createDelay { try await Task.sleep(for: createDelay) }
     return Self.placeholder
   }
-  func fetchSchools(familyUnitId: String) async throws -> [School] { [] }
+  func fetchSchools(familyUnitId: String) async throws -> [School] { existingSchools }
   func fetchSchool(id: String, familyUnitId: String) async throws -> School { Self.placeholder }
   func deleteSchool(id: String) async throws {}
   func cascadeDeleteSchool(id: String) async throws -> DeleteResult {
     DeleteResult(isCascadeUsed: false, deletedInteractions: 0, deletedNotes: 0)
   }
-  func toggleFavorite(id: String, isFavorite: Bool) async throws {}
+  func toggleFavorite(id: String, isFavorite: Bool) async throws {
+    if let toggleError { throw toggleError }
+    favoriteToggles.append((id, isFavorite))
+  }
   func updateStatus(id: String, newStatus: SchoolStatus, previousStatus: SchoolStatus, userId: String) async throws -> School { Self.placeholder }
   func fetchStatusHistory(schoolId: String) async throws -> [SchoolStatusHistory] { [] }
   func reactivateSchool(id: String, familyUnitId: String, userId: String) async throws -> School { Self.placeholder }
@@ -422,12 +434,20 @@ private final class SpySchoolsRepository: SchoolsRepository, @unchecked Sendable
   func updateCoachingPhilosophy(id: String, philosophy: EditableCoachingPhilosophy) async throws -> School { Self.placeholder }
 }
 
-private final class StubRecommendationService: SchoolRecommendationManaging, @unchecked Sendable {
-  func fetchRecommendations(athleteId: String, limit: Int) async throws -> [SchoolRecommendation] { [] }
-  func dismissRecommendation(catalogKey: String, athleteId: String) async throws {}
+final class RecordingRecommendationService: SchoolRecommendationManaging, @unchecked Sendable {
+  private(set) var fetchedAthleteIds: [String] = []
+  private(set) var dismissedAthleteIds: [String] = []
+
+  func fetchRecommendations(athleteId: String, limit: Int) async throws -> [SchoolRecommendation] {
+    fetchedAthleteIds.append(athleteId)
+    return []
+  }
+  func dismissRecommendation(catalogKey: String, athleteId: String) async throws {
+    dismissedAthleteIds.append(athleteId)
+  }
 }
 
-private final class StubFamilyService: FamilyManaging, @unchecked Sendable {
+final class StubFamilyService: FamilyManaging, @unchecked Sendable {
   var stubbedFamilyUnit: FamilyUnit? = FamilyUnit(
     id: "family-1",
     createdByUserId: "user-1",
@@ -475,7 +495,7 @@ private final class StubFamilyService: FamilyManaging, @unchecked Sendable {
   func savePlayerDetails(familyId: String, details: PendingPlayerDetails) async throws {}
 }
 
-private final class StubNcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
+final class StubNcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable {
   var stubbedResult: NcaaLookupResult?
   private(set) var lookupCallCount = 0
 
@@ -485,8 +505,11 @@ private final class StubNcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable 
   }
 }
 
-private final class StubCollegeScorecardService: CollegeScorecardManaging, @unchecked Sendable {
+final class StubCollegeScorecardService: CollegeScorecardManaging, @unchecked Sendable {
   var stubbedResult: CollegeDataResult?
+  var stubbedSearchResults: [CollegeSearchResult] = []
+  var searchDelay: Duration?
+  var searchError: Error?
   private(set) var lookupCallCount = 0
 
   func lookupCollege(name: String) async throws -> CollegeDataResult? {
@@ -494,12 +517,16 @@ private final class StubCollegeScorecardService: CollegeScorecardManaging, @unch
     return stubbedResult
   }
   func lookupCollege(id: String) async throws -> CollegeDataResult? { stubbedResult }
-  func searchColleges(query: String) async throws -> [CollegeSearchResult] { [] }
+  func searchColleges(query: String) async throws -> [CollegeSearchResult] {
+    if let searchDelay { try await Task.sleep(for: searchDelay) }
+    if let searchError { throw searchError }
+    return stubbedSearchResults
+  }
 }
 
 // Fire-and-forget in production (see addSchool), so tests that need to observe the call
 // must await it explicitly rather than checking the count right after addSchool returns.
-private actor SpyFaviconService: SchoolFaviconManaging {
+actor SpyFaviconService: SchoolFaviconManaging {
   private(set) var fetchAndPersistCallCount = 0
   private(set) var lastSchool: School?
   private var continuation: CheckedContinuation<Void, Never>?
@@ -519,6 +546,7 @@ private actor SpyFaviconService: SchoolFaviconManaging {
 
 // MARK: - addSchool enrichment parity with Schools-page "Add School" flow
 
+extension OnboardingV2Suites {
 @Suite("OnboardingV2ViewModel — addSchool enrichment")
 @MainActor
 struct OnboardingV2ViewModelAddSchoolTests {
@@ -546,7 +574,7 @@ struct OnboardingV2ViewModelAddSchoolTests {
       preferenceService: StubPreferenceService(),
       authManager: auth,
       schoolsRepository: schoolsRepository,
-      recommendationService: StubRecommendationService(),
+      recommendationService: RecordingRecommendationService(),
       familyService: StubFamilyService(),
       ncaaDatabase: ncaaDatabase,
       collegeScorecardService: collegeScorecardService,
@@ -677,6 +705,7 @@ struct OnboardingV2ViewModelAddSchoolTests {
     #expect(vm.recommendations.isEmpty)
     #expect(vm.schoolsAdded == 1)
   }
+}
 }
 
 /// Never resumes — proves addSchool doesn't await favicon persistence before completing.

@@ -453,7 +453,7 @@ final class SchoolsRepositoryImpl: SchoolsRepository, Sendable {
 
 /// Insert payload including top-level city/state (schools table has these columns per migration).
 /// Also merges city/state into academic_info for backward compatibility.
-private struct SchoolsInsertPayload: Encodable {
+struct SchoolsInsertPayload: Encodable {
   let user_id: String
   let family_unit_id: String
   let name: String
@@ -470,6 +470,8 @@ private struct SchoolsInsertPayload: Encodable {
   let status: String
   let academic_info: AcademicInfo?
   let favicon_url: String?
+  /// Omitted when nil so ordinary creates keep the column default.
+  let is_favorite: Bool?
 
   init(from request: SchoolCreateRequest) {
     user_id = request.userId
@@ -487,6 +489,7 @@ private struct SchoolsInsertPayload: Encodable {
     notes = request.notes
     status = request.status
     favicon_url = request.faviconUrl
+    is_favorite = request.isFavorite
     // Merge city/state from request into academic_info
     let base = request.academicInfo
     if request.city != nil || request.state != nil || base != nil {
