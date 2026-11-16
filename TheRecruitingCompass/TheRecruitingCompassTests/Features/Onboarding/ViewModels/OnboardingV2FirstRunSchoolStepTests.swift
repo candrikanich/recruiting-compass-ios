@@ -277,7 +277,9 @@ struct OnboardingV2ViewModelFirstRunTests {
   }
 
   @Test func parentSeesTheIntroOnTheSchoolStep() {
-    #expect(makeSUT(role: .parent).schoolStepIntro == FirstRunCopy.intro)
+    let vm = makeSUT(role: .parent)
+    vm.playerSawStepOne = true
+    #expect(vm.schoolStepIntro == FirstRunCopy.intro)
   }
 
   @Test func playerWhoSawStepOneDoesNotSeeTheIntroTwice() {
