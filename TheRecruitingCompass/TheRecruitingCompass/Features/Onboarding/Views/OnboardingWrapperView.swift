@@ -38,7 +38,7 @@ private struct ParentOnboardingWrapperContent: View {
         ZStack {
           Color.Brand.forest600.ignoresSafeArea()
           OnboardingStepTwoView(
-            viewModel: schoolViewModel, showsIntro: true, completesOnboarding: false, onFinish: finish
+            viewModel: schoolViewModel, completesOnboarding: false, onFinish: finish
           )
             .background(Color.white.opacity(0.95))
             .clipShape(.rect(cornerRadius: 16))

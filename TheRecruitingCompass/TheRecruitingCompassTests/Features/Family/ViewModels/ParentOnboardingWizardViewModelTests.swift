@@ -406,4 +406,25 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     let firstResult = await first.value
     XCTAssertEqual(firstResult, .schoolStep(athleteUserId: "u-player"))
   }
+
+  func testResolveExit_cancelThenComplete_staysOnTheDashboardPath() async {
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
+    mockFamilyService.stubbedFamilyMembers = [member(role: "player")]
+    viewModel.didComplete = false
+    let cancel = await viewModel.resolveExit()
+    viewModel.didComplete = true
+    let later = await viewModel.resolveExit()
+    XCTAssertEqual(cancel, .dashboard)
+    XCTAssertNil(later)
+  }
+
+  func testResolveExit_completeThenCancel_keepsTheSchoolStep() async {
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
+    mockFamilyService.stubbedFamilyMembers = [member(role: "player")]
+    viewModel.didComplete = true
+    let complete = await viewModel.resolveExit()
+    let cancel = await viewModel.resolveExit()
+    XCTAssertEqual(complete, .schoolStep(athleteUserId: "u-player"))
+    XCTAssertNil(cancel)
+  }
 }

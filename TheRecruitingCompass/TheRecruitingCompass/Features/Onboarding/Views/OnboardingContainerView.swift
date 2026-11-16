@@ -85,6 +85,7 @@ struct OnboardingContainerView: View {
       return
     }
     showsTwoSteps = !viewModel.isStep1Valid
+    viewModel.playerSawStepOne = showsTwoSteps
     currentStep = viewModel.isStep1Valid ? .schoolsToExplore : .tellAboutYou
   }
 
@@ -172,7 +173,6 @@ struct OnboardingContainerView: View {
     case .schoolsToExplore:
       OnboardingStepTwoView(
         viewModel: viewModel,
-        showsIntro: !showsTwoSteps,
         onFinish: {
           onComplete?()
         }

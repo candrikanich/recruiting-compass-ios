@@ -53,7 +53,17 @@ final class OnboardingV2ViewModel {
     FirstRunCopy.schoolPrompt(for: authManager.user?.role)
   }
 
-  var hasAddedSchool: Bool { schoolsAdded > 0 }
+  var hasAddedSchool: Bool { schoolsAdded > 0 || pickedSchoolName != nil }
+
+  /// Set by the player container: true when step 1 was shown, so the intro already appeared there.
+  var playerSawStepOne = false
+
+  /// The intro sits on step 1; the school step carries it only when step 1 did not (player) or for a parent,
+  /// whose first first-run screen is the school step (web#1536 shows it on the school-only step).
+  var schoolStepIntro: String? {
+    let isParent = authManager.user?.role == .parent
+    return isParent || !playerSawStepOne ? FirstRunCopy.intro : nil
+  }
 
   var finishButtonTitle: String {
     hasAddedSchool ? "Go to dashboard" : FirstRunCopy.skipLabel
@@ -264,6 +274,8 @@ final class OnboardingV2ViewModel {
     // A pending or in-flight search must not put results back over a school that was just picked.
     searchDebounceTask?.cancel()
     searchGeneration += 1
+    // The superseded search's own defer no longer clears the spinner, so release it here.
+    isSearching = false
 
     do {
       let familyUnitId = try await requireFamilyUnitId(userId: userId)
@@ -283,10 +295,11 @@ final class OnboardingV2ViewModel {
 
       let existing = try await schoolsRepository.fetchSchools(familyUnitId: familyUnitId)
       if let duplicate = DuplicateDetector.findDuplicate(in: existing, for: request).duplicate {
-        if !duplicate.isFavorite {
-          try await schoolsRepository.toggleFavorite(id: duplicate.id, isFavorite: true)
-        }
         pickedSchoolName = duplicate.name
+        searchResults = []
+        // Already starred: nothing was added, so it neither counts nor reports again.
+        guard !duplicate.isFavorite else { return true }
+        try await schoolsRepository.toggleFavorite(id: duplicate.id, isFavorite: true)
       } else {
         try await persist(request)
         pickedSchoolName = college.name

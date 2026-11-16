@@ -6,8 +6,6 @@ import SwiftUI
 /// After the first school add, the push notification priming sheet appears.
 struct OnboardingStepTwoView: View {
   @Bindable var viewModel: OnboardingV2ViewModel
-  /// True when this is the player's first screen, so the intro sentence has not been shown on step 1.
-  var showsIntro = false
   /// False for a parent: their setup is already complete, so finishing here only leaves the screen.
   var completesOnboarding = true
   var onFinish: () -> Void
@@ -72,8 +70,8 @@ struct OnboardingStepTwoView: View {
 
   @ViewBuilder private var headerSection: some View {
     VStack(alignment: .leading, spacing: 12) {
-      if showsIntro {
-        Text(FirstRunCopy.intro)
+      if let intro = viewModel.schoolStepIntro {
+        Text(intro)
           .font(.brand(.body))
           .foregroundStyle(.secondary)
           .accessibilityIdentifier("firstRunIntro")

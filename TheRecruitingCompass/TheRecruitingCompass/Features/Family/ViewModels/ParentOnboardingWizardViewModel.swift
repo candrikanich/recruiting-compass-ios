@@ -186,16 +186,15 @@ final class ParentOnboardingWizardViewModel {
     case schoolStep(athleteUserId: String)
   }
 
-  private var isResolvingExit = false
+  private var hasResolvedExit = false
 
   /// The school step is only offered after the details were saved AND an athlete has already joined the
   /// family; Cancel, or a failed members read, goes to the dashboard and no school is ever written.
-  /// Returns nil while another exit is still being resolved: the wizard reports both Cancel and completion,
-  /// and a second report must not finish onboarding twice.
+  /// Only the first report counts: the wizard reports both Cancel and completion, so a later one returns
+  /// nil and must not finish onboarding twice or reroute a parent who already left.
   func resolveExit() async -> ExitDestination? {
-    guard !isResolvingExit else { return nil }
-    isResolvingExit = true
-    defer { isResolvingExit = false }
+    guard !hasResolvedExit else { return nil }
+    hasResolvedExit = true
 
     guard didComplete, let athlete = await connectedAthlete() else { return .dashboard }
     return .schoolStep(athleteUserId: athlete.userId)
