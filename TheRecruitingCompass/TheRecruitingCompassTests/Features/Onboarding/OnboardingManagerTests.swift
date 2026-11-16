@@ -385,4 +385,97 @@ final class OnboardingManagerTests: XCTestCase {
   func testInvitedParentDestination_wizardRouteDecidesItsOwnExit() {
     XCTAssertNil(OnboardingGate.invitedParentDestination(for: .wizard, members: [athleteMember()]))
   }
+
+  func testInvitedParentDestination_parentOnlyFamily_isTheDashboardNeverASchoolWrite() {
+    let parentOnly = FamilyMember(
+      id: "m-p", userId: "other-parent", familyUnitId: "family-1", role: "parent",
+      addedAt: nil, user: nil, canRemove: nil, removeBlockedReason: nil
+    )
+    XCTAssertEqual(OnboardingGate.invitedParentDestination(for: .schoolStepOnly, members: [parentOnly]), .dashboard)
+  }
+
+  // MARK: - First-run ends once, and is not cut short by errors
+
+  func testFirstRunDoesNotComeBackAfterItEnds_evenWhileTheServerFlagIsStillFalse() async {
+    mockAuthManager.user = makeUser(role: .parent)
+    mockAuthManager.parentSignupThisSession = .invited
+    mockOnboardingService.isOnboardingCompleteResult = false
+    await sut.loadStatus(isInFamily: true)
+
+    sut.markComplete()
+    await sut.loadStatus(isInFamily: true)
+
+    XCTAssertNil(sut.parentFirstRun)
+    XCTAssertEqual(sut.needsOnboarding, false)
+  }
+
+  func testResetAllowsTheNextSignupToStartFirstRunAgain() async {
+    mockAuthManager.user = makeUser(role: .parent)
+    mockAuthManager.parentSignupThisSession = .ordinary
+    mockOnboardingService.isOnboardingCompleteResult = false
+    await sut.loadStatus(isInFamily: true)
+    sut.markComplete()
+
+    sut.reset()
+    await sut.loadStatus(isInFamily: true)
+
+    XCTAssertEqual(sut.parentFirstRun, .wizard)
+  }
+
+  func testFinishingTheInvitedRoute_writesOnboardingComplete() async {
+    mockAuthManager.user = makeUser(role: .parent)
+    mockAuthManager.parentSignupThisSession = .invited
+    mockOnboardingService.isOnboardingCompleteResult = false
+    await sut.loadStatus(isInFamily: true)
+
+    await sut.finishParentFirstRun()
+
+    XCTAssertEqual(mockOnboardingService.completeOnboardingCallCount, 1)
+    XCTAssertEqual(sut.needsOnboarding, false)
+    XCTAssertNil(sut.parentFirstRun)
+  }
+
+  func testFinishingTheInvitedRoute_stillLeavesWhenTheWriteFails() async {
+    mockAuthManager.user = makeUser(role: .parent)
+    mockAuthManager.parentSignupThisSession = .invited
+    mockOnboardingService.isOnboardingCompleteResult = false
+    await sut.loadStatus(isInFamily: true)
+
+    mockOnboardingService.shouldThrowError = true
+    await sut.finishParentFirstRun()
+
+    XCTAssertEqual(sut.needsOnboarding, false)
+  }
+
+  func testFinishingTheWizardRoute_doesNotWriteTwice() async {
+    mockAuthManager.user = makeUser(role: .parent)
+    mockAuthManager.parentSignupThisSession = .ordinary
+    mockOnboardingService.isOnboardingCompleteResult = false
+    await sut.loadStatus(isInFamily: true)
+
+    await sut.finishParentFirstRun()
+
+    XCTAssertEqual(mockOnboardingService.completeOnboardingCallCount, 0, "the wizard already wrote it")
+  }
+
+  func testAFailedStatusReadMidFirstRunKeepsTheParentInIt() async {
+    mockAuthManager.user = makeUser(role: .parent)
+    mockAuthManager.parentSignupThisSession = .ordinary
+    mockOnboardingService.isOnboardingCompleteResult = false
+    await sut.loadStatus(isInFamily: true)
+
+    mockOnboardingService.shouldThrowError = true
+    await sut.loadStatus(isInFamily: true)
+
+    XCTAssertEqual(sut.needsOnboarding, true)
+  }
+
+  func testAFailedStatusReadOutsideFirstRunStillFailsOpen() async {
+    mockAuthManager.user = makeUser(role: .player)
+    mockOnboardingService.shouldThrowError = true
+
+    await sut.loadStatus(isInFamily: true)
+
+    XCTAssertEqual(sut.needsOnboarding, false)
+  }
 }

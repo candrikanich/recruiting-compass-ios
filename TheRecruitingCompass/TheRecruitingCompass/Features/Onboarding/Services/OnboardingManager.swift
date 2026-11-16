@@ -67,6 +67,8 @@ final class OnboardingManager {
   /// family itself, so a new parent is already a member and the family rule alone would skip first-run. In memory
   /// only, so a cold launch never brings it back.
   private(set) var parentFirstRun: ParentFirstRun?
+  /// The signup signal lives on AuthManager until sign-out; once first-run has ended it must not start it again.
+  private var parentSignupConsumed = false
 
   /// Advanced by `reset()`; a status check only routes while its session is still current.
   private var session = 0
@@ -102,7 +104,7 @@ final class OnboardingManager {
       guard loadSession == session else { return }
       parentFirstRun = OnboardingGate.parentFirstRun(
         role: user.role, flagComplete: complete,
-        signup: authManager.parentSignupThisSession, latched: parentFirstRun
+        signup: parentSignupConsumed ? nil : authManager.parentSignupThisSession, latched: parentFirstRun
       )
       needsOnboarding = OnboardingGate.needsOnboarding(
         role: user.role, flagComplete: complete, isInFamily: isInFamily, parentFirstRun: parentFirstRun
@@ -122,7 +124,8 @@ final class OnboardingManager {
     } catch {
       logger.error("Failed to check onboarding status: \(error.localizedDescription)")
       guard loadSession == session else { return }
-      needsOnboarding = false
+      // A failed read must not end a first-run that is already in progress.
+      needsOnboarding = parentFirstRun != nil
       needsSportOnly = false
     }
   }
@@ -133,9 +136,29 @@ final class OnboardingManager {
     needsOnboarding = nil
     needsSportOnly = false
     parentFirstRun = nil
+    parentSignupConsumed = false
+  }
+
+  /// Ends an invited parent's first-run. The wizard writes `onboarding_complete` itself; the school-step-only
+  /// route has no such step, so it is written here (best effort, like the wizard), or web would send the parent
+  /// back to /onboarding.
+  func finishParentFirstRun() async {
+    if parentFirstRun == .schoolStepOnly, let userId = authManager.user?.id {
+      do {
+        try await onboardingService.completeOnboarding(
+          userId: userId,
+          assessment: .defaultForOnboarding,
+          startingPhase: OnboardingAssessment.startingPhase(for: .defaultForOnboarding, graduationYear: nil)
+        )
+      } catch {
+        logger.error("completeOnboarding failed for invited parent: \(error.localizedDescription)")
+      }
+    }
+    markComplete()
   }
 
   func markComplete() {
+    if parentFirstRun != nil { parentSignupConsumed = true }
     parentFirstRun = nil
     needsOnboarding = false
   }

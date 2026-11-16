@@ -120,7 +120,6 @@ final class AuthManager: AuthManaging {
       // later step failed) stay consistent.
       try? await supabaseManager.signOut()
       self.user = nil
-      self.parentSignupThisSession = nil
       self.session = nil
       self.isAuthenticated = false
       let message = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."

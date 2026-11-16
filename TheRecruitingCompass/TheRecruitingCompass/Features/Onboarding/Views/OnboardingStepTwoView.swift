@@ -6,7 +6,7 @@ import SwiftUI
 /// After the first school add, the push notification priming sheet appears.
 struct OnboardingStepTwoView: View {
   @Bindable var viewModel: OnboardingV2ViewModel
-  /// False for a parent: their setup is already complete, so finishing here only leaves the screen.
+  /// False for a parent: setup is finished by their first-run exit, not by this step.
   var completesOnboarding = true
   var onFinish: () -> Void
 

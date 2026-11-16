@@ -163,6 +163,25 @@ final class AuthManagerSignupTests: XCTestCase {
     XCTAssertNil(sut.parentSignupThisSession)
   }
 
+
+  func testSignOut_clearsTheParentSignupSignal_soAnExistingParentIsNotSentToTheWizard() async throws {
+    try await signup(role: .parent)
+    XCTAssertEqual(sut.parentSignupThisSession, .ordinary)
+
+    try await sut.logout()
+
+    XCTAssertNil(sut.parentSignupThisSession)
+  }
+
+  func testSessionCleared_clearsTheParentSignupSignal() async throws {
+    try await signup(role: .parent)
+    mockSupabaseManager.currentSessionResult = nil
+
+    await sut.restoreSession()
+
+    XCTAssertFalse(sut.isAuthenticated)
+    XCTAssertNil(sut.parentSignupThisSession)
+  }
 }
 
 private extension ISO8601DateFormatter {
