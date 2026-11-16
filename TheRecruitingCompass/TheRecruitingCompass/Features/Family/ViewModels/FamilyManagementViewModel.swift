@@ -433,6 +433,8 @@ final class FamilyManagementViewModel {
       // Reload parent families, then the inbound addresses that carry their server-resolved labels
       await loadParentData()
       await loadInboundAddress()
+      // The switcher and every family-scoped screen read FamilyManager, not this view model's list.
+      await onMembershipChanged?()
 
       // Clear input
       codeInput = ""

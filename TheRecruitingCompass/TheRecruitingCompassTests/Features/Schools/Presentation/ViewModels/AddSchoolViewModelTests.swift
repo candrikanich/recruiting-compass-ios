@@ -6,6 +6,7 @@
 //  Phase 5: ViewModel - AddSchoolViewModel tests
 //
 
+import Supabase
 import XCTest
 @testable import TheRecruitingCompass
 
@@ -434,6 +435,19 @@ final class AddSchoolViewModelTests: XCTestCase {
 
     // Then
     XCTAssertNil(result)
+    XCTAssertEqual(viewModel.submitError, "Failed to create school. Please try again.")
+    XCTAssertFalse(viewModel.isSubmitting)
+  }
+
+  /// A family without write access (`read_only`, unseated) gets the RLS refusal `42501` on insert (#604).
+  func testSubmitSchool_writeRefusedForUnseatedFamily_surfacesAnErrorAndCreatesNothing() async {
+    viewModel.formState.name = "Harvard"
+    mockService.shouldThrowError = true
+    mockService.errorToThrow = PostgrestError(code: "42501", message: "schools_insert_requires_entitlement")
+
+    let result = await viewModel.submitSchool()
+
+    XCTAssertNil(result, "no school comes back for a refused write")
     XCTAssertEqual(viewModel.submitError, "Failed to create school. Please try again.")
     XCTAssertFalse(viewModel.isSubmitting)
   }
