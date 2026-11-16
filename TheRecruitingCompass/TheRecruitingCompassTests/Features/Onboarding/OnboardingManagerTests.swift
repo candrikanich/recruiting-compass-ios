@@ -484,16 +484,23 @@ final class OnboardingManagerTests: XCTestCase {
     mockAuthManager.parentSignupThisSession = .invited
     mockOnboardingService.isOnboardingCompleteResult = false
     await sut.loadStatus(isInFamily: true)
-    mockOnboardingService.completeOnboardingGate = { try? await Task.sleep(for: .milliseconds(300)) }
+    let (entered, enteredSignal) = AsyncStream<Void>.makeStream()
+    let (release, releaseSignal) = AsyncStream<Void>.makeStream()
+    mockOnboardingService.completeOnboardingGate = {
+      enteredSignal.yield()
+      for await _ in release { break }
+    }
 
     let finishing = Task { await self.sut.finishParentFirstRun() }
-    try await Task.sleep(for: .milliseconds(100))
+    for await _ in entered { break }
     sut.reset()
     mockAuthManager.user = makeUser(role: .player)
     mockAuthManager.parentSignupThisSession = nil
     await sut.loadStatus(isInFamily: true)
-    await finishing.value
+    releaseSignal.yield()
+    let completed = await finishing.value
 
+    XCTAssertFalse(completed, "the stopped finish reports it, so the view does not leave")
     XCTAssertEqual(sut.needsOnboarding, true, "the stale finish must not mark the new player complete")
   }
 
@@ -506,5 +513,32 @@ final class OnboardingManagerTests: XCTestCase {
 
     XCTAssertEqual(sut.needsOnboarding, true)
     XCTAssertEqual(sut.parentFirstRun, .wizard)
+  }
+
+  func testInvitedParentWhoseStatusReadFails_failsOpenAndIsNeverRewritten() async {
+    mockAuthManager.user = makeUser(role: .parent)
+    mockAuthManager.parentSignupThisSession = .invited
+    mockOnboardingService.shouldThrowError = true
+
+    await sut.loadStatus(isInFamily: true)
+    await sut.finishParentFirstRun()
+
+    XCTAssertNil(sut.parentFirstRun)
+    XCTAssertEqual(sut.needsOnboarding, false)
+    XCTAssertEqual(mockOnboardingService.completeOnboardingCallCount, 0, "a finished account is not rewritten")
+  }
+
+  func testFinishedFirstRun_isNotRestartedByAnotherFailingStatusRead() async {
+    mockAuthManager.user = makeUser(role: .parent)
+    mockAuthManager.parentSignupThisSession = .ordinary
+    mockOnboardingService.shouldThrowError = true
+    await sut.loadStatus(isInFamily: true)
+    XCTAssertEqual(sut.parentFirstRun, .wizard)
+    await sut.finishParentFirstRun()
+
+    await sut.loadStatus(isInFamily: true)
+
+    XCTAssertNil(sut.parentFirstRun)
+    XCTAssertEqual(sut.needsOnboarding, false)
   }
 }

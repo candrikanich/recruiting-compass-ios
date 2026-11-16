@@ -102,10 +102,7 @@ final class OnboardingManager {
     do {
       let complete = try await onboardingService.isOnboardingComplete(userId: user.id)
       guard loadSession == session else { return }
-      parentFirstRun = OnboardingGate.parentFirstRun(
-        role: user.role, flagComplete: complete,
-        signup: parentSignupConsumed ? nil : authManager.parentSignupThisSession, latched: parentFirstRun
-      )
+      latchParentFirstRun(role: user.role, flagComplete: complete, includesInvited: true)
       needsOnboarding = OnboardingGate.needsOnboarding(
         role: user.role, flagComplete: complete, isInFamily: isInFamily, parentFirstRun: parentFirstRun
       )
@@ -125,14 +122,20 @@ final class OnboardingManager {
       logger.error("Failed to check onboarding status: \(error.localizedDescription)")
       guard loadSession == session else { return }
       // A failed read must neither end a first-run in progress nor skip one that is about to start: a parent
-      // who just signed up lands in it, treating the unreadable flag as incomplete.
-      parentFirstRun = OnboardingGate.parentFirstRun(
-        role: user.role, flagComplete: false,
-        signup: parentSignupConsumed ? nil : authManager.parentSignupThisSession, latched: parentFirstRun
-      )
+      // who just signed up lands in it, treating the unreadable flag as incomplete. An invited parent's accept
+      // may already have completed onboarding, which only the unreadable flag could say, so they fail open.
+      latchParentFirstRun(role: user.role, flagComplete: false, includesInvited: false)
       needsOnboarding = parentFirstRun != nil
       needsSportOnly = false
     }
+  }
+
+  private func latchParentFirstRun(role: UserRole?, flagComplete: Bool, includesInvited: Bool) {
+    let pending = parentSignupConsumed ? nil : authManager.parentSignupThisSession
+    let signup = includesInvited || pending == .ordinary ? pending : nil
+    parentFirstRun = OnboardingGate.parentFirstRun(
+      role: role, flagComplete: flagComplete, signup: signup, latched: parentFirstRun
+    )
   }
 
   /// Back to "loading" so the next user is routed by their own status, not the previous user's.
@@ -146,8 +149,9 @@ final class OnboardingManager {
 
   /// Ends an invited parent's first-run. The wizard writes `onboarding_complete` itself; the school-step-only
   /// route has no such step, so it is written here (best effort, like the wizard), or web would send the parent
-  /// back to /onboarding.
-  func finishParentFirstRun() async {
+  /// back to /onboarding. Returns false when a sign-out during the write stopped it, so the caller leaves alone.
+  @discardableResult
+  func finishParentFirstRun() async -> Bool {
     let finishSession = session
     if parentFirstRun == .schoolStepOnly, let userId = authManager.user?.id {
       do {
@@ -161,8 +165,9 @@ final class OnboardingManager {
       }
     }
     // Signed out (and maybe another user in) while the write was in flight: this must not end their onboarding.
-    guard finishSession == session else { return }
+    guard finishSession == session else { return false }
     markComplete()
+    return true
   }
 
   func markComplete() {

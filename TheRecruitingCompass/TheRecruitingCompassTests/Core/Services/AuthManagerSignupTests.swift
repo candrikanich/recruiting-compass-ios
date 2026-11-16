@@ -186,7 +186,7 @@ final class AuthManagerSignupTests: XCTestCase {
     struct SaveFailure: Error {}
     sut = AuthManager(
       supabaseManager: mockSupabaseManager, biometricService: mockBiometricService,
-      persistSession: { _ in throw SaveFailure() }
+      accountProvisioning: MockAccountProvisioning(), persistSession: { _ in throw SaveFailure() }
     )
     mockSupabaseManager.signUpResult = .success((user: userMock(), session: sessionMock()))
 
@@ -199,6 +199,8 @@ final class AuthManagerSignupTests: XCTestCase {
     } catch {}
 
     XCTAssertNil(sut.parentSignupThisSession, "an existing parent logging in next must not be sent to first-run")
+    XCTAssertNil(sut.user)
+    XCTAssertNil(sut.session)
     XCTAssertFalse(sut.isAuthenticated)
   }
 }

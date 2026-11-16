@@ -88,7 +88,7 @@ private struct ParentOnboardingWrapperContent: View {
 
   private func finish() {
     Task {
-      await onboardingManager.finishParentFirstRun()
+      guard await onboardingManager.finishParentFirstRun() else { return }
       onComplete()
     }
   }
