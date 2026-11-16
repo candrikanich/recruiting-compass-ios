@@ -163,7 +163,6 @@ final class AuthManagerSignupTests: XCTestCase {
     XCTAssertNil(sut.parentSignupThisSession)
   }
 
-
   func testSignOut_clearsTheParentSignupSignal_soAnExistingParentIsNotSentToTheWizard() async throws {
     try await signup(role: .parent)
     XCTAssertEqual(sut.parentSignupThisSession, .ordinary)
@@ -181,6 +180,26 @@ final class AuthManagerSignupTests: XCTestCase {
 
     XCTAssertFalse(sut.isAuthenticated)
     XCTAssertNil(sut.parentSignupThisSession)
+  }
+
+  func testSignup_whenSavingTheSessionFails_leavesNoSignalAndNoPublishedUser() async {
+    struct SaveFailure: Error {}
+    sut = AuthManager(
+      supabaseManager: mockSupabaseManager, biometricService: mockBiometricService,
+      persistSession: { _ in throw SaveFailure() }
+    )
+    mockSupabaseManager.signUpResult = .success((user: userMock(), session: sessionMock()))
+
+    do {
+      try await sut.signup(
+        email: "p@example.com", password: "password123", fullName: "Pat", role: .parent, familyCode: nil,
+        captchaToken: "test-captcha-token"
+      )
+      XCTFail("Expected the failed save to fail the signup")
+    } catch {}
+
+    XCTAssertNil(sut.parentSignupThisSession, "an existing parent logging in next must not be sent to first-run")
+    XCTAssertFalse(sut.isAuthenticated)
   }
 }
 

@@ -478,4 +478,33 @@ final class OnboardingManagerTests: XCTestCase {
 
     XCTAssertEqual(sut.needsOnboarding, false)
   }
+
+  func testFinishingFirstRun_afterSignOutMidWrite_doesNotEndTheNextUsersOnboarding() async throws {
+    mockAuthManager.user = makeUser(role: .parent)
+    mockAuthManager.parentSignupThisSession = .invited
+    mockOnboardingService.isOnboardingCompleteResult = false
+    await sut.loadStatus(isInFamily: true)
+    mockOnboardingService.completeOnboardingGate = { try? await Task.sleep(for: .milliseconds(300)) }
+
+    let finishing = Task { await self.sut.finishParentFirstRun() }
+    try await Task.sleep(for: .milliseconds(100))
+    sut.reset()
+    mockAuthManager.user = makeUser(role: .player)
+    mockAuthManager.parentSignupThisSession = nil
+    await sut.loadStatus(isInFamily: true)
+    await finishing.value
+
+    XCTAssertEqual(sut.needsOnboarding, true, "the stale finish must not mark the new player complete")
+  }
+
+  func testNewParentWhoseFirstStatusReadFails_stillLandsInFirstRun() async {
+    mockAuthManager.user = makeUser(role: .parent)
+    mockAuthManager.parentSignupThisSession = .ordinary
+    mockOnboardingService.shouldThrowError = true
+
+    await sut.loadStatus(isInFamily: true)
+
+    XCTAssertEqual(sut.needsOnboarding, true)
+    XCTAssertEqual(sut.parentFirstRun, .wizard)
+  }
 }

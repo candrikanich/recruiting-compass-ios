@@ -124,7 +124,12 @@ final class OnboardingManager {
     } catch {
       logger.error("Failed to check onboarding status: \(error.localizedDescription)")
       guard loadSession == session else { return }
-      // A failed read must not end a first-run that is already in progress.
+      // A failed read must neither end a first-run in progress nor skip one that is about to start: a parent
+      // who just signed up lands in it, treating the unreadable flag as incomplete.
+      parentFirstRun = OnboardingGate.parentFirstRun(
+        role: user.role, flagComplete: false,
+        signup: parentSignupConsumed ? nil : authManager.parentSignupThisSession, latched: parentFirstRun
+      )
       needsOnboarding = parentFirstRun != nil
       needsSportOnly = false
     }
@@ -143,6 +148,7 @@ final class OnboardingManager {
   /// route has no such step, so it is written here (best effort, like the wizard), or web would send the parent
   /// back to /onboarding.
   func finishParentFirstRun() async {
+    let finishSession = session
     if parentFirstRun == .schoolStepOnly, let userId = authManager.user?.id {
       do {
         try await onboardingService.completeOnboarding(
@@ -154,6 +160,8 @@ final class OnboardingManager {
         logger.error("completeOnboarding failed for invited parent: \(error.localizedDescription)")
       }
     }
+    // Signed out (and maybe another user in) while the write was in flight: this must not end their onboarding.
+    guard finishSession == session else { return }
     markComplete()
   }
 

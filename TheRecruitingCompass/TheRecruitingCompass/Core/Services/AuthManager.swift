@@ -20,7 +20,10 @@ final class AuthManager: AuthManaging {
   private(set) var parentSignupThisSession: ParentSignupKind?
 
   private let keychain = KeychainHelper.shared
-  private let sessionKey = "savedSession"
+  /// Saves a new signup's session to the Keychain; a seam so a test can make it fail.
+  private let persistSession: (Session) throws -> Void
+  private static let sessionKeyName = "savedSession"
+  private let sessionKey = AuthManager.sessionKeyName
   private let supabaseManager: any SupabaseManaging
   private let biometricEnabledKey = "biometricEnabled"
   private let biometricService: any BiometricServiceProtocol
@@ -33,8 +36,10 @@ final class AuthManager: AuthManaging {
   init(
     supabaseManager: (any SupabaseManaging)? = nil,
     biometricService: (any BiometricServiceProtocol)? = nil,
-    accountProvisioning: (any AccountProvisioning)? = nil
+    accountProvisioning: (any AccountProvisioning)? = nil,
+    persistSession: ((Session) throws -> Void)? = nil
   ) {
+    self.persistSession = persistSession ?? { try KeychainHelper.shared.save($0, forKey: AuthManager.sessionKeyName) }
     self.supabaseManager = supabaseManager ?? SupabaseManager.shared
     self.biometricService = biometricService ?? BiometricService()
     self.accountProvisioning = accountProvisioning ?? AccountProvisioningService(
@@ -185,6 +190,11 @@ final class AuthManager: AuthManaging {
         try await beforePublish?()
         await accountProvisioning.flushPendingOnboardingStep1()
       }
+      // Persist before publishing and before the signal below: a failed save must leave neither a published
+      // user nor a first-run signal behind for the next login on this device.
+      if let session {
+        try persistSession(session)
+      }
       // Set before publishing, so the first onboarding evaluation already sees it. Invite signups join an
       // existing family and skip the verification email.
       if session != nil, role == .parent {
@@ -196,11 +206,6 @@ final class AuthManager: AuthManaging {
       self.session = session
       self.isAuthenticated = session != nil
       self.errorMessage = nil
-
-      // Save session to Keychain if signup returned a session
-      if let session {
-        try keychain.save(session, forKey: sessionKey)
-      }
       logger.info("Signup successful for user: \(user.id, privacy: .private), session: \(session != nil)")
     } catch {
       // The account was created even though the follow-up sign-in failed, so it still counts. The error
@@ -210,6 +215,7 @@ final class AuthManager: AuthManaging {
       }
       // A later step failed after identify: don't let the next account on this device log under this one.
       if identifiedDuringSignup { Analytics.reset() }
+      self.parentSignupThisSession = nil
       self.isAuthenticated = false
       self.errorMessage = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."
       logger.error("Signup failed: \(error.localizedDescription)")
