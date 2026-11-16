@@ -4,8 +4,8 @@ import Foundation
 /// (`utils/firstRun.ts`, web#1536) word for word.
 enum FirstRunCopy {
   static let intro =
-    "TRC guides your family through recruiting: what to do next, with every school, coach, and conversation "
-    + "in one place."
+    "The Recruiting Compass guides your family through recruiting: what to do next, with every school, "
+    + "coach, and conversation in one place."
 
   static let playerSchoolPrompt = "Which school are you most excited about?"
   static let parentSchoolPrompt = "Which school is your athlete most excited about?"
