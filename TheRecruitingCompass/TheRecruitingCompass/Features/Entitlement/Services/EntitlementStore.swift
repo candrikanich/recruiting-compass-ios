@@ -28,6 +28,10 @@ final class EntitlementStore {
   /// Advanced by `reset()`; a fetch only applies while its session is still current.
   private var session = 0
 
+  /// Advanced by every `load`. Only the latest call applies, so a slow answer for the family the user just
+  /// switched away from cannot overwrite the selected family's plan (and its write access).
+  private var loadEpoch = 0
+
   private let service: any EntitlementManaging
   private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "EntitlementStore")
 
@@ -58,6 +62,8 @@ final class EntitlementStore {
   }
 
   func load(familyUnitId: String?) async {
+    loadEpoch += 1
+    let epoch = loadEpoch
     guard let familyUnitId else {
       subscription = nil
       errorMessage = nil
@@ -75,7 +81,7 @@ final class EntitlementStore {
       result = .failure(error)
     }
     let visible = await countdownVisible
-    guard loadSession == session else { return }
+    guard loadSession == session, epoch == loadEpoch else { return }
     isLoading = false
     // A view's `.task` is cancelled when the view disappears — Settings' load is cancelled the moment
     // Plan is pushed. That is not a failed load: keep whatever a concurrent load produced.
