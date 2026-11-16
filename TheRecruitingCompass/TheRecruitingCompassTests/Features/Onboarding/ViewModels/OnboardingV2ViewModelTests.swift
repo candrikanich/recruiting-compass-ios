@@ -394,18 +394,24 @@ private final class SpySchoolsRepository: SchoolsRepository, @unchecked Sendable
   private static let placeholder = School.mock(id: "stub", name: "Stub U")
 
   private(set) var lastCreateRequest: SchoolCreateRequest?
+  private(set) var createCallCount = 0
+  private(set) var favoriteToggles: [(id: String, isFavorite: Bool)] = []
+  var existingSchools: [School] = []
 
   func createSchool(request: SchoolCreateRequest) async throws -> School {
     lastCreateRequest = request
+    createCallCount += 1
     return Self.placeholder
   }
-  func fetchSchools(familyUnitId: String) async throws -> [School] { [] }
+  func fetchSchools(familyUnitId: String) async throws -> [School] { existingSchools }
   func fetchSchool(id: String, familyUnitId: String) async throws -> School { Self.placeholder }
   func deleteSchool(id: String) async throws {}
   func cascadeDeleteSchool(id: String) async throws -> DeleteResult {
     DeleteResult(isCascadeUsed: false, deletedInteractions: 0, deletedNotes: 0)
   }
-  func toggleFavorite(id: String, isFavorite: Bool) async throws {}
+  func toggleFavorite(id: String, isFavorite: Bool) async throws {
+    favoriteToggles.append((id, isFavorite))
+  }
   func updateStatus(id: String, newStatus: SchoolStatus, previousStatus: SchoolStatus, userId: String) async throws -> School { Self.placeholder }
   func fetchStatusHistory(schoolId: String) async throws -> [SchoolStatusHistory] { [] }
   func reactivateSchool(id: String, familyUnitId: String, userId: String) async throws -> School { Self.placeholder }
@@ -487,6 +493,7 @@ private final class StubNcaaDatabase: NcaaDatabaseManaging, @unchecked Sendable 
 
 private final class StubCollegeScorecardService: CollegeScorecardManaging, @unchecked Sendable {
   var stubbedResult: CollegeDataResult?
+  var stubbedSearchResults: [CollegeSearchResult] = []
   private(set) var lookupCallCount = 0
 
   func lookupCollege(name: String) async throws -> CollegeDataResult? {
@@ -494,7 +501,7 @@ private final class StubCollegeScorecardService: CollegeScorecardManaging, @unch
     return stubbedResult
   }
   func lookupCollege(id: String) async throws -> CollegeDataResult? { stubbedResult }
-  func searchColleges(query: String) async throws -> [CollegeSearchResult] { [] }
+  func searchColleges(query: String) async throws -> [CollegeSearchResult] { stubbedSearchResults }
 }
 
 // Fire-and-forget in production (see addSchool), so tests that need to observe the call
@@ -690,4 +697,135 @@ private final class FailingCollegeScorecardService: CollegeScorecardManaging, @u
   func lookupCollege(name: String) async throws -> CollegeDataResult? { throw CollegeDataError.schoolNotFound }
   func lookupCollege(id: String) async throws -> CollegeDataResult? { throw CollegeDataError.schoolNotFound }
   func searchColleges(query: String) async throws -> [CollegeSearchResult] { [] }
+}
+
+// MARK: - First-run school step (ios#488, parity with web#1536)
+
+@Suite("OnboardingV2ViewModel — first-run school step")
+@MainActor
+struct OnboardingV2ViewModelFirstRunTests {
+
+  private func makeAuth(role: UserRole = .player) -> MockAuthManager {
+    let auth = MockAuthManager()
+    auth.setMockUser(User(
+      id: "user-1", email: "test@example.com", emailConfirmedAt: nil,
+      createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z", role: role
+    ))
+    return auth
+  }
+
+  private func makeSUT(
+    repo: SpySchoolsRepository = SpySchoolsRepository(),
+    scorecard: StubCollegeScorecardService = StubCollegeScorecardService(),
+    onboarding: MockOnboardingService = MockOnboardingService(),
+    familyService: StubFamilyService = StubFamilyService(),
+    role: UserRole = .player
+  ) -> OnboardingV2ViewModel {
+    OnboardingV2ViewModel(
+      onboardingService: onboarding,
+      preferenceService: StubPreferenceService(),
+      authManager: makeAuth(role: role),
+      schoolsRepository: repo,
+      recommendationService: StubRecommendationService(),
+      familyService: familyService,
+      ncaaDatabase: StubNcaaDatabase(),
+      collegeScorecardService: scorecard,
+      faviconService: SpyFaviconService()
+    )
+  }
+
+  private let ohioState = CollegeSearchResult(
+    id: "204796", name: "Ohio State University", city: "Columbus", state: "OH", website: "osu.edu"
+  )
+
+  @Test func pickingASchoolAddsItAsAFavorite() async {
+    let repo = SpySchoolsRepository()
+    let vm = makeSUT(repo: repo)
+
+    let added = await vm.pickSchool(ohioState)
+
+    #expect(added)
+    #expect(repo.lastCreateRequest?.name == "Ohio State University")
+    #expect(repo.lastCreateRequest?.isFavorite == true)
+    #expect(vm.schoolsAdded == 1)
+    #expect(vm.pickedSchoolName == "Ohio State University")
+  }
+
+  @Test func pickingASchoolAlreadyOnTheListStarsItInsteadOfDuplicating() async {
+    let repo = SpySchoolsRepository()
+    repo.existingSchools = [School.mock(id: "school-9", name: "Ohio State University")]
+    let vm = makeSUT(repo: repo)
+
+    let added = await vm.pickSchool(ohioState)
+
+    #expect(added)
+    #expect(repo.createCallCount == 0)
+    #expect(repo.favoriteToggles.map(\.id) == ["school-9"])
+    #expect(repo.favoriteToggles.map(\.isFavorite) == [true])
+    #expect(vm.pickedSchoolName == "Ohio State University")
+  }
+
+  @Test func recommendationAddsStayOutOfFavorites() async {
+    let repo = SpySchoolsRepository()
+    let vm = makeSUT(repo: repo)
+    let recommendation = SchoolRecommendation(
+      catalogKey: "bgsu", name: "Bowling Green State University", division: "D1", conference: nil,
+      state: "OH", website: nil, athleticsUrl: nil, score: 1.0, reasons: []
+    )
+
+    _ = await vm.addSchool(recommendation)
+
+    #expect(repo.lastCreateRequest?.isFavorite == nil)
+  }
+
+  @Test func failedPickReportsNoSchoolAndAHumanMessage() async {
+    let family = StubFamilyService()
+    family.stubbedFamilyUnit = nil
+    let vm = makeSUT(familyService: family)
+
+    let added = await vm.pickSchool(ohioState)
+
+    #expect(!added)
+    #expect(vm.pickedSchoolName == nil)
+    #expect(vm.schoolsAdded == 0)
+    #expect(vm.errorMessage == "Couldn't add Ohio State University. Try again in a moment.")
+  }
+
+  @Test func searchIsUsableWithNoRecommendations() async {
+    let scorecard = StubCollegeScorecardService()
+    scorecard.stubbedSearchResults = [ohioState]
+    let vm = makeSUT(scorecard: scorecard)
+    await vm.loadRecommendations()
+
+    await vm.performSearch(query: "Ohio State")
+
+    #expect(vm.recommendations.isEmpty)
+    #expect(vm.searchResults == [ohioState])
+  }
+
+  @Test func searchWaitsForThreeCharacters() async {
+    let scorecard = StubCollegeScorecardService()
+    scorecard.stubbedSearchResults = [ohioState]
+    let vm = makeSUT(scorecard: scorecard)
+
+    await vm.performSearch(query: "Oh")
+
+    #expect(vm.searchResults.isEmpty)
+  }
+
+  @Test func notSureYetCompletesWithNoSchoolAndNoError() async {
+    let onboarding = MockOnboardingService()
+    let vm = makeSUT(onboarding: onboarding)
+
+    let finished = await vm.completeOnboarding()
+
+    #expect(finished)
+    #expect(vm.errorMessage == nil)
+    #expect(vm.schoolsAdded == 0)
+  }
+
+  @Test func parentGetsTheParentPrompt() {
+    #expect(makeSUT(role: .parent).schoolPrompt == "Which school is your athlete most excited about?")
+    #expect(makeSUT(role: .player).schoolPrompt == "Which school are you most excited about?")
+  }
 }

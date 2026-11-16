@@ -349,4 +349,35 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     XCTAssertEqual(mockFamilyService.savePlayerDetailsCallCount, 0)
     XCTAssertFalse(viewModel.didComplete)
   }
+
+  // MARK: - hasConnectedAthlete (first-run school step, ios#488)
+
+  private func member(role: String) -> FamilyMember {
+    FamilyMember(
+      id: "m-\(role)", userId: "u-\(role)", familyUnitId: "family-1", role: role,
+      addedAt: nil, user: nil, canRemove: nil, removeBlockedReason: nil
+    )
+  }
+
+  func testHasConnectedAthlete_trueWhenAPlayerHasJoined() async {
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
+    mockFamilyService.stubbedFamilyMembers = [member(role: "parent"), member(role: "player")]
+    let connected = await viewModel.hasConnectedAthlete()
+    XCTAssertTrue(connected)
+  }
+
+  func testHasConnectedAthlete_falseWhenOnlyParentsAreInTheFamily() async {
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
+    mockFamilyService.stubbedFamilyMembers = [member(role: "parent")]
+    let connected = await viewModel.hasConnectedAthlete()
+    XCTAssertFalse(connected)
+  }
+
+  func testHasConnectedAthlete_falseWhenTheMembersReadFails() async {
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
+    mockFamilyService.stubbedFamilyMembers = [member(role: "player")]
+    mockFamilyService.shouldSucceed = false
+    let connected = await viewModel.hasConnectedAthlete()
+    XCTAssertFalse(connected)
+  }
 }

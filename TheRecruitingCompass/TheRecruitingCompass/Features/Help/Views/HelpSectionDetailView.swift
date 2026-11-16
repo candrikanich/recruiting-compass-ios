@@ -101,6 +101,13 @@ private struct HelpGettingStartedContent: View {
       }
 
       sectionBlock {
+        HelpSectionHeader(title: "Your first school")
+        Text(FirstRunCopy.helpFirstSchool)
+          .font(.brand(.subheadline))
+          .foregroundStyle(.secondary)
+      }
+
+      sectionBlock {
         HelpSectionHeader(title: "Your first action")
         Text("Once your profile is set up, the most impactful first step is building your school list.")
           .font(.brand(.subheadline))

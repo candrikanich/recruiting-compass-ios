@@ -179,6 +179,19 @@ final class ParentOnboardingWizardViewModel {
     }
   }
 
+  /// Whether an athlete has already joined this parent's family, which is what unlocks the first-run school
+  /// step. A failed read answers false: no school write is ever made on a guess.
+  func hasConnectedAthlete() async -> Bool {
+    do {
+      let family = try await existingFamily()
+      let members = try await familyService.fetchFamilyMembers(familyUnitId: family.id)
+      return FirstRunCopy.parentHasConnectedAthlete(members: members)
+    } catch {
+      logger.error("hasConnectedAthlete failed: \(error.localizedDescription, privacy: .public)")
+      return false
+    }
+  }
+
   func sendInvite() async {
     guard isInviteStepValid else {
       errorMessage = "Please enter a valid email address"

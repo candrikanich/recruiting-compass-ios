@@ -18,6 +18,8 @@ struct SchoolCreateRequest: Encodable, Sendable {
   let status: String
   let academicInfo: AcademicInfo?
   let faviconUrl: String?
+  /// Omitted from the payload when nil, so ordinary creates keep the column default.
+  let isFavorite: Bool?
 
   enum CodingKeys: String, CodingKey {
     case userId = "user_id"
@@ -36,6 +38,7 @@ struct SchoolCreateRequest: Encodable, Sendable {
     case status
     case academicInfo = "academic_info"
     case faviconUrl = "favicon_url"
+    case isFavorite = "is_favorite"
   }
 
   /// Throws `FamilyUnitID.MissingError` rather than build a payload with a blank `family_unit_id`.
@@ -55,7 +58,8 @@ struct SchoolCreateRequest: Encodable, Sendable {
     notes: String?,
     status: String,
     academicInfo: AcademicInfo?,
-    faviconUrl: String?
+    faviconUrl: String?,
+    isFavorite: Bool? = nil
   ) throws {
     self.userId = userId
     self.familyUnitId = try FamilyUnitID.require(familyUnitId)
@@ -73,5 +77,6 @@ struct SchoolCreateRequest: Encodable, Sendable {
     self.status = status
     self.academicInfo = academicInfo
     self.faviconUrl = faviconUrl
+    self.isFavorite = isFavorite
   }
 }
