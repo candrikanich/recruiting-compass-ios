@@ -147,8 +147,8 @@ final class ParentOnboardingWizardViewModel {
     guard isPlayerDetailsValid, !isFinishing else { return }
 
     isFinishing = true
-    // After a successful finish the wizard is leaving: stay latched until resolveExit decides where to,
-    // so Finish can't be tapped again while that read is in flight.
+    // After a successful finish the wizard is leaving: stay latched: the wizard is
+    // leaving, so Finish can't be tapped again while resolveExit's read is in flight.
     defer { if !didComplete { isFinishing = false } }
     isLoading = true
     errorMessage = nil
@@ -197,7 +197,6 @@ final class ParentOnboardingWizardViewModel {
   func resolveExit() async -> ExitDestination? {
     guard !hasResolvedExit else { return nil }
     hasResolvedExit = true
-    defer { isFinishing = false }
 
     guard didComplete, let athlete = await connectedAthlete() else { return .dashboard }
     return .schoolStep(athleteUserId: athlete.userId)

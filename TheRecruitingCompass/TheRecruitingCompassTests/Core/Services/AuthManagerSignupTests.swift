@@ -128,6 +128,41 @@ final class AuthManagerSignupTests: XCTestCase {
       role: .player
     )
   }
+
+  // MARK: - parentSignupThisSession (ios#488: the signal that routes a new parent through first-run)
+
+  private func signup(
+    role: UserRole, skipVerificationEmail: Bool = false, withSession: Bool = true
+  ) async throws {
+    mockSupabaseManager.signUpResult = .success((user: userMock(), session: withSession ? sessionMock() : nil))
+    try await sut.signup(
+      email: "p@example.com", password: "password123", fullName: "Pat", role: role, familyCode: nil,
+      captchaToken: "test-captcha-token", skipVerificationEmail: skipVerificationEmail
+    )
+  }
+
+  func testSignup_ordinaryParent_isMarkedOrdinary() async throws {
+    try await signup(role: .parent)
+    XCTAssertEqual(sut.parentSignupThisSession, .ordinary)
+  }
+
+  func testSignup_inviteParent_isMarkedInvited() async throws {
+    try await signup(role: .parent, skipVerificationEmail: true)
+    XCTAssertEqual(sut.parentSignupThisSession, .invited)
+  }
+
+  func testSignup_player_isNeverMarked() async throws {
+    try await signup(role: .player)
+    XCTAssertNil(sut.parentSignupThisSession)
+    try await signup(role: .player, skipVerificationEmail: true)
+    XCTAssertNil(sut.parentSignupThisSession)
+  }
+
+  func testSignup_parentWithNoSession_isNotMarked() async throws {
+    try await signup(role: .parent, withSession: false)
+    XCTAssertNil(sut.parentSignupThisSession)
+  }
+
 }
 
 private extension ISO8601DateFormatter {

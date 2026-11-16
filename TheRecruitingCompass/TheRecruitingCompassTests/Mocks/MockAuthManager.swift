@@ -5,7 +5,7 @@ import Observation
 @Observable
 @MainActor
 class MockAuthManager: AuthManaging {
-  var parentSignedUpThisSession = false
+  var parentSignupThisSession: ParentSignupKind?
   // MARK: - Observable State
 
   var isAuthenticated: Bool = false

@@ -28,6 +28,7 @@ private struct ParentOnboardingWrapperContent: View {
   var onComplete: () -> Void
   @Environment(AuthManager.self) private var authManager
   @Environment(OnboardingManager.self) private var onboardingManager
+  @Environment(FamilyManager.self) private var familyManager
   @State private var viewModel = ParentOnboardingWizardViewModel()
   @State private var schoolViewModel = OnboardingV2ViewModel()
   @State private var showsSchoolStep = false
@@ -44,11 +45,32 @@ private struct ParentOnboardingWrapperContent: View {
             .padding(24)
         }
       }
+    } else if onboardingManager.parentFirstRun == .schoolStepOnly {
+      ZStack {
+        Color.Brand.forest600.ignoresSafeArea()
+        ProgressView().tint(.white)
+      }
+      .task { await routeInvitedParent() }
     } else {
       ParentOnboardingWizardView(viewModel: viewModel, onDismiss: {
         Task { await wizardDismissed() }
       })
       .environment(authManager)
+    }
+  }
+
+  /// An invited parent skips the wizard: the school step for the athlete already in the family, else the dashboard.
+  private func routeInvitedParent() async {
+    await familyManager.loadFamilyData()
+    guard let route = onboardingManager.parentFirstRun else { return }
+    switch OnboardingGate.invitedParentDestination(for: route, members: familyManager.familyMembers) {
+    case .schoolStep(let athleteUserId):
+      schoolViewModel.recommendationAthleteId = athleteUserId
+      showsSchoolStep = true
+    case .dashboard:
+      finish()
+    case nil:
+      break
     }
   }
 

@@ -8,24 +8,44 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 /// platforms, so a parent already in a family passes without it (web PR #1391 matches this rule).
 enum OnboardingGate {
   static func needsOnboarding(
-    role: UserRole?, flagComplete: Bool, isInFamily: Bool, inSessionParentSignup: Bool = false
+    role: UserRole?, flagComplete: Bool, isInFamily: Bool, parentFirstRun: ParentFirstRun? = nil
   ) -> Bool {
     // A parent mid-wizard stays in it even after the wizard writes the completion flag, so the school step
     // that follows is not cut short by a re-evaluation.
-    if inSessionParentSignup && role == .parent { return true }
+    if parentFirstRun != nil && role == .parent { return true }
     if flagComplete { return false }
     return role == .parent ? !isInFamily : true
   }
 }
 
+/// What a parent who signed up in this session sees first, matching web: an ordinary signup goes through the
+/// parent wizard (`/onboarding/parent`); an invited parent, whose family already exists, goes to the school
+/// step only (`/onboarding?step=school`), and only when the accept left onboarding incomplete.
+enum ParentFirstRun: Equatable {
+  case wizard
+  case schoolStepOnly
+}
+
 extension OnboardingGate {
-  /// A parent who signed up in this session and has not finished onboarding is routed through the parent wizard.
-  /// Never latches for a finished account, and once latched it holds until the wizard ends.
-  static func latchesInSessionParentSignup(
-    role: UserRole?, flagComplete: Bool, signedUpThisSession: Bool, alreadyLatched: Bool
-  ) -> Bool {
-    guard role == .parent else { return false }
-    return alreadyLatched || (signedUpThisSession && !flagComplete)
+  /// Never latches for a finished account, and once latched it holds until `markComplete()`, so a
+  /// re-evaluation (membership change, sport gate, the wizard writing the completion flag) can't cut it short.
+  static func parentFirstRun(
+    role: UserRole?, flagComplete: Bool, signup: ParentSignupKind?, latched: ParentFirstRun?
+  ) -> ParentFirstRun? {
+    guard role == .parent else { return nil }
+    if let latched { return latched }
+    guard !flagComplete, let signup else { return nil }
+    return signup == .ordinary ? .wizard : .schoolStepOnly
+  }
+
+  /// Where an invited parent goes: the school step for the athlete already in the family, else the dashboard.
+  /// Nil for the wizard route, which decides its own exit.
+  static func invitedParentDestination(
+    for route: ParentFirstRun, members: [FamilyMember]
+  ) -> ParentOnboardingWizardViewModel.ExitDestination? {
+    guard route == .schoolStepOnly else { return nil }
+    guard let athlete = FirstRunCopy.connectedAthlete(in: members) else { return .dashboard }
+    return .schoolStep(athleteUserId: athlete.userId)
   }
 }
 
@@ -43,11 +63,10 @@ final class OnboardingManager {
   /// minimal `SportGateView`, not the full onboarding flow. Players only; never parents.
   var needsSportOnly = false
 
-  /// True from the moment a parent finishes signup in this session until the wizard is done. Signup now creates
-  /// the family itself, so a new parent is already a member and the family rule alone would skip the wizard
-  /// (web sends them to /onboarding/parent). Latched so a re-evaluation (joining, sport gate) can't eject them
-  /// mid-flow; in memory only, so a cold launch never brings it back.
-  private(set) var inSessionParentSignup = false
+  /// Set from the moment a parent finishes signup in this session until their first-run ends. Signup creates the
+  /// family itself, so a new parent is already a member and the family rule alone would skip first-run. In memory
+  /// only, so a cold launch never brings it back.
+  private(set) var parentFirstRun: ParentFirstRun?
 
   /// Advanced by `reset()`; a status check only routes while its session is still current.
   private var session = 0
@@ -81,13 +100,12 @@ final class OnboardingManager {
     do {
       let complete = try await onboardingService.isOnboardingComplete(userId: user.id)
       guard loadSession == session else { return }
-      inSessionParentSignup = OnboardingGate.latchesInSessionParentSignup(
+      parentFirstRun = OnboardingGate.parentFirstRun(
         role: user.role, flagComplete: complete,
-        signedUpThisSession: authManager.parentSignedUpThisSession, alreadyLatched: inSessionParentSignup
+        signup: authManager.parentSignupThisSession, latched: parentFirstRun
       )
       needsOnboarding = OnboardingGate.needsOnboarding(
-        role: user.role, flagComplete: complete, isInFamily: isInFamily,
-        inSessionParentSignup: inSessionParentSignup
+        role: user.role, flagComplete: complete, isInFamily: isInFamily, parentFirstRun: parentFirstRun
       )
 
       // Parents are never sport-gated: the sport lives on the linked athlete's preferences.
@@ -114,11 +132,11 @@ final class OnboardingManager {
     session += 1
     needsOnboarding = nil
     needsSportOnly = false
-    inSessionParentSignup = false
+    parentFirstRun = nil
   }
 
   func markComplete() {
-    inSessionParentSignup = false
+    parentFirstRun = nil
     needsOnboarding = false
   }
 }

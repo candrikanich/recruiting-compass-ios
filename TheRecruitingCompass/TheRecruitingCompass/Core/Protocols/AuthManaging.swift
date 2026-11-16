@@ -17,9 +17,9 @@ protocol AuthManaging: AnyObject {
   var session: Session? { get }
   /// Whether Face ID / Touch ID unlock is currently enabled for this device.
   var biometricEnabled: Bool { get }
-  /// True after an ordinary parent signup completed in this session (not invite or claim signups): the account
-  /// already has its family, but web still sends that parent through the parent wizard. Cleared on sign-out.
-  var parentSignedUpThisSession: Bool { get }
+  /// How a parent who signed up in this session got their family, or nil. Signup creates the family itself, so
+  /// the family rule alone can't tell a new parent from an existing one. Cleared on sign-out.
+  var parentSignupThisSession: ParentSignupKind? { get }
   /// Set to `true` to show the biometric enrollment prompt after a successful login.
   var pendingBiometricEnrollmentOffer: Bool { get set }
 
@@ -84,5 +84,12 @@ protocol AuthManaging: AnyObject {
 }
 
 extension AuthManaging {
-  var parentSignedUpThisSession: Bool { false }
+  var parentSignupThisSession: ParentSignupKind? { nil }
+}
+
+/// `ordinary`: a plain signup, which web sends to the parent wizard. `invited`: an invite signup, which joins an
+/// existing family and (on web) goes to /onboarding only if the accept left onboarding incomplete.
+enum ParentSignupKind: Equatable {
+  case ordinary
+  case invited
 }
