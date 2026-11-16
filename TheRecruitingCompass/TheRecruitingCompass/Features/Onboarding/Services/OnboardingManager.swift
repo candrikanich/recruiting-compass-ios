@@ -13,6 +13,18 @@ enum OnboardingGate {
   }
 }
 
+/// Whether a parent who just joined a family gets the first-run school step. Only a parent who joined in this
+/// session with onboarding still incomplete, and only when an athlete is already in the family: the school
+/// write needs someone whose favorite it is (a parent with no athlete is #492). Returns that athlete's user id.
+enum ParentSchoolStepGate {
+  static func athleteUserId(
+    role: UserRole?, flagComplete: Bool, joinedThisSession: Bool, members: [FamilyMember]
+  ) -> String? {
+    guard role == .parent, joinedThisSession, !flagComplete else { return nil }
+    return FirstRunCopy.connectedAthlete(in: members)?.userId
+  }
+}
+
 /// Holds onboarding gate state. Players must complete onboarding (the shared `onboarding_complete` flag);
 /// parents pass with the flag or by being in a family (see `OnboardingGate`).
 @Observable
@@ -26,6 +38,10 @@ final class OnboardingManager {
   /// null/blank `primary_sport`. Distinct from `needsOnboarding` — it routes to the
   /// minimal `SportGateView`, not the full onboarding flow. Players only; never parents.
   var needsSportOnly = false
+
+  /// Set when a parent has just joined a family that already has an athlete: the user id of that athlete, for
+  /// whom the first-run school step is shown once before the dashboard.
+  private(set) var parentSchoolAthleteId: String?
 
   /// Advanced by `reset()`; a status check only routes while its session is still current.
   private var session = 0
@@ -45,7 +61,9 @@ final class OnboardingManager {
   }
 
   /// Call when user becomes authenticated.
-  func loadStatus(isInFamily: Bool) async {
+  func loadStatus(
+    isInFamily: Bool, joinedThisSession: Bool = false, familyMembers: [FamilyMember] = []
+  ) async {
     guard let user = authManager.user else {
       needsOnboarding = false
       needsSportOnly = false
@@ -55,12 +73,16 @@ final class OnboardingManager {
     let loadSession = session
 
     needsSportOnly = false
+    parentSchoolAthleteId = nil
 
     do {
       let complete = try await onboardingService.isOnboardingComplete(userId: user.id)
       guard loadSession == session else { return }
       needsOnboarding = OnboardingGate.needsOnboarding(
         role: user.role, flagComplete: complete, isInFamily: isInFamily
+      )
+      parentSchoolAthleteId = ParentSchoolStepGate.athleteUserId(
+        role: user.role, flagComplete: complete, joinedThisSession: joinedThisSession, members: familyMembers
       )
 
       // Parents are never sport-gated: the sport lives on the linked athlete's preferences.
@@ -87,6 +109,12 @@ final class OnboardingManager {
     session += 1
     needsOnboarding = nil
     needsSportOnly = false
+    parentSchoolAthleteId = nil
+  }
+
+  func completeParentSchoolStep() {
+    parentSchoolAthleteId = nil
+    markComplete()
   }
 
   func markComplete() {

@@ -34,18 +34,7 @@ private struct ParentOnboardingWrapperContent: View {
 
   var body: some View {
     if showsSchoolStep {
-      NavigationStack {
-        ZStack {
-          Color.Brand.forest600.ignoresSafeArea()
-          OnboardingStepTwoView(
-            viewModel: schoolViewModel, completesOnboarding: false, onFinish: finish
-          )
-            .background(Color.white.opacity(0.95))
-            .clipShape(.rect(cornerRadius: 16))
-            .colorScheme(.light)
-            .padding(24)
-        }
-      }
+      FirstRunSchoolStepScreen(viewModel: schoolViewModel, onFinish: finish)
     } else {
       ParentOnboardingWizardView(viewModel: viewModel, onDismiss: {
         Task { await wizardDismissed() }
@@ -69,5 +58,36 @@ private struct ParentOnboardingWrapperContent: View {
   private func finish() {
     onboardingManager.markComplete()
     onComplete()
+  }
+}
+
+/// The first-run school step for a parent, on the setup background. Setup is already complete for a parent, so
+/// finishing only leaves the screen.
+struct FirstRunSchoolStepScreen: View {
+  @State private var viewModel: OnboardingV2ViewModel
+  var onFinish: () -> Void
+
+  init(viewModel: OnboardingV2ViewModel, onFinish: @escaping () -> Void) {
+    _viewModel = State(initialValue: viewModel)
+    self.onFinish = onFinish
+  }
+
+  init(athleteUserId: String, onFinish: @escaping () -> Void) {
+    let viewModel = OnboardingV2ViewModel()
+    viewModel.recommendationAthleteId = athleteUserId
+    self.init(viewModel: viewModel, onFinish: onFinish)
+  }
+
+  var body: some View {
+    NavigationStack {
+      ZStack {
+        Color.Brand.forest600.ignoresSafeArea()
+        OnboardingStepTwoView(viewModel: viewModel, completesOnboarding: false, onFinish: onFinish)
+          .background(Color.white.opacity(0.95))
+          .clipShape(.rect(cornerRadius: 16))
+          .colorScheme(.light)
+          .padding(24)
+      }
+    }
   }
 }

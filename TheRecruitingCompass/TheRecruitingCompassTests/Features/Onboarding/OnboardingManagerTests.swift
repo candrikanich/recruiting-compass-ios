@@ -255,4 +255,80 @@ final class OnboardingManagerTests: XCTestCase {
 
     XCTAssertNil(sut.needsOnboarding)
   }
+
+  // MARK: - Parent first-run school step (ios#488)
+
+  private func member(role: String, userId: String) -> FamilyMember {
+    FamilyMember(
+      id: "m-\(userId)", userId: userId, familyUnitId: "family-1", role: role,
+      addedAt: nil, user: nil, canRemove: nil, removeBlockedReason: nil
+    )
+  }
+
+  private var parentAndAthlete: [FamilyMember] {
+    [member(role: "parent", userId: "test-parent-id"), member(role: "player", userId: "athlete-7")]
+  }
+
+  func testParentJoiningWithAnAthlete_getsTheSchoolStepForThatAthlete() async {
+    mockAuthManager.user = makeUser(role: .parent)
+    mockOnboardingService.isOnboardingCompleteResult = false
+
+    await sut.loadStatus(isInFamily: true, joinedThisSession: true, familyMembers: parentAndAthlete)
+
+    XCTAssertEqual(sut.parentSchoolAthleteId, "athlete-7")
+    XCTAssertEqual(sut.needsOnboarding, false)
+  }
+
+  func testParentJoiningWithoutAnAthlete_goesToTheDashboard() async {
+    mockAuthManager.user = makeUser(role: .parent)
+    mockOnboardingService.isOnboardingCompleteResult = false
+
+    await sut.loadStatus(
+      isInFamily: true, joinedThisSession: true,
+      familyMembers: [member(role: "parent", userId: "test-parent-id")]
+    )
+
+    XCTAssertNil(sut.parentSchoolAthleteId)
+    XCTAssertEqual(sut.needsOnboarding, false)
+  }
+
+  func testParentColdLaunchAsAMember_goesToTheDashboard() async {
+    mockAuthManager.user = makeUser(role: .parent)
+    mockOnboardingService.isOnboardingCompleteResult = false
+
+    await sut.loadStatus(isInFamily: true, joinedThisSession: false, familyMembers: parentAndAthlete)
+
+    XCTAssertNil(sut.parentSchoolAthleteId)
+    XCTAssertEqual(sut.needsOnboarding, false)
+  }
+
+  func testParentWhoAlreadyFinishedOnboarding_isNeverSentBack() async {
+    mockAuthManager.user = makeUser(role: .parent)
+    mockOnboardingService.isOnboardingCompleteResult = true
+
+    await sut.loadStatus(isInFamily: true, joinedThisSession: true, familyMembers: parentAndAthlete)
+
+    XCTAssertNil(sut.parentSchoolAthleteId)
+  }
+
+  func testPlayerIsUnaffectedByTheParentSchoolStep() async {
+    mockAuthManager.user = makeUser(role: .player)
+    mockOnboardingService.isOnboardingCompleteResult = false
+
+    await sut.loadStatus(isInFamily: true, joinedThisSession: true, familyMembers: parentAndAthlete)
+
+    XCTAssertNil(sut.parentSchoolAthleteId)
+    XCTAssertEqual(sut.needsOnboarding, true)
+  }
+
+  func testFinishingTheParentSchoolStepClearsItAndStaysOnTheDashboard() async {
+    mockAuthManager.user = makeUser(role: .parent)
+    mockOnboardingService.isOnboardingCompleteResult = false
+    await sut.loadStatus(isInFamily: true, joinedThisSession: true, familyMembers: parentAndAthlete)
+
+    sut.completeParentSchoolStep()
+
+    XCTAssertNil(sut.parentSchoolAthleteId)
+    XCTAssertEqual(sut.needsOnboarding, false)
+  }
 }

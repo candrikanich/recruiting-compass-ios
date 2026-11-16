@@ -295,11 +295,15 @@ final class OnboardingV2ViewModel {
 
       let existing = try await schoolsRepository.fetchSchools(familyUnitId: familyUnitId)
       if let duplicate = DuplicateDetector.findDuplicate(in: existing, for: request).duplicate {
-        pickedSchoolName = duplicate.name
-        searchResults = []
         // Already starred: nothing was added, so it neither counts nor reports again.
-        guard !duplicate.isFavorite else { return true }
+        if duplicate.isFavorite {
+          pickedSchoolName = duplicate.name
+          searchResults = []
+          return true
+        }
+        // The name is set only once the star is saved, so a failure never shows "Added" next to the error.
         try await schoolsRepository.toggleFavorite(id: duplicate.id, isFavorite: true)
+        pickedSchoolName = duplicate.name
       } else {
         try await persist(request)
         pickedSchoolName = college.name

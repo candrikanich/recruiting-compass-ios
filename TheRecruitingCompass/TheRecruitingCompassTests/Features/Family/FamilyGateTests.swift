@@ -124,4 +124,16 @@ final class FamilyGateTests: XCTestCase {
     let message = await GateSignOut.perform(using: auth)
     XCTAssertNotNil(message)
   }
+
+  // MARK: - Joined in this session (first-run school step for parents, ios#488)
+
+  func test_joinedInSession_onlyFromTheCreateOrJoinScreen() {
+    XCTAssertTrue(FamilyGate.joinedFamilyInSession(from: .none, to: .member))
+  }
+
+  func test_coldLaunchAndLateReadsAreNotAJoinInSession() {
+    XCTAssertFalse(FamilyGate.joinedFamilyInSession(from: .unknown, to: .member))
+    XCTAssertFalse(FamilyGate.joinedFamilyInSession(from: .failed, to: .member))
+    XCTAssertFalse(FamilyGate.joinedFamilyInSession(from: .member, to: .member))
+  }
 }

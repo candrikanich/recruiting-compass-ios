@@ -398,6 +398,7 @@ final class SpySchoolsRepository: SchoolsRepository, @unchecked Sendable {
   private(set) var favoriteToggles: [(id: String, isFavorite: Bool)] = []
   var existingSchools: [School] = []
   var createDelay: Duration?
+  var toggleError: Error?
 
   func createSchool(request: SchoolCreateRequest) async throws -> School {
     lastCreateRequest = request
@@ -412,6 +413,7 @@ final class SpySchoolsRepository: SchoolsRepository, @unchecked Sendable {
     DeleteResult(isCascadeUsed: false, deletedInteractions: 0, deletedNotes: 0)
   }
   func toggleFavorite(id: String, isFavorite: Bool) async throws {
+    if let toggleError { throw toggleError }
     favoriteToggles.append((id, isFavorite))
   }
   func updateStatus(id: String, newStatus: SchoolStatus, previousStatus: SchoolStatus, userId: String) async throws -> School { Self.placeholder }

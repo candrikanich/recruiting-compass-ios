@@ -427,4 +427,16 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     XCTAssertEqual(complete, .schoolStep(athleteUserId: "u-player"))
     XCTAssertNil(cancel)
   }
+
+  func testFinishOnboarding_afterSuccess_cannotBeTappedAgainWhileTheExitResolves() async {
+    viewModel.playerFirstName = "Alex"
+    viewModel.hasConfirmedDateOfBirth = true
+    viewModel.playerDateOfBirth = Calendar.current.date(byAdding: .year, value: -16, to: .now) ?? .now
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit(id: "family-42")
+
+    await viewModel.finishOnboarding()
+    await viewModel.finishOnboarding()
+
+    XCTAssertEqual(mockFamilyService.savePlayerDetailsCallCount, 1)
+  }
 }

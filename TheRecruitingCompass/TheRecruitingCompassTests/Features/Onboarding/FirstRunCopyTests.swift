@@ -31,12 +31,12 @@ struct FirstRunCopyTests {
   }
 
   @Test func parentWithNoAthleteGetsNoSchoolStep() {
-    #expect(!FirstRunCopy.parentHasConnectedAthlete(members: []))
-    #expect(!FirstRunCopy.parentHasConnectedAthlete(members: [member(role: "parent")]))
+    #expect(FirstRunCopy.connectedAthlete(in: []) == nil)
+    #expect(FirstRunCopy.connectedAthlete(in: [member(role: "parent")]) == nil)
   }
 
   @Test func parentWithAConnectedAthleteGetsTheSchoolStep() {
-    #expect(FirstRunCopy.parentHasConnectedAthlete(members: [member(role: "parent"), member(role: "player")]))
+    #expect(FirstRunCopy.connectedAthlete(in: [member(role: "parent"), member(role: "player")])?.userId == "u-player")
   }
 
   @Test func helpCenterExplainsTheSchoolStepAndSkip() {

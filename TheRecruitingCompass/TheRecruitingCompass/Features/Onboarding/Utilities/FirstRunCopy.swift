@@ -30,8 +30,4 @@ enum FirstRunCopy {
   static func connectedAthlete(in members: [FamilyMember]) -> FamilyMember? {
     members.first(where: \.isAthlete)
   }
-
-  static func parentHasConnectedAthlete(members: [FamilyMember]) -> Bool {
-    connectedAthlete(in: members) != nil
-  }
 }

@@ -45,6 +45,13 @@ enum FamilyGate {
     old != .member && new == .member
   }
 
+  /// A user who was on the create-or-join screen and has now joined a family. Only `.none` counts: `.unknown`
+  /// and `.failed` are a cold launch or a late first read, where an existing member must not be sent through
+  /// first-run (web's gate lets existing parents with a family through).
+  static func joinedFamilyInSession(from old: FamilyMembershipStatus, to new: FamilyMembershipStatus) -> Bool {
+    old == .none && new == .member
+  }
+
   /// Pending, unexpired invitations addressed to `email` (case-insensitive). Declined, accepted and expired
   /// ones are ignored, as are other people's, which RLS can also return to a member of the sender's family.
   static func validPendingInvitations(

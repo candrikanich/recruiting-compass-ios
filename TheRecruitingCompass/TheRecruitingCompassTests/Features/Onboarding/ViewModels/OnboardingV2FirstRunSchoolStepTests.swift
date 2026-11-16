@@ -239,6 +239,7 @@ struct OnboardingV2ViewModelFirstRunTests {
     await search.value
 
     #expect(!vm.isSearching)
+    #expect(vm.searchResults.isEmpty)
   }
 
   @Test func aFailedPickDuringASearchReleasesTheSpinner() async {
@@ -292,5 +293,19 @@ struct OnboardingV2ViewModelFirstRunTests {
     let vm = makeSUT(role: .player)
     vm.playerSawStepOne = false
     #expect(vm.schoolStepIntro == FirstRunCopy.intro)
+  }
+
+  @Test func aFailedStarNeverShowsAddedAndCountsNothing() async {
+    let repo = SpySchoolsRepository()
+    repo.existingSchools = [School.mock(id: "school-9", name: "Ohio State University")]
+    repo.toggleError = NSError(domain: "test", code: 500)
+    let vm = makeSUT(repo: repo)
+
+    let picked = await vm.pickSchool(ohioState)
+
+    #expect(!picked)
+    #expect(vm.pickedSchoolName == nil)
+    #expect(vm.schoolsAdded == 0)
+    #expect(vm.errorMessage == "Couldn't add Ohio State University. Try again in a moment.")
   }
 }
