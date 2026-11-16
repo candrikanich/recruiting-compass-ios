@@ -13,7 +13,7 @@ struct FamilyManagementView: View {
         viewModel.selectedFamilyId = familyId
       }
       .task {
-        viewModel.onMembershipChanged = { await familyManager.loadFamilyData() }
+        viewModel.onMembershipChanged = { await familyManager.loadFamilyData(forceFresh: true) }
         await viewModel.loadData()
       }
       .refreshable {

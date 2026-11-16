@@ -9,14 +9,24 @@ import OSLog
 final class EntitlementStore {
   nonisolated deinit {}
 
-  private(set) var subscription: FamilySubscription?
+  /// The last fetched row. Read through `subscription`, which hides it once it belongs to a family other than the
+  /// one last asked for, so a switch never shows (or grants writes from) the previous family's plan.
+  private var fetchedSubscription: FamilySubscription?
   private(set) var isLoading = false
   private(set) var errorMessage: String?
 
   /// `true` once `load(familyUnitId:)` has completed at least once (success, no-family, or error).
   /// Lets callers distinguish "not yet loaded" from "loaded, no subscription row exists" — both
   /// leave `subscription` nil, but only the latter should render `planLabel`/`canWrite` as final.
-  private(set) var hasLoaded = false
+  var hasLoaded: Bool { didLoad && loadedFamilyUnitId == requestedFamilyUnitId }
+  private var didLoad = false
+  private var loadedFamilyUnitId: String?
+  /// The family of the latest `load` call, set before its fetch starts.
+  private var requestedFamilyUnitId: String?
+
+  var subscription: FamilySubscription? {
+    fetchedSubscription?.familyUnitId == requestedFamilyUnitId ? fetchedSubscription : nil
+  }
 
   /// Server flag hiding the trial day count while trials are held. Display-only; defaults to showing
   /// the countdown whenever the signal is unavailable (older server, error).
@@ -53,22 +63,28 @@ final class EntitlementStore {
   /// Forgets the previous family's plan on sign-out or account switch.
   func reset() {
     session += 1
-    subscription = nil
+    fetchedSubscription = nil
     trialCountdownVisible = true
     errorMessage = nil
     isLoading = false
-    hasLoaded = false
+    didLoad = false
+    loadedFamilyUnitId = nil
+    requestedFamilyUnitId = nil
     loadedWithoutFamily = false
   }
 
   func load(familyUnitId: String?) async {
     loadEpoch += 1
     let epoch = loadEpoch
+    requestedFamilyUnitId = familyUnitId
     guard let familyUnitId else {
-      subscription = nil
+      // This call overtakes any fetch in flight, which will now return early, so it must clear `isLoading` itself.
+      fetchedSubscription = nil
       errorMessage = nil
+      isLoading = false
       loadedWithoutFamily = true
-      hasLoaded = true
+      loadedFamilyUnitId = nil
+      didLoad = true
       return
     }
     isLoading = true
@@ -86,15 +102,16 @@ final class EntitlementStore {
     // A view's `.task` is cancelled when the view disappears — Settings' load is cancelled the moment
     // Plan is pushed. That is not a failed load: keep whatever a concurrent load produced.
     if case .failure(let error) = result, Self.isCancellation(error) { return }
-    hasLoaded = true
+    didLoad = true
+    loadedFamilyUnitId = familyUnitId
     loadedWithoutFamily = false
     trialCountdownVisible = visible
     switch result {
     case .success(let fetched):
-      subscription = fetched
+      fetchedSubscription = fetched
       errorMessage = nil
     case .failure(let error):
-      subscription = nil
+      fetchedSubscription = nil
       // fetchSubscription has no typed error of its own (raw Supabase SDK
       // errors) -- never surface that wording to the user directly.
       errorMessage = String(localized: "Unable to load your plan. Please try again.")

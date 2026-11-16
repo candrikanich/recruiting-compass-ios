@@ -27,7 +27,7 @@ final class MultiFamilyParentFlowTests: XCTestCase {
     management = FamilyManagementViewModel(
       familyService: service, authManager: auth, inboundDraftsService: MockInboundDraftsAPIService()
     )
-    management.onMembershipChanged = { [manager] in await manager?.loadFamilyData() }
+    management.onMembershipChanged = { [manager] in await manager?.loadFamilyData(forceFresh: true) }
     service.membersByFamilyUnitId = [
       "family-home": [
         member("pm-home", "family-home", role: "parent", userId: parentId), member("ath-home", "family-home")
@@ -111,6 +111,58 @@ final class MultiFamilyParentFlowTests: XCTestCase {
     XCTAssertEqual(management.errorMessage, "That code didn't match a family.")
     XCTAssertEqual(manager.memberships.map(\.familyUnitId), ["family-home"])
     XCTAssertEqual(manager.familyChoices.count, 1)
+  }
+
+  func test_aFamilyLoadAlreadyInFlightWhenTheJoinCommitsDoesNotAnswerForTheNewMembership() async {
+    service.stubbedMemberships = [homeMembership]
+    service.snapshotMembershipsBeforeGate = true
+    let gate = AsyncGate(blockedEntries: 1)
+    service.getMembershipsGate = { await gate.wait() }
+    let staleLoad = Task { await manager.loadFamilyData() }
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered)
+
+    service.stubbedMemberships = [joinedMembership, homeMembership]
+    service.mockParentFamilies = [parentFamily("family-joined"), parentFamily("family-home")]
+    var reachedRefresh = false
+    management.onMembershipChanged = { [manager] in
+      reachedRefresh = true
+      await manager?.loadFamilyData(forceFresh: true)
+    }
+    management.codeInput = "FAM-JOIN01"
+    let join = Task { await management.joinFamily() }
+    while !reachedRefresh { await Task.yield() }
+    gate.open()
+    await staleLoad.value
+    await join.value
+
+    XCTAssertEqual(manager.memberships.map(\.familyUnitId), ["family-joined", "family-home"])
+    XCTAssertEqual(manager.familyChoices.count, 2)
+  }
+
+  // MARK: - Gap 1: invite accepted by a signed-in parent
+
+  func test_acceptingAnInviteWhileSignedIn_joinsTheSecondFamilyAndShowsTheSwitcher() async {
+    service.stubbedMemberships = [homeMembership]
+    await manager.loadFamilyData()
+    let invite = InviteJoinViewModel(
+      token: "invite-token-9",
+      familyService: service,
+      authManager: auth,
+      turnstileTokenProvider: MockTurnstileTokenProvider(),
+      profileService: MockProfileService()
+    )
+    auth.isAuthenticated = true
+    service.stubbedMemberships = [joinedMembership, homeMembership]
+
+    await invite.accept()
+    // The invite sheet's onDismiss (TheRecruitingCompassApp) reloads the family data.
+    await manager.loadFamilyData()
+
+    XCTAssertEqual(service.lastAcceptedToken, "invite-token-9")
+    XCTAssertEqual(service.acceptInviteCallCount, 1)
+    XCTAssertEqual(auth.loginCallCount, 0, "a signed-in parent accepts without logging in again")
+    XCTAssertEqual(manager.familyChoices.map(\.id), ["family-joined", "family-home"])
   }
 
   // MARK: - Gap 4: leave one of two families

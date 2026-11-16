@@ -100,4 +100,56 @@ final class EntitlementMultiFamilyPayerTests: XCTestCase {
     XCTAssertNil(store.subscription)
     XCTAssertFalse(store.hasLoaded)
   }
+
+  func test_aNoFamilyLoadThatOvertakesAFetchInFlightClearsLoadingAndStaysUnloaded() async {
+    let (store, mock) = makeStore()
+    let gate = AsyncGate()
+    mock.fetchGateByFamily = { _ in await gate.wait() }
+    let inFlight = Task { await store.load(familyUnitId: "family-a") }
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered)
+
+    await store.load(familyUnitId: nil)
+    gate.open()
+    await inFlight.value
+
+    XCTAssertFalse(store.isLoading, "the overtaken fetch returns early, so the no-family load clears the spinner")
+    XCTAssertTrue(store.hasLoaded)
+    XCTAssertNil(store.subscription)
+    XCTAssertEqual(store.planLabel, PlanLabel.noFamily)
+  }
+
+  func test_afterASwitchThePlanIsNeverTheFamilyJustLeftNotEvenWhileTheNewOneLoads() async {
+    let (store, mock) = makeStore()
+    await store.load(familyUnitId: "family-a")
+    XCTAssertTrue(store.canWrite)
+    let gate = AsyncGate()
+    mock.fetchGateByFamily = { familyId in
+      if familyId == "family-b" { await gate.wait() }
+    }
+
+    let switching = Task { await store.load(familyUnitId: "family-b") }
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered)
+
+    XCTAssertNil(store.subscription, "family A's plan must not stand in for B's while B loads")
+    XCTAssertFalse(store.canWrite)
+    XCTAssertFalse(store.hasLoaded)
+    gate.open()
+    await switching.value
+    XCTAssertEqual(store.subscription?.familyUnitId, "family-b")
+  }
+
+  func test_aCancelledLatestLoadLeavesNoPlanRatherThanTheOldFamilys() async {
+    let (store, mock) = makeStore()
+    await store.load(familyUnitId: "family-a")
+    mock.error = CancellationError()
+
+    await store.load(familyUnitId: "family-b")
+
+    XCTAssertNil(store.subscription)
+    XCTAssertFalse(store.canWrite, "a cancelled switch must not leave family A's write access in place")
+    XCTAssertFalse(store.hasLoaded)
+    XCTAssertFalse(store.isLoading)
+  }
 }

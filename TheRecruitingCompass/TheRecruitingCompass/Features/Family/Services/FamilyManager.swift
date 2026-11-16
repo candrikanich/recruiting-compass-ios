@@ -93,8 +93,14 @@ final class FamilyManager {
     self.authManager = authManager ?? AuthManager.shared
   }
 
-  func loadFamilyData() async {
+  /// `forceFresh` waits out a load already in flight and then reads again: a membership change (join, leave,
+  /// remove) must not be answered by a read that started before the change committed.
+  func loadFamilyData(forceFresh: Bool = false) async {
     guard let userId = authManager.user?.id else { return }
+    if forceFresh, let inFlight = inFlightLoad, inFlight.userId == userId, inFlight.session == session {
+      await inFlight.task.value
+      if inFlightLoad?.task == inFlight.task { inFlightLoad = nil }
+    }
     if let inFlight = inFlightLoad, inFlight.userId == userId, inFlight.session == session {
       await inFlight.task.value
       return

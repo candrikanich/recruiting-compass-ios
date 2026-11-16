@@ -73,6 +73,8 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
 
   /// Awaited inside `getMemberships` so tests can hold a load in flight.
   var getMembershipsGate: (@Sendable () async -> Void)?
+  /// Reads the memberships before the gate, as a real request that started before a later change would.
+  var snapshotMembershipsBeforeGate = false
   /// Most recently joined first. Defaults to the single `stubbedCurrentMember`.
   var stubbedMemberships: [FamilyMember]?
   var familyPlayersStub: [FamilyPlayer] = []
@@ -83,13 +85,14 @@ final class MockFamilyService: FamilyManaging, @unchecked Sendable {
   func getMemberships(userId: String) async throws -> [FamilyMember] {
     getMembershipsCallCount += 1
     lastUserIdFetched = userId
+    let snapshot = stubbedMemberships ?? stubbedCurrentMember.map { [$0] } ?? []
     await getMembershipsGate?()
 
     if !shouldSucceed {
       throw mockError
     }
 
-    return stubbedMemberships ?? stubbedCurrentMember.map { [$0] } ?? []
+    return snapshotMembershipsBeforeGate ? snapshot : (stubbedMemberships ?? stubbedCurrentMember.map { [$0] } ?? [])
   }
 
   func familyPlayers(among familyUnitIds: [String]) async throws -> [FamilyPlayer] {
