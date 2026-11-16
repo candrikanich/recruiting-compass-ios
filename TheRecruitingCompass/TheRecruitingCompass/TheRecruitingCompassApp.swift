@@ -302,12 +302,7 @@ private struct AuthenticatedContent: View {
     // parent who just joined would land in the wizard instead of the dashboard.
     .onChange(of: familyManager.membership) { old, new in
       guard FamilyGate.shouldReevaluateOnboarding(from: old, to: new) else { return }
-      let joined = FamilyGate.joinedFamilyInSession(from: old, to: new)
-      Task {
-        await onboardingManager.loadStatus(
-          isInFamily: true, joinedThisSession: joined, familyMembers: familyManager.familyMembers
-        )
-      }
+      Task { await onboardingManager.loadStatus(isInFamily: true) }
     }
     // Keyed by user id, not isAuthenticated: resetUserScopedState() puts onboarding back to
     // "loading", so any change of user must reload it or routing would stall.
@@ -330,9 +325,7 @@ private struct AuthenticatedContent: View {
   // Precedence: full onboarding > sport-only gate > dashboard.
   @ViewBuilder
   private var appContent: some View {
-    if let athleteUserId = onboardingManager.parentSchoolAthleteId {
-      FirstRunSchoolStepScreen(athleteUserId: athleteUserId, onFinish: onboardingManager.completeParentSchoolStep)
-    } else if onboardingManager.needsOnboarding == true {
+    if onboardingManager.needsOnboarding == true {
       OnboardingWrapperView(onComplete: {
         Task { await familyManager.loadFamilyData() }
       })

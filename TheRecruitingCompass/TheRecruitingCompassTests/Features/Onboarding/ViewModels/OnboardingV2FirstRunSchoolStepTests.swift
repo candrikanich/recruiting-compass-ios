@@ -308,4 +308,25 @@ struct OnboardingV2ViewModelFirstRunTests {
     #expect(vm.schoolsAdded == 0)
     #expect(vm.errorMessage == "Couldn't add Ohio State University. Try again in a moment.")
   }
+
+  @Test func aCancelledURLRequestIsNotShownAsASearchError() async {
+    let scorecard = StubCollegeScorecardService()
+    scorecard.searchError = URLError(.cancelled)
+    let vm = makeSUT(scorecard: scorecard)
+
+    await vm.performSearch(query: "Ohio State")
+
+    #expect(vm.searchError == nil)
+    #expect(!vm.isSearching)
+  }
+
+  @Test func aRealSearchFailureIsStillShown() async {
+    let scorecard = StubCollegeScorecardService()
+    scorecard.searchError = URLError(.notConnectedToInternet)
+    let vm = makeSUT(scorecard: scorecard)
+
+    await vm.performSearch(query: "Ohio State")
+
+    #expect(vm.searchError == "Couldn't search schools. Check your connection and try again.")
+  }
 }

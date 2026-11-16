@@ -17,6 +17,7 @@ final class AuthManager: AuthManaging {
   var session: Session?
   var errorMessage: String?
   var pendingBiometricEnrollmentOffer: Bool = false
+  private(set) var parentSignedUpThisSession = false
 
   private let keychain = KeychainHelper.shared
   private let sessionKey = "savedSession"
@@ -119,6 +120,7 @@ final class AuthManager: AuthManaging {
       // later step failed) stay consistent.
       try? await supabaseManager.signOut()
       self.user = nil
+      self.parentSignedUpThisSession = false
       self.session = nil
       self.isAuthenticated = false
       let message = (error as? AuthError)?.errorDescription ?? "An unexpected error occurred. Please try again."
@@ -184,6 +186,9 @@ final class AuthManager: AuthManaging {
         try await beforePublish?()
         await accountProvisioning.flushPendingOnboardingStep1()
       }
+      // Set before publishing, so the first onboarding evaluation already sees it. Invite and claim signups
+      // join an existing family and skip the verification email; they keep their current routing.
+      parentSignedUpThisSession = session != nil && role == .parent && !skipVerificationEmail
       self.user = user
       self.session = session
       self.isAuthenticated = session != nil
@@ -311,6 +316,7 @@ final class AuthManager: AuthManaging {
 
     Analytics.reset()
     self.user = nil
+    self.parentSignedUpThisSession = false
     self.session = nil
     self.isAuthenticated = false
     self.errorMessage = nil
@@ -411,6 +417,7 @@ final class AuthManager: AuthManaging {
   private func clearSession() {
     self.session = nil
     self.user = nil
+    self.parentSignedUpThisSession = false
     self.isAuthenticated = false
     self.errorMessage = nil
   }

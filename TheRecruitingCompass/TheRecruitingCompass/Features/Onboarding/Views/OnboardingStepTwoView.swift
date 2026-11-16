@@ -212,7 +212,7 @@ struct OnboardingStepTwoView: View {
   @ViewBuilder private var finishLabel: some View {
     HStack {
       if viewModel.isLoading {
-        ProgressView()
+        ProgressView().tint(viewModel.hasAddedSchool ? Color.white : Color.accentColor)
       } else {
         Text(viewModel.finishButtonTitle)
           .font(.brand(.body, weight: .semibold))

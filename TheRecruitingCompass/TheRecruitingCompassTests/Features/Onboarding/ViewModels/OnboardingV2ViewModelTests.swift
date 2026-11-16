@@ -507,6 +507,7 @@ final class StubCollegeScorecardService: CollegeScorecardManaging, @unchecked Se
   var stubbedResult: CollegeDataResult?
   var stubbedSearchResults: [CollegeSearchResult] = []
   var searchDelay: Duration?
+  var searchError: Error?
   private(set) var lookupCallCount = 0
 
   func lookupCollege(name: String) async throws -> CollegeDataResult? {
@@ -516,6 +517,7 @@ final class StubCollegeScorecardService: CollegeScorecardManaging, @unchecked Se
   func lookupCollege(id: String) async throws -> CollegeDataResult? { stubbedResult }
   func searchColleges(query: String) async throws -> [CollegeSearchResult] {
     if let searchDelay { try await Task.sleep(for: searchDelay) }
+    if let searchError { throw searchError }
     return stubbedSearchResults
   }
 }
