@@ -45,4 +45,22 @@ enum E2ETestEnvironment {
       app.launchEnvironment["API_BASE_URL"] = apiBaseURL
     }
   }
+
+  /// Tests that call the family API must run against the local web server: without `E2E_API_BASE_URL` the app
+  /// would use the embedded (production) API base URL, which a seeded local database cannot satisfy.
+  static func requireAPIBaseURL() throws {
+    let value = ProcessInfo.processInfo.environment["E2E_API_BASE_URL"] ?? ""
+    guard !value.isEmpty else {
+      throw E2ESetupError.missingAPIBaseURL
+    }
+  }
+}
+
+enum E2ESetupError: Error, CustomStringConvertible {
+  case missingAPIBaseURL
+
+  var description: String {
+    "E2E_API_BASE_URL is not set: run with TEST_RUNNER_E2E_API_BASE_URL=<local web dev server> so family calls " +
+      "never reach the production API"
+  }
 }
