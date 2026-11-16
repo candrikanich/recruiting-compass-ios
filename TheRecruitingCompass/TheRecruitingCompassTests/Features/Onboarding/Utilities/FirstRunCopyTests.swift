@@ -15,8 +15,8 @@ struct FirstRunCopyTests {
   @Test func introIsTheApprovedSentence() {
     #expect(
       FirstRunCopy.intro
-        == "TRC guides your family through recruiting: what to do next, with every school, coach, "
-        + "and conversation in one place."
+        == "The Recruiting Compass guides your family through recruiting: what to do next, with every school, "
+        + "coach, and conversation in one place."
     )
   }
 
