@@ -4,6 +4,7 @@ import Foundation
 
 // MARK: - First-run school step (ios#488, parity with web#1536)
 
+extension OnboardingV2Suites {
 @Suite("OnboardingV2ViewModel — first-run school step")
 @MainActor
 struct OnboardingV2ViewModelFirstRunTests {
@@ -329,4 +330,5 @@ struct OnboardingV2ViewModelFirstRunTests {
 
     #expect(vm.searchError == "Couldn't search schools. Check your connection and try again.")
   }
+}
 }

@@ -2,6 +2,7 @@ import Testing
 import Foundation
 @testable import TheRecruitingCompass
 
+extension OnboardingV2Suites {
 @Suite("OnboardingV2ViewModel — validation and derived state")
 @MainActor
 struct OnboardingV2ViewModelTests {
@@ -365,6 +366,7 @@ struct OnboardingV2ViewModelTests {
     #expect(vm.errorMessage == nil)
   }
 }
+}
 
 // MARK: - Minimal stubs for non-tested dependencies
 
@@ -544,6 +546,7 @@ actor SpyFaviconService: SchoolFaviconManaging {
 
 // MARK: - addSchool enrichment parity with Schools-page "Add School" flow
 
+extension OnboardingV2Suites {
 @Suite("OnboardingV2ViewModel — addSchool enrichment")
 @MainActor
 struct OnboardingV2ViewModelAddSchoolTests {
@@ -702,6 +705,7 @@ struct OnboardingV2ViewModelAddSchoolTests {
     #expect(vm.recommendations.isEmpty)
     #expect(vm.schoolsAdded == 1)
   }
+}
 }
 
 /// Never resumes — proves addSchool doesn't await favicon persistence before completing.
