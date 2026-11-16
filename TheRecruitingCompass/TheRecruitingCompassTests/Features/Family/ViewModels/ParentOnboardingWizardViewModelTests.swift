@@ -350,34 +350,60 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     XCTAssertFalse(viewModel.didComplete)
   }
 
-  // MARK: - hasConnectedAthlete (first-run school step, ios#488)
+  // MARK: - resolveExit (first-run school step, ios#488)
 
-  private func member(role: String) -> FamilyMember {
+  private func member(role: String, userId: String? = nil) -> FamilyMember {
     FamilyMember(
-      id: "m-\(role)", userId: "u-\(role)", familyUnitId: "family-1", role: role,
+      id: "m-\(role)", userId: userId ?? "u-\(role)", familyUnitId: "family-1", role: role,
       addedAt: nil, user: nil, canRemove: nil, removeBlockedReason: nil
     )
   }
 
-  func testHasConnectedAthlete_trueWhenAPlayerHasJoined() async {
+  func testResolveExit_completedWithAnAthlete_goesToTheSchoolStepForThatAthlete() async {
     mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
-    mockFamilyService.stubbedFamilyMembers = [member(role: "parent"), member(role: "player")]
-    let connected = await viewModel.hasConnectedAthlete()
-    XCTAssertTrue(connected)
+    mockFamilyService.stubbedFamilyMembers = [member(role: "parent"), member(role: "player", userId: "athlete-7")]
+    viewModel.didComplete = true
+    let exit = await viewModel.resolveExit()
+    XCTAssertEqual(exit, .schoolStep(athleteUserId: "athlete-7"))
   }
 
-  func testHasConnectedAthlete_falseWhenOnlyParentsAreInTheFamily() async {
+  func testResolveExit_completedWithNoAthlete_goesToTheDashboard() async {
     mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
     mockFamilyService.stubbedFamilyMembers = [member(role: "parent")]
-    let connected = await viewModel.hasConnectedAthlete()
-    XCTAssertFalse(connected)
+    viewModel.didComplete = true
+    let exit = await viewModel.resolveExit()
+    XCTAssertEqual(exit, .dashboard)
   }
 
-  func testHasConnectedAthlete_falseWhenTheMembersReadFails() async {
+  func testResolveExit_notCompleted_goesToTheDashboardEvenWithAnAthlete() async {
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
+    mockFamilyService.stubbedFamilyMembers = [member(role: "player")]
+    viewModel.didComplete = false
+    let exit = await viewModel.resolveExit()
+    XCTAssertEqual(exit, .dashboard)
+  }
+
+  func testResolveExit_membersReadFails_goesToTheDashboard() async {
     mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
     mockFamilyService.stubbedFamilyMembers = [member(role: "player")]
     mockFamilyService.shouldSucceed = false
-    let connected = await viewModel.hasConnectedAthlete()
-    XCTAssertFalse(connected)
+    viewModel.didComplete = true
+    let exit = await viewModel.resolveExit()
+    XCTAssertEqual(exit, .dashboard)
+  }
+
+  func testResolveExit_secondReportWhileResolving_isIgnored() async throws {
+    mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
+    mockFamilyService.stubbedFamilyMembers = [member(role: "player")]
+    mockFamilyService.fetchFamilyMembersGate = { _ in try? await Task.sleep(for: .milliseconds(300)) }
+    viewModel.didComplete = true
+
+    let first = Task { await self.viewModel.resolveExit() }
+    try await Task.sleep(for: .milliseconds(100))
+    let cancelDuringCheck = await viewModel.resolveExit()
+
+    XCTAssertNil(cancelDuringCheck)
+    let firstResult = await first.value
+    XCTAssertEqual(firstResult, .schoolStep(athleteUserId: "u-player"))
   }
 }

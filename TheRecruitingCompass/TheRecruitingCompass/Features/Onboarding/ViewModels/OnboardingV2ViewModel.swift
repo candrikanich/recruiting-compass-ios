@@ -29,6 +29,11 @@ final class OnboardingV2ViewModel {
   var searchResults: [CollegeSearchResult] = []
   var isSearching = false
   var searchError: String?
+  /// True while a search pick is being saved; blocks a second tap from inserting twice.
+  private(set) var isPickingSchool = false
+  /// Whose recommendations to load and dismiss. Nil means the signed-in user; a parent on the school step
+  /// sets the connected athlete's id, since recommendations belong to the athlete.
+  var recommendationAthleteId: String?
 
   // MARK: - Shared state
 
@@ -46,6 +51,12 @@ final class OnboardingV2ViewModel {
 
   var schoolPrompt: String {
     FirstRunCopy.schoolPrompt(for: authManager.user?.role)
+  }
+
+  var hasAddedSchool: Bool { schoolsAdded > 0 }
+
+  var finishButtonTitle: String {
+    hasAddedSchool ? "Go to dashboard" : FirstRunCopy.skipLabel
   }
 
   var graduationYearDisplay: String {
@@ -190,7 +201,7 @@ final class OnboardingV2ViewModel {
   // MARK: - Step 2
 
   func loadRecommendations() async {
-    guard let userId = authManager.user?.id else { return }
+    guard let userId = recommendationAthleteId ?? authManager.user?.id else { return }
 
     isLoadingRecommendations = true
     defer { isLoadingRecommendations = false }
@@ -227,6 +238,7 @@ final class OnboardingV2ViewModel {
         familyUnitId: familyUnitId
       )
       try await persist(request)
+      schoolsAdded += 1
 
       recommendations.removeAll { $0.catalogKey == recommendation.catalogKey }
       OnboardingAnalytics.schoolAdded()
@@ -246,7 +258,12 @@ final class OnboardingV2ViewModel {
   /// First-run pick from search: the school is added and starred as a favorite (web#1536). A school already
   /// on the family's list is starred instead of duplicated, so picking it again still means "favorite".
   func pickSchool(_ college: CollegeSearchResult) async -> Bool {
-    guard let userId = authManager.user?.id else { return false }
+    guard !isPickingSchool, let userId = authManager.user?.id else { return false }
+    isPickingSchool = true
+    defer { isPickingSchool = false }
+    // A pending or in-flight search must not put results back over a school that was just picked.
+    searchDebounceTask?.cancel()
+    searchGeneration += 1
 
     do {
       let familyUnitId = try await requireFamilyUnitId(userId: userId)
@@ -274,6 +291,7 @@ final class OnboardingV2ViewModel {
         try await persist(request)
         pickedSchoolName = college.name
       }
+      schoolsAdded += 1
 
       searchResults = []
       OnboardingAnalytics.schoolAdded()
@@ -350,12 +368,12 @@ final class OnboardingV2ViewModel {
     Task {
       await favicon.fetchAndPersist(school: created)
     }
-    schoolsAdded += 1
   }
 
   // MARK: - Search
 
   private var searchDebounceTask: Task<Void, Never>?
+  private var searchGeneration = 0
 
   func handleSearchQueryChanged(_ text: String) {
     searchDebounceTask?.cancel()
@@ -366,24 +384,29 @@ final class OnboardingV2ViewModel {
   }
 
   func performSearch(query: String) async {
+    searchGeneration += 1
+    let generation = searchGeneration
     let trimmed = query.trimmingCharacters(in: .whitespaces)
     guard trimmed.count >= 3 else {
       searchResults = []
       searchError = nil
+      isSearching = false
       return
     }
 
     isSearching = true
     searchError = nil
-    defer { if !Task.isCancelled { isSearching = false } }
+    // Only the newest search owns the spinner; a cancelled or superseded one must still release it.
+    defer { if searchGeneration == generation { isSearching = false } }
 
     do {
       let results = try await collegeScorecardService.searchColleges(query: trimmed)
-      guard !Task.isCancelled else { return }
+      guard !Task.isCancelled, searchGeneration == generation else { return }
       searchResults = results
     } catch is CancellationError {
       return
     } catch {
+      guard searchGeneration == generation else { return }
       logger.error("First-run school search failed: \(error.localizedDescription)")
       searchResults = []
       searchError = "Couldn't search schools. Check your connection and try again."
@@ -391,7 +414,7 @@ final class OnboardingV2ViewModel {
   }
 
   func dismissRecommendation(_ recommendation: SchoolRecommendation) async {
-    guard let userId = authManager.user?.id else { return }
+    guard let userId = recommendationAthleteId ?? authManager.user?.id else { return }
 
     recommendations.removeAll { $0.catalogKey == recommendation.catalogKey }
 

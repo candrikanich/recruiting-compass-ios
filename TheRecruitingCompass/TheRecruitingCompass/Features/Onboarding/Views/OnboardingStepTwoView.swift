@@ -30,7 +30,7 @@ struct OnboardingStepTwoView: View {
           recommendationsSection
         }
 
-        if viewModel.pickedSchoolName != nil || viewModel.schoolsAdded > 0 {
+        if viewModel.hasAddedSchool {
           schoolsAddedBanner
         }
 
@@ -118,6 +118,7 @@ struct OnboardingStepTwoView: View {
             }
           }
         )
+        .disabled(viewModel.isPickingSchool)
       }
     }
     .padding(.horizontal, 24)
@@ -200,8 +201,6 @@ struct OnboardingStepTwoView: View {
 
   // MARK: - Finish Button
 
-  private var hasAddedSchool: Bool { viewModel.schoolsAdded > 0 || viewModel.pickedSchoolName != nil }
-
   private func finish() {
     Task {
       guard completesOnboarding else {
@@ -217,7 +216,7 @@ struct OnboardingStepTwoView: View {
       if viewModel.isLoading {
         ProgressView()
       } else {
-        Text(hasAddedSchool ? "Go to dashboard" : FirstRunCopy.skipLabel)
+        Text(viewModel.finishButtonTitle)
           .font(.brand(.body, weight: .semibold))
       }
     }
@@ -228,7 +227,7 @@ struct OnboardingStepTwoView: View {
   /// "Not sure yet" is a quiet bordered button; once a school is added the way forward becomes prominent.
   @ViewBuilder private var finishButton: some View {
     Group {
-      if hasAddedSchool {
+      if viewModel.hasAddedSchool {
         Button(action: finish) { finishLabel }.buttonStyle(.borderedProminent)
       } else {
         Button(action: finish) { finishLabel }.buttonStyle(.bordered)

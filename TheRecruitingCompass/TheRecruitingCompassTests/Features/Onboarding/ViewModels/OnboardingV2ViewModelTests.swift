@@ -397,10 +397,12 @@ private final class SpySchoolsRepository: SchoolsRepository, @unchecked Sendable
   private(set) var createCallCount = 0
   private(set) var favoriteToggles: [(id: String, isFavorite: Bool)] = []
   var existingSchools: [School] = []
+  var createDelay: Duration?
 
   func createSchool(request: SchoolCreateRequest) async throws -> School {
     lastCreateRequest = request
     createCallCount += 1
+    if let createDelay { try await Task.sleep(for: createDelay) }
     return Self.placeholder
   }
   func fetchSchools(familyUnitId: String) async throws -> [School] { existingSchools }
@@ -429,8 +431,16 @@ private final class SpySchoolsRepository: SchoolsRepository, @unchecked Sendable
 }
 
 private final class StubRecommendationService: SchoolRecommendationManaging, @unchecked Sendable {
-  func fetchRecommendations(athleteId: String, limit: Int) async throws -> [SchoolRecommendation] { [] }
-  func dismissRecommendation(catalogKey: String, athleteId: String) async throws {}
+  private(set) var fetchedAthleteIds: [String] = []
+  private(set) var dismissedAthleteIds: [String] = []
+
+  func fetchRecommendations(athleteId: String, limit: Int) async throws -> [SchoolRecommendation] {
+    fetchedAthleteIds.append(athleteId)
+    return []
+  }
+  func dismissRecommendation(catalogKey: String, athleteId: String) async throws {
+    dismissedAthleteIds.append(athleteId)
+  }
 }
 
 private final class StubFamilyService: FamilyManaging, @unchecked Sendable {
@@ -719,6 +729,7 @@ struct OnboardingV2ViewModelFirstRunTests {
     scorecard: StubCollegeScorecardService = StubCollegeScorecardService(),
     onboarding: MockOnboardingService = MockOnboardingService(),
     familyService: StubFamilyService = StubFamilyService(),
+    recommendations: StubRecommendationService = StubRecommendationService(),
     role: UserRole = .player
   ) -> OnboardingV2ViewModel {
     OnboardingV2ViewModel(
@@ -726,7 +737,7 @@ struct OnboardingV2ViewModelFirstRunTests {
       preferenceService: StubPreferenceService(),
       authManager: makeAuth(role: role),
       schoolsRepository: repo,
-      recommendationService: StubRecommendationService(),
+      recommendationService: recommendations,
       familyService: familyService,
       ncaaDatabase: StubNcaaDatabase(),
       collegeScorecardService: scorecard,
@@ -827,5 +838,98 @@ struct OnboardingV2ViewModelFirstRunTests {
   @Test func parentGetsTheParentPrompt() {
     #expect(makeSUT(role: .parent).schoolPrompt == "Which school is your athlete most excited about?")
     #expect(makeSUT(role: .player).schoolPrompt == "Which school are you most excited about?")
+  }
+
+  @Test func duplicatePickCountsAsTheFirstSchool() async {
+    let repo = SpySchoolsRepository()
+    repo.existingSchools = [School.mock(id: "school-9", name: "Ohio State University")]
+    let vm = makeSUT(repo: repo)
+
+    _ = await vm.pickSchool(ohioState)
+
+    #expect(vm.schoolsAdded == 1)
+    #expect(vm.hasAddedSchool)
+  }
+
+  @Test func concurrentTapsOnTheSameResultCreateOneSchool() async {
+    let repo = SpySchoolsRepository()
+    repo.createDelay = .milliseconds(100)
+    let vm = makeSUT(repo: repo)
+
+    async let first = vm.pickSchool(ohioState)
+    async let second = vm.pickSchool(ohioState)
+    let results = await [first, second]
+
+    #expect(repo.createCallCount == 1)
+    #expect(results.filter { $0 }.count == 1)
+    #expect(vm.schoolsAdded == 1)
+    #expect(!vm.isPickingSchool)
+  }
+
+  @Test func finishButtonSaysNotSureYetUntilASchoolIsAdded() async {
+    let vm = makeSUT()
+    #expect(vm.finishButtonTitle == "Not sure yet")
+
+    _ = await vm.pickSchool(ohioState)
+
+    #expect(vm.finishButtonTitle == "Go to dashboard")
+  }
+
+  @Test func recommendationsAndDismissalsBelongToTheConnectedAthlete() async {
+    let recommendations = StubRecommendationService()
+    let vm = makeSUT(recommendations: recommendations, role: .parent)
+    vm.recommendationAthleteId = "athlete-9"
+    let recommendation = SchoolRecommendation(
+      catalogKey: "bgsu", name: "Bowling Green", division: nil, conference: nil,
+      state: nil, website: nil, athleticsUrl: nil, score: 1, reasons: []
+    )
+
+    await vm.loadRecommendations()
+    await vm.dismissRecommendation(recommendation)
+
+    #expect(recommendations.fetchedAthleteIds == ["athlete-9"])
+    #expect(recommendations.dismissedAthleteIds == ["athlete-9"])
+  }
+
+  @Test func recommendationsDefaultToTheSignedInUser() async {
+    let recommendations = StubRecommendationService()
+    let vm = makeSUT(recommendations: recommendations)
+
+    await vm.loadRecommendations()
+
+    #expect(recommendations.fetchedAthleteIds == ["user-1"])
+  }
+
+  @Test func cancelledSearchReleasesTheSpinner() async {
+    let scorecard = StubCollegeScorecardService()
+    scorecard.stubbedSearchResults = [ohioState]
+    let vm = makeSUT(scorecard: scorecard)
+
+    let task = Task { await vm.performSearch(query: "Ohio State") }
+    task.cancel()
+    await task.value
+
+    #expect(!vm.isSearching)
+  }
+
+  @Test func shortQueryReleasesTheSpinner() async {
+    let vm = makeSUT()
+    vm.isSearching = true
+
+    await vm.performSearch(query: "Oh")
+
+    #expect(!vm.isSearching)
+  }
+
+  @Test func pickingASchoolCancelsAPendingSearch() async throws {
+    let scorecard = StubCollegeScorecardService()
+    scorecard.stubbedSearchResults = [ohioState]
+    let vm = makeSUT(scorecard: scorecard)
+
+    vm.handleSearchQueryChanged("Ohio State")
+    _ = await vm.pickSchool(ohioState)
+    try await Task.sleep(for: .milliseconds(500))
+
+    #expect(vm.searchResults.isEmpty)
   }
 }

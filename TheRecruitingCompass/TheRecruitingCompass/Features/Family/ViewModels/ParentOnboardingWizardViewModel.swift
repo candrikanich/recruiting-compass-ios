@@ -179,16 +179,36 @@ final class ParentOnboardingWizardViewModel {
     }
   }
 
-  /// Whether an athlete has already joined this parent's family, which is what unlocks the first-run school
-  /// step. A failed read answers false: no school write is ever made on a guess.
-  func hasConnectedAthlete() async -> Bool {
+  /// Where the parent goes when the wizard closes.
+  enum ExitDestination: Equatable {
+    case dashboard
+    /// The first-run school step, for the connected athlete with this user id.
+    case schoolStep(athleteUserId: String)
+  }
+
+  private var isResolvingExit = false
+
+  /// The school step is only offered after the details were saved AND an athlete has already joined the
+  /// family; Cancel, or a failed members read, goes to the dashboard and no school is ever written.
+  /// Returns nil while another exit is still being resolved: the wizard reports both Cancel and completion,
+  /// and a second report must not finish onboarding twice.
+  func resolveExit() async -> ExitDestination? {
+    guard !isResolvingExit else { return nil }
+    isResolvingExit = true
+    defer { isResolvingExit = false }
+
+    guard didComplete, let athlete = await connectedAthlete() else { return .dashboard }
+    return .schoolStep(athleteUserId: athlete.userId)
+  }
+
+  private func connectedAthlete() async -> FamilyMember? {
     do {
       let family = try await existingFamily()
       let members = try await familyService.fetchFamilyMembers(familyUnitId: family.id)
-      return FirstRunCopy.parentHasConnectedAthlete(members: members)
+      return FirstRunCopy.connectedAthlete(in: members)
     } catch {
-      logger.error("hasConnectedAthlete failed: \(error.localizedDescription, privacy: .public)")
-      return false
+      logger.error("connectedAthlete failed: \(error.localizedDescription, privacy: .public)")
+      return nil
     }
   }
 

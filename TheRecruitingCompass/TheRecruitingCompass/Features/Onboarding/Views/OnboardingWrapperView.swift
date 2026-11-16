@@ -37,7 +37,9 @@ private struct ParentOnboardingWrapperContent: View {
       NavigationStack {
         ZStack {
           Color.Brand.forest600.ignoresSafeArea()
-          OnboardingStepTwoView(viewModel: schoolViewModel, completesOnboarding: false, onFinish: finish)
+          OnboardingStepTwoView(
+            viewModel: schoolViewModel, showsIntro: true, completesOnboarding: false, onFinish: finish
+          )
             .background(Color.white.opacity(0.95))
             .clipShape(.rect(cornerRadius: 16))
             .colorScheme(.light)
@@ -53,11 +55,14 @@ private struct ParentOnboardingWrapperContent: View {
   }
 
   private func wizardDismissed() async {
-    // Cancel leaves the wizard without completing it: never a school step for that.
-    if viewModel.didComplete, await viewModel.hasConnectedAthlete() {
+    switch await viewModel.resolveExit() {
+    case .schoolStep(let athleteUserId):
+      schoolViewModel.recommendationAthleteId = athleteUserId
       showsSchoolStep = true
-    } else {
+    case .dashboard:
       finish()
+    case nil:
+      break
     }
   }
 

@@ -27,7 +27,11 @@ enum FirstRunCopy {
 
   /// A parent only gets the school step once an athlete has joined the family: until then there is nobody
   /// whose favorite this would be, and the write stays with #492.
+  static func connectedAthlete(in members: [FamilyMember]) -> FamilyMember? {
+    members.first(where: \.isAthlete)
+  }
+
   static func parentHasConnectedAthlete(members: [FamilyMember]) -> Bool {
-    members.contains(where: \.isAthlete)
+    connectedAthlete(in: members) != nil
   }
 }
