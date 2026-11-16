@@ -40,5 +40,9 @@ enum E2ETestEnvironment {
       "SUPABASE_URL": supabaseURL,
       "SUPABASE_ANON_KEY": supabaseAnonKey
     ]
+    // Family join/leave and labels go through the web API; pointing at the local web dev server keeps them off prod.
+    if let apiBaseURL = ProcessInfo.processInfo.environment["E2E_API_BASE_URL"], !apiBaseURL.isEmpty {
+      app.launchEnvironment["API_BASE_URL"] = apiBaseURL
+    }
   }
 }
