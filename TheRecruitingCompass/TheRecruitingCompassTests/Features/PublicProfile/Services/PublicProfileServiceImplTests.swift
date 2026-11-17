@@ -4,12 +4,26 @@ import XCTest
 final class PublicProfileServiceImplTests: XCTestCase {
     nonisolated deinit {}
 
-    override func tearDown() {
+    /// Seeds the family another suite can leave behind in `FamilyManager.shared` (#619). Every test here must
+    /// build its service with an injected `familyUnitIdProvider`; one that falls back to the default provider
+    /// picks this family up and sends `?familyUnitId=` the test never asked for.
+    override func setUp() async throws {
+        try await super.setUp()
+        await MainActor.run {
+            FamilyManager.shared.familyUnit = FamilyUnit(
+                id: "leaked-family", createdByUserId: "u", familyName: "Leaked", familyCode: nil,
+                codeGeneratedAt: nil, createdAt: "", updatedAt: "", homeLatitude: nil, homeLongitude: nil
+            )
+        }
+    }
+
+    override func tearDown() async throws {
+        await MainActor.run { FamilyManager.shared.familyUnit = nil }
         StubURLProtocol.handler = nil
         HTTPCookieStorage.shared.cookies?
             .filter { $0.name == "csrf-token" }
             .forEach { HTTPCookieStorage.shared.deleteCookie($0) }
-        super.tearDown()
+        try await super.tearDown()
     }
 
     private func makeSession() -> URLSession {
