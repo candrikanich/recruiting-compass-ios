@@ -452,6 +452,31 @@ final class AddSchoolViewModelTests: XCTestCase {
     XCTAssertFalse(viewModel.isSubmitting)
   }
 
+  func testSubmitSchool_refusedInsert_neverAnnouncesSuccess() async {
+    let announcer = MockAccessibilityAnnouncer()
+    let vm = AddSchoolViewModel(
+      schoolsService: mockService,
+      collegeScorecardService: MockCollegeScorecardService(),
+      ncaaDatabase: MockNcaaDatabase(),
+      schoolFaviconService: MockSchoolFaviconService(),
+      familyUnitId: "test-family-123",
+      userId: "test-user-456",
+      announcer: announcer
+    )
+    vm.formState.name = "Harvard"
+    mockService.shouldThrowError = true
+    mockService.errorToThrow = PostgrestError(code: "42501", message: "schools_insert_requires_entitlement")
+
+    let result = await vm.submitSchool()
+
+    XCTAssertNil(result)
+    XCTAssertFalse(
+      announcer.announcedMessages.contains { $0.contains("added successfully") },
+      "a refused insert must not be announced as success: \(announcer.announcedMessages)"
+    )
+    XCTAssertEqual(announcer.announcedMessages, ["Failed to create school. Please try again."])
+  }
+
   // MARK: - submitSchool() Tests - Loading State
 
   func testSubmitSchool_setsIsSubmittingDuringSubmission() async {

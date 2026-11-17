@@ -17,10 +17,15 @@ final class MockEntitlementService: EntitlementManaging, @unchecked Sendable {
   /// Awaited inside `fetchSubscription` with the family id so a test can hold one family's fetch in flight.
   var fetchGateByFamily: (@Sendable (String) async -> Void)?
 
+  /// Errors thrown by the Nth `fetchSubscription` call (0-based), overriding `error`.
+  var errorsByCallIndex: [Int: Error] = [:]
+
   func fetchSubscription(familyUnitId: String) async throws -> FamilySubscription? {
+    let callIndex = requestedFamilyIds.count
     requestedFamilyIds.append(familyUnitId)
     await fetchGate?()
     await fetchGateByFamily?(familyUnitId)
+    if let error = errorsByCallIndex[callIndex] { throw error }
     if let error { throw error }
     return subscriptionsByFamilyId[familyUnitId] ?? subscription
   }
