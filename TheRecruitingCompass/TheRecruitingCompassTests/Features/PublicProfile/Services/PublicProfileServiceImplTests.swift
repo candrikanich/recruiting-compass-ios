@@ -134,6 +134,7 @@ final class PublicProfileServiceImplTests: XCTestCase {
             let link = #"{"id":"t1","profile_id":"p1","coach_id":"c1","ref_token":"r","view_count":0,"created_at":""}"#
             return okResponse(request, Data(link.utf8))
         }
+        // Pinned: the default provider reads FamilyManager.shared, which another test can leave on a family.
         let service = makeService(familyUnitId: nil)
         _ = try await service.fetchTrackingLink(coachId: "c1", athleteId: "athlete-9", accessToken: "tok")
         _ = try await service.createTrackingLink(coachId: "c1", athleteId: "athlete-9", accessToken: "tok")
@@ -150,6 +151,7 @@ final class PublicProfileServiceImplTests: XCTestCase {
             let link = #"{"id":"t1","profile_id":"p1","coach_id":"c1","ref_token":"r","view_count":0,"created_at":""}"#
             return okResponse(request, Data(link.utf8))
         }
+        // Pinned: the default provider reads FamilyManager.shared, which another test can leave on a family.
         let service = makeService(familyUnitId: nil)
         _ = try await service.fetchTrackingLink(coachId: "c1", athleteId: nil, accessToken: "tok")
         _ = try await service.createTrackingLink(coachId: "c1", athleteId: nil, accessToken: "tok")

@@ -140,6 +140,32 @@ final class MultiFamilyParentFlowTests: XCTestCase {
     XCTAssertEqual(manager.familyChoices.count, 2)
   }
 
+  func test_theViewsMembershipRefreshWaitsOutAStaleLoadAndReadsAgain() async {
+    service.stubbedMemberships = [homeMembership]
+    service.snapshotMembershipsBeforeGate = true
+    let gate = AsyncGate(blockedEntries: 1)
+    service.getMembershipsGate = { await gate.wait() }
+    let staleLoad = Task { await manager.loadFamilyData() }
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered)
+    service.stubbedMemberships = [joinedMembership, homeMembership]
+    service.mockParentFamilies = [parentFamily("family-joined"), parentFamily("family-home")]
+
+    let handler = FamilyManagementView.membershipChangedRefresh(for: manager)
+    var refreshStarted = false
+    let refresh = Task {
+      refreshStarted = true
+      await handler()
+    }
+    while !refreshStarted { await Task.yield() }
+    await Task.yield()
+    gate.open()
+    await staleLoad.value
+    await refresh.value
+
+    XCTAssertEqual(manager.memberships.map(\.familyUnitId), ["family-joined", "family-home"])
+  }
+
   // MARK: - Gap 1: invite accepted by a signed-in parent
 
   func test_acceptingAnInviteWhileSignedIn_joinsTheSecondFamilyAndShowsTheSwitcher() async {

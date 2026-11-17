@@ -140,7 +140,7 @@ final class EntitlementMultiFamilyPayerTests: XCTestCase {
     XCTAssertEqual(store.subscription?.familyUnitId, "family-b")
   }
 
-  func test_aCancelledLatestLoadLeavesNoPlanRatherThanTheOldFamilys() async {
+  func test_aCancelledLoadWithNothingElseInFlightLeavesNoPlanRatherThanTheOldFamilys() async {
     let (store, mock) = makeStore()
     await store.load(familyUnitId: "family-a")
     mock.error = CancellationError()
@@ -151,5 +151,70 @@ final class EntitlementMultiFamilyPayerTests: XCTestCase {
     XCTAssertFalse(store.canWrite, "a cancelled switch must not leave family A's write access in place")
     XCTAssertFalse(store.hasLoaded)
     XCTAssertFalse(store.isLoading)
+  }
+
+  func test_aLaterCancelledLoadForTheSameFamilyDoesNotStrandTheEarlierLoadsResult() async {
+    let (store, mock) = makeStore()
+    let gate = AsyncGate(blockedEntries: 1)
+    mock.fetchGateByFamily = { _ in await gate.wait() }
+    mock.errorsByCallIndex[1] = CancellationError()
+
+    let earlier = Task { await store.load(familyUnitId: "family-a") }
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered)
+    await store.load(familyUnitId: "family-a")
+    XCTAssertTrue(store.isLoading, "the earlier fetch for this family is still running")
+    gate.open()
+    await earlier.value
+
+    XCTAssertTrue(store.hasLoaded, "PlanView spins forever unless the earlier answer lands")
+    XCTAssertFalse(store.isLoading)
+    XCTAssertEqual(store.subscription?.familyUnitId, "family-a")
+    XCTAssertTrue(store.canWrite)
+  }
+
+  func test_anOlderFailedAnswerDoesNotOverwriteANewerSuccessForTheSameFamily() async {
+    let (store, mock) = makeStore()
+    let gate = AsyncGate(blockedEntries: 1)
+    mock.fetchGateByFamily = { _ in await gate.wait() }
+    mock.errorsByCallIndex[0] = URLError(.timedOut)
+    let older = Task { await store.load(familyUnitId: "family-a") }
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered)
+    await store.load(familyUnitId: "family-a")
+    XCTAssertTrue(store.canWrite)
+
+    gate.open()
+    await older.value
+
+    XCTAssertTrue(store.canWrite, "an older failed answer revoked write access")
+    XCTAssertNil(store.errorMessage)
+    XCTAssertEqual(store.subscription?.familyUnitId, "family-a")
+  }
+
+  func test_aFailedAnswerForTheFamilyJustLeftDoesNotSurfaceWhileTheNewOneLoads() async {
+    let (store, mock) = makeStore()
+    let gateA = AsyncGate()
+    let gateB = AsyncGate()
+    mock.fetchGateByFamily = { familyId in
+      if familyId == "family-a" { await gateA.wait() } else { await gateB.wait() }
+    }
+    mock.errorsByCallIndex[0] = URLError(.timedOut)
+    let leftFamily = Task { await store.load(familyUnitId: "family-a") }
+    let enteredA = await gateA.untilEntered()
+    XCTAssertTrue(enteredA)
+    let selectedFamily = Task { await store.load(familyUnitId: "family-b") }
+    let enteredB = await gateB.untilEntered()
+    XCTAssertTrue(enteredB)
+
+    gateA.open()
+    await leftFamily.value
+
+    XCTAssertNil(store.errorMessage, "family A's failure surfaced while B loads")
+    XCTAssertTrue(store.isLoading)
+    gateB.open()
+    await selectedFamily.value
+    XCTAssertEqual(store.subscription?.familyUnitId, "family-b")
+    XCTAssertNil(store.errorMessage)
   }
 }

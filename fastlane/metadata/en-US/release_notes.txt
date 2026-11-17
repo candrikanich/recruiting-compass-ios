@@ -1,8 +1,8 @@
-If you're a parent in more than one family, you can now switch between them.
+Getting started is easier, and switching between families is smoother.
 
-• Switch families right from the Dashboard if you belong to more than one. Invites go to the family you've selected.
-• Coach emails and texts that include a transcript now use a link you can turn off later.
-• Parents see a clear note that only the athlete can mark tasks complete, and the Timeline now follows the same rule.
-• Parents can upload documents for their athlete.
-• Settings > About now credits the data sources behind school logos, mascots and colors.
-• Fixed documents not opening or deleting correctly for some files.
+• New welcome when you first set up The Recruiting Compass, with a quick way to search for and pick the school you're most excited about.
+• The Documents list now shows every document in your family, including ones a parent uploaded on the web.
+• Joining another family with a code now updates your family list right away.
+• Fixed documents with special characters in the file name failing to upload.
+• Sign-in errors now clear as soon as you fix the email or password.
+• Improved reliability when switching between families.

@@ -5,6 +5,11 @@ struct FamilyManagementView: View {
   @Environment(AuthManager.self) private var authManager
   @Environment(FamilyManager.self) private var familyManager
 
+  /// A join, leave or removal must be reflected by a read that starts after it, not by a load already in flight.
+  static func membershipChangedRefresh(for familyManager: FamilyManager) -> @MainActor () async -> Void {
+    { await familyManager.loadFamilyData(forceFresh: true) }
+  }
+
   var body: some View {
     contentView
       .navigationTitle("Family Management")
@@ -13,7 +18,7 @@ struct FamilyManagementView: View {
         viewModel.selectedFamilyId = familyId
       }
       .task {
-        viewModel.onMembershipChanged = { await familyManager.loadFamilyData(forceFresh: true) }
+        viewModel.onMembershipChanged = Self.membershipChangedRefresh(for: familyManager)
         await viewModel.loadData()
       }
       .refreshable {
