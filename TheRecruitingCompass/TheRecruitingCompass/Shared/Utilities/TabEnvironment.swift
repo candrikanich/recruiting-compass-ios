@@ -6,6 +6,17 @@ enum AppTab: Int {
   case coaches = 2
   case interactions = 3
   case more = 4
+
+  /// Analytics screen name; matches `AppDestination.rawValue` so iPhone and iPad views line up.
+  var screenName: String {
+    switch self {
+    case .dashboard: return "dashboard"
+    case .schools: return "schools"
+    case .coaches: return "coaches"
+    case .interactions: return "interactions"
+    case .more: return "more"
+    }
+  }
 }
 
 private struct SwitchTabKey: EnvironmentKey {

@@ -55,6 +55,9 @@ struct AdaptiveRootContent: View {
     .environment(\.openMoreSection, { section in
       selectedDestination = AppDestination(rawValue: section.rawValue) ?? selectedDestination
     })
+    .onChange(of: selectedDestination, initial: true) { _, destination in
+      if let destination { Analytics.screen(destination.rawValue) }
+    }
     .onChange(of: selectedDestination) {
       // Auto-dismiss sidebar only when it's overlaying content (portrait / smaller iPads).
       // When pinned alongside detail (13" landscape), `.automatic` keeps it visible.

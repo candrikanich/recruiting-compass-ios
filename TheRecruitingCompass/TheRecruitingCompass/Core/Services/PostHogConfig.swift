@@ -37,6 +37,9 @@ enum Analytics {
   static func makeConfig(key: String) -> PostHogConfig {
     let config = PostHogConfig(projectToken: key, host: host)
     config.preloadFeatureFlags = false
+    // SwiftUI only exposes hosting-controller class names (`NavigationStackHostingController<AnyView>`)
+    // to the swizzled capture, so screens are named explicitly through `screen(_:)` instead.
+    config.captureScreenViews = false
     return config
   }
 
@@ -64,6 +67,12 @@ enum Analytics {
     transport.reset()
   }
 
+  /// Record a screen view. Names are shared across iPhone tabs and iPad sidebar destinations
+  /// (`AppTab.screenName`, `AppDestination.rawValue`) so one breakdown covers both layouts.
+  static func screen(_ name: String) {
+    transport.screen(name, properties: ["platform": "ios"])
+  }
+
   /// Capture a named event with optional properties (platform always included).
   static func capture(_ event: String, properties: [String: Any] = [:]) {
     var props = properties
@@ -80,6 +89,7 @@ protocol AnalyticsTransport: Sendable {
   /// removes, so it must be cleared explicitly.
   func clearPersistedPersonProperties()
   func capture(_ event: String, properties: [String: Any])
+  func screen(_ name: String, properties: [String: Any])
 }
 
 /// No-ops when the PostHog key is missing (debug without PostHog).
@@ -107,5 +117,10 @@ struct PostHogTransport: AnalyticsTransport {
   func capture(_ event: String, properties: [String: Any]) {
     guard !Analytics.apiKey.isEmpty else { return }
     PostHogSDK.shared.capture(event, properties: properties)
+  }
+
+  func screen(_ name: String, properties: [String: Any]) {
+    guard !Analytics.apiKey.isEmpty else { return }
+    PostHogSDK.shared.screen(name, properties: properties)
   }
 }

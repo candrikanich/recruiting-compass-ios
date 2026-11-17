@@ -74,6 +74,12 @@ struct MainTabView: View {
     .task {
       await notificationsViewModel.fetchNotifications()
     }
+    .onChange(of: selectedTab, initial: true) { _, tab in
+      Analytics.screen(tab.screenName)
+    }
+    .onChange(of: morePath.first) { _, top in
+      if let name = top?.screenName { Analytics.screen(name) }
+    }
     .onChange(of: pendingPushDestination) { _, destination in
       guard let destination else { return }
       pendingPushDestination = nil
