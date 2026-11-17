@@ -13,6 +13,7 @@ final class RecordingTransport: AnalyticsTransport, @unchecked Sendable {
   private var recordedOrder: [String] = []
   private var recordedResetCount = 0
   private var recordedClearCount = 0
+  private var recordedScreens: [Event] = []
 
   private func locked<T>(_ body: () -> T) -> T {
     lock.lock()
@@ -26,6 +27,7 @@ final class RecordingTransport: AnalyticsTransport, @unchecked Sendable {
   var order: [String] { locked { recordedOrder } }
   var resetCount: Int { locked { recordedResetCount } }
   var clearPersistedCount: Int { locked { recordedClearCount } }
+  var screens: [Event] { locked { recordedScreens } }
 
   func identify(userId: String, properties: [String: Any]) {
     locked {
@@ -56,6 +58,10 @@ final class RecordingTransport: AnalyticsTransport, @unchecked Sendable {
       recordedOrder.append(event)
       recordedEvents.append(Event(name: event, properties: properties))
     }
+  }
+
+  func screen(_ name: String, properties: [String: Any]) {
+    locked { recordedScreens.append(Event(name: name, properties: properties)) }
   }
 
   func events(named name: String) -> [Event] { events.filter { $0.name == name } }
