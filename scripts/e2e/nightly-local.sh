@@ -15,6 +15,8 @@
 #           origin/develop first (hard reset: only for the dedicated clones).
 # --report  opens/updates the "Nightly iOS E2E (local) is failing" issue on
 #           failure and closes it on the next pass.
+# --prune-worktrees  removes this clone's merged, idle worktrees before the
+#           disk check (passed by --update: only for the dedicated clones).
 #
 # Database: the web repo's scripts/e2e/local-supabase.sh (all web migrations),
 # as project rc-ios-e2e on ports 4632x so it can run alongside a web CI job
@@ -43,6 +45,13 @@ STALL_SECONDS=600
 OTHER_RUNS_WAIT_SECONDS="${NIGHTLY_E2E_OTHER_RUNS_WAIT_SECONDS:-7200}"
 # DerivedData alone is ~5 GB; the rest is headroom for the simulator and results.
 MIN_FREE_GB="${NIGHTLY_E2E_MIN_FREE_GB:-20}"
+WORKTREE_REPO="${NIGHTLY_E2E_WORKTREE_REPO:-$IOS_DIR}"
+# A session that just branched off main has a worktree indistinguishable from a
+# merged one; a day without an index write means nobody is working in it.
+WORKTREE_IDLE_MINUTES=1440
+# Build phases rewrite these in every worktree, so edits to them are not work.
+# Matched as whole porcelain lines so lookalike names and renames still count.
+GENERATED_CONFIG_RE='^.. ([^ ]*/)?(SupabaseConfig\.generated|PostHogConfigEmbedded)\.swift$'
 
 export E2E_SUPABASE_PROJECT_ID=rc-ios-e2e
 export E2E_SUPABASE_PORT_PREFIX=463
@@ -50,16 +59,18 @@ export E2E_SUPABASE_WORKDIR="$STATE_DIR/supabase"
 
 UPDATE=0
 REPORT=0
+PRUNE_WORKTREES=0
 SUITE=smoke
 ONLY=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --update) UPDATE=1 ;;
     --report) REPORT=1 ;;
+    --prune-worktrees) PRUNE_WORKTREES=1 ;;
     --suite) SUITE="$2"; shift ;;
     --only-testing) ONLY="$2"; shift ;;
     --no-update) ;; # set by the re-exec below
-    *) echo "usage: $0 [--update] [--report] [--suite smoke|full] [--only-testing <id>]" >&2; exit 64 ;;
+    *) echo "usage: $0 [--update] [--report] [--prune-worktrees] [--suite smoke|full] [--only-testing <id>]" >&2; exit 64 ;;
   esac
   shift
 done
@@ -78,7 +89,7 @@ if [ "$UPDATE" -eq 1 ]; then
   git -C "$WEB_DIR" fetch --quiet origin develop
   git -C "$WEB_DIR" reset --quiet --hard origin/develop
   # Run the freshly pulled copy of this script, not the one bash already read.
-  args=(--no-update --suite "$SUITE")
+  args=(--no-update --prune-worktrees --suite "$SUITE")
   [ "$REPORT" -eq 1 ] && args+=(--report)
   [ -n "$ONLY" ] && args+=(--only-testing "$ONLY")
   exec "$IOS_DIR/scripts/e2e/nightly-local.sh" "${args[@]}"
@@ -106,6 +117,55 @@ check_disk() {
   FREE_GB=$(df -Pk "$STATE_DIR" | awk 'NR==2 { print int($4 / 1048576) }')
   log "Disk: ${FREE_GB:-unknown} GB free (need $MIN_FREE_GB)"
   [ -n "$FREE_GB" ] && [ "$FREE_GB" -ge "$MIN_FREE_GB" ]
+}
+
+# Agent sessions create worktrees in this clone and leave them behind, ~5 GB of
+# DerivedData each; five of them filled the disk (#607). One whose HEAD is on
+# origin/main with only generated config edited holds no unmerged work.
+# --force also deletes its gitignored files: build output, plus any local
+# secrets copy, which ensure_xcconfig-style setup recreates.
+keep_worktree() {
+  log "Kept worktree $1: $2"
+}
+
+prune_merged_worktrees() {
+  local wt index status changes self
+  self="$(cd "$IOS_DIR" && pwd -P)"
+  while IFS= read -r wt; do
+    [ -d "$wt" ] || continue
+    [ "$(cd "$wt" && pwd -P)" = "$self" ] && continue
+    index="$(git -C "$wt" rev-parse --path-format=absolute --git-path index 2>/dev/null)" || {
+      keep_worktree "$wt" "not a readable git worktree"
+      continue
+    }
+    if [ ! -f "$index" ]; then
+      keep_worktree "$wt" "no git index"
+      continue
+    fi
+    if [ -n "$(find "$index" -mmin "-$WORKTREE_IDLE_MINUTES" 2>/dev/null)" ]; then
+      keep_worktree "$wt" "used in the last 24h"
+      continue
+    fi
+    if ! git -C "$wt" merge-base --is-ancestor HEAD origin/main 2>/dev/null; then
+      keep_worktree "$wt" "not in origin/main"
+      continue
+    fi
+    status="$(git -C "$wt" status --porcelain)" || {
+      keep_worktree "$wt" "git status failed"
+      continue
+    }
+    changes="$(grep -vE "$GENERATED_CONFIG_RE" <<<"$status" || true)"
+    if [ -n "$changes" ]; then
+      keep_worktree "$wt" "uncommitted changes"
+      continue
+    fi
+    if git -C "$WORKTREE_REPO" worktree remove --force "$wt"; then
+      log "Removed merged worktree $wt"
+    else
+      keep_worktree "$wt" "git worktree remove failed"
+    fi
+  done < <(git -C "$WORKTREE_REPO" worktree list --porcelain | sed -n 's/^worktree //p' | tail -n +2)
+  git -C "$WORKTREE_REPO" worktree prune || log "git worktree prune failed; continuing"
 }
 
 SIM_UDID=""
@@ -572,6 +632,7 @@ fail() {
 }
 
 log "iOS E2E ($SUITE) at $(git -C "$IOS_DIR" rev-parse --short HEAD), web $(git -C "$WEB_DIR" rev-parse --short HEAD)"
+[ "$PRUNE_WORKTREES" -eq 1 ] && prune_merged_worktrees
 check_disk || fail "low disk space: ${FREE_GB:-unknown} GB free, need $MIN_FREE_GB GB"
 ensure_docker || fail "Docker engine is not answering"
 start_stack || fail "local Supabase stack did not start"
