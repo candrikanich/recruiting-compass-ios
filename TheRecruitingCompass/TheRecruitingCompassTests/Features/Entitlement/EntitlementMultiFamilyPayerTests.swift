@@ -140,7 +140,7 @@ final class EntitlementMultiFamilyPayerTests: XCTestCase {
     XCTAssertEqual(store.subscription?.familyUnitId, "family-b")
   }
 
-  func test_aCancelledLatestLoadLeavesNoPlanRatherThanTheOldFamilys() async {
+  func test_aCancelledLoadWithNothingElseInFlightLeavesNoPlanRatherThanTheOldFamilys() async {
     let (store, mock) = makeStore()
     await store.load(familyUnitId: "family-a")
     mock.error = CancellationError()
@@ -151,5 +151,25 @@ final class EntitlementMultiFamilyPayerTests: XCTestCase {
     XCTAssertFalse(store.canWrite, "a cancelled switch must not leave family A's write access in place")
     XCTAssertFalse(store.hasLoaded)
     XCTAssertFalse(store.isLoading)
+  }
+
+  func test_aLaterCancelledLoadForTheSameFamilyDoesNotStrandTheEarlierLoadsResult() async {
+    let (store, mock) = makeStore()
+    let gate = AsyncGate(blockedEntries: 1)
+    mock.fetchGateByFamily = { _ in await gate.wait() }
+    mock.errorsByCallIndex[1] = CancellationError()
+
+    let earlier = Task { await store.load(familyUnitId: "family-a") }
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered)
+    await store.load(familyUnitId: "family-a")
+    XCTAssertTrue(store.isLoading, "the earlier fetch for this family is still running")
+    gate.open()
+    await earlier.value
+
+    XCTAssertTrue(store.hasLoaded, "PlanView spins forever unless the earlier answer lands")
+    XCTAssertFalse(store.isLoading)
+    XCTAssertEqual(store.subscription?.familyUnitId, "family-a")
+    XCTAssertTrue(store.canWrite)
   }
 }

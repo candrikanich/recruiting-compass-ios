@@ -38,9 +38,14 @@ final class EntitlementStore {
   /// Advanced by `reset()`; a fetch only applies while its session is still current.
   private var session = 0
 
-  /// Advanced by every `load`. Only the latest call applies, so a slow answer for the family the user just
-  /// switched away from cannot overwrite the selected family's plan (and its write access).
+  /// Advanced by every `load`; a result applies only if no later load has already applied, so an older
+  /// answer cannot overwrite a newer one.
   private var loadEpoch = 0
+  private var lastAppliedEpoch = 0
+
+  /// Fetches still running for the current session. `isLoading` stays true until the last one returns, so a
+  /// cancelled load cannot clear the spinner while another load for the same family is still in flight.
+  private var loadsInFlight = 0
 
   private let service: any EntitlementManaging
   private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "EntitlementStore")
@@ -67,6 +72,8 @@ final class EntitlementStore {
     trialCountdownVisible = true
     errorMessage = nil
     isLoading = false
+    loadsInFlight = 0
+    lastAppliedEpoch = loadEpoch
     didLoad = false
     loadedFamilyUnitId = nil
     requestedFamilyUnitId = nil
@@ -85,9 +92,11 @@ final class EntitlementStore {
       loadedWithoutFamily = true
       loadedFamilyUnitId = nil
       didLoad = true
+      lastAppliedEpoch = epoch
       return
     }
     isLoading = true
+    loadsInFlight += 1
     let loadSession = session
     async let countdownVisible = fetchCountdownVisible()
     let result: Result<FamilySubscription?, Error>
@@ -97,11 +106,16 @@ final class EntitlementStore {
       result = .failure(error)
     }
     let visible = await countdownVisible
-    guard loadSession == session, epoch == loadEpoch else { return }
-    isLoading = false
+    guard loadSession == session else { return }
+    loadsInFlight -= 1
+    isLoading = loadsInFlight > 0
     // A view's `.task` is cancelled when the view disappears — Settings' load is cancelled the moment
-    // Plan is pushed. That is not a failed load: keep whatever a concurrent load produced.
+    // Plan is pushed. That is not a failed load: keep whatever a concurrent load produced or will produce.
     if case .failure(let error) = result, Self.isCancellation(error) { return }
+    // Judge by family, not by being the latest call: an earlier answer for the family now selected is valid,
+    // while one for a family the user switched away from must never apply.
+    guard familyUnitId == requestedFamilyUnitId, epoch > lastAppliedEpoch else { return }
+    lastAppliedEpoch = epoch
     didLoad = true
     loadedFamilyUnitId = familyUnitId
     loadedWithoutFamily = false
