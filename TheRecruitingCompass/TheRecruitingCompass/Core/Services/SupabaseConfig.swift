@@ -24,8 +24,17 @@ private var isUITesting: Bool {
 /// Reads Supabase URL from (1) embedded Swift, (2) env, (3) Info.plist, (4) plist, (5) production fallback.
 /// Under UI testing, env vars take priority so E2E runs against a local stack, never prod.
 private func supabaseURLString() -> String {
-  let fromEnv = ProcessInfo.processInfo.environment["SUPABASE_URL"] ?? ""
-  if isUITesting, !fromEnv.isEmpty { return fromEnv }
+  let environment = ProcessInfo.processInfo.environment
+  let fromEnv = environment["SUPABASE_URL"] ?? ""
+  switch UITestBackendOverride.resolve("SUPABASE_URL", isUITesting: isUITesting, environment: environment) {
+  case .value(let url): return url
+  case .missing:
+    fatalError(
+      "--uitesting requires SUPABASE_URL in the launch environment (use E2ETestEnvironment.configure); " +
+      "refusing the embedded config, which is production."
+    )
+  case .inactive: break
+  }
   // Embedded values from SupabaseConfig.generated.swift — always available in built app
   let embedded = SupabaseConfigEmbedded.urlString
   if !embedded.isEmpty, !embedded.contains("placeholder") { return embedded }
@@ -103,6 +112,10 @@ struct SupabaseConfig {
   nonisolated static let apiBaseURL: URL? = {
     // (1) Scheme env var — works in debug/device runs from Xcode
     var urlString = (ProcessInfo.processInfo.environment["API_BASE_URL"] ?? "").trimmingCharacters(in: .whitespaces)
+    // Under --uitesting an unset API_BASE_URL means "no web API", never the embedded (production) one.
+    let environment = ProcessInfo.processInfo.environment
+    let apiOverride = UITestBackendOverride.resolve("API_BASE_URL", isUITesting: isUITesting, environment: environment)
+    if apiOverride == .missing { return nil }
     // (2) Embedded from Release.xcconfig at build time (same mechanism as Supabase credentials)
     if urlString.isEmpty || urlString.contains("placeholder") {
       let embedded = SupabaseConfigEmbedded.apiBaseURL
