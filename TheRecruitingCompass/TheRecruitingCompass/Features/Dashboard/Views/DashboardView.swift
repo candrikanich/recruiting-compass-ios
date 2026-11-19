@@ -83,10 +83,7 @@ struct DashboardView: View {
       .sheet(
         isPresented: $showAddSchool,
         onDismiss: {
-          Task {
-            await viewModel.fetchDashboardData()
-            await timelineViewModel.refreshFirstRunSignals()
-          }
+          Task { await refreshTriggers.addSchoolSheetDismissed() }
         },
         content: {
           DashboardAddSchoolSheet(
@@ -104,8 +101,7 @@ struct DashboardView: View {
       .task(id: timelineViewModel.currentAthleteId) {
         await timelineViewModel.loadSummary()
       }
-      // Coming back from another tab: a coach, conversation or favorite may have changed meanwhile.
-      .onAppear { Task { await timelineViewModel.refreshFirstRunSignals() } }
+      .onAppear { Task { await refreshTriggers.screenAppeared() } }
       .task {
         if let userId = authManager.user?.id {
           await nuxProgressManager.load(userId: userId)
@@ -121,16 +117,17 @@ struct DashboardView: View {
       }
   }
 
+  private var refreshTriggers: DashboardRefreshTriggers {
+    DashboardRefreshTriggers(dashboard: viewModel, timeline: timelineViewModel)
+  }
+
   private func subscribeRealtime() async {
     guard realtimeService == nil, let familyUnitId = familyManager.familyUnitId else { return }
     let service = DashboardRealtimeService()
     realtimeService = service
     do {
-      try await service.subscribe(familyUnitId: familyUnitId) { [viewModel, timelineViewModel] in
-        Task {
-          await viewModel.refresh()
-          await timelineViewModel.refreshFirstRunSignals()
-        }
+      try await service.subscribe(familyUnitId: familyUnitId) { [refreshTriggers] in
+        Task { await refreshTriggers.realtimeEventReceived() }
       }
     } catch {
       // Non-fatal — dashboard still works with pull-to-refresh
@@ -357,20 +354,14 @@ struct DashboardView: View {
         Task { await viewModel.completeSuggestion(id) }
       },
       onActionCompleted: {
-        Task {
-          await viewModel.fetchDashboardData()
-          await timelineViewModel.refreshFirstRunSignals()
-        }
+        Task { await refreshTriggers.actionCompleted() }
       },
       onAddTask: viewModel.addTask,
       onToggleTask: viewModel.toggleTaskCompletion,
       onDeleteTask: viewModel.deleteTask,
       onClearCompleted: viewModel.clearCompletedTasks,
       onCoachContacted: {
-        Task {
-          await viewModel.fetchDashboardData()
-          await timelineViewModel.refreshFirstRunSignals()
-        }
+        Task { await refreshTriggers.coachContacted() }
       },
       onEventCreated: {
         Task { await viewModel.fetchDashboardData() }

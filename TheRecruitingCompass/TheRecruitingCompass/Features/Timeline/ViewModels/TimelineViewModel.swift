@@ -73,10 +73,10 @@ final class TimelineViewModel {
     visibleStatus.map { _ in .init(score: statusScoreValue, label: statusLabel) }
   }
 
-  /// Hidden while the first load is in flight; afterwards shown either with steps or with the failure message.
+  /// Hidden until the phase fetch settles; then shown either with steps or with the failure message. It never waits
+  /// on the counts request (the score is what stays hidden until that lands) and stays up during a reload.
   var shouldShowNextStepsCard: Bool {
-    guard !isLoading else { return false }
-    return isPhaseResolved || errorMessage != nil
+    isPhaseResolved || errorMessage != nil
   }
 
   private static let maxNextSteps = 3
@@ -91,6 +91,9 @@ final class TimelineViewModel {
   }
 
   @ObservationIgnored private var inFlightLoad: (key: String, task: Task<Void, Never>)?
+  /// Bumped for every signals request; only the newest one may write, so a slow older answer (a stale 0) can't
+  /// overwrite a newer one.
+  @ObservationIgnored private var signalsRequestSequence = 0
 
   private let tasksService: any TasksManaging
   private let apiService: any TimelineAPIManaging
@@ -227,27 +230,41 @@ final class TimelineViewModel {
     currentAthleteId == requestedAthleteId
   }
 
+  /// Writes only if it is the newest request and the athlete is still on screen. A failed read leaves what was
+  /// there: a switch already cleared it, so a first load fails closed (hidden) while a transient blip on a
+  /// later refresh doesn't hide an established family's score.
   private func fetchFirstRunSignals(for requestedAthleteId: String?) async {
+    signalsRequestSequence += 1
+    let sequence = signalsRequestSequence
     guard let familyUnitId = familyManager.familyUnitId else {
       if isCurrent(requestedAthleteId) { firstRunSignals = nil }
       return
     }
     do {
       let signals = try await dashboardService.fetchFirstRunSignals(familyUnitId: familyUnitId)
-      guard isCurrent(requestedAthleteId) else { return }
+      guard isCurrent(requestedAthleteId), sequence == signalsRequestSequence else { return }
       firstRunSignals = signals
     } catch {
       logger.error("first-run signals failed (non-fatal): \(error.localizedDescription)")
-      guard isCurrent(requestedAthleteId) else { return }
-      firstRunSignals = nil
     }
   }
 
+  /// A summary load is running or about to: it reads the signals itself.
+  var isSummaryLoadInFlight: Bool { isLoading || inFlightLoad != nil }
+
   /// Re-reads only the coach / conversation counts and favorite school, for when the family adds a coach or
-  /// school or logs a conversation. A summary load already in flight reads them itself.
+  /// school or logs a conversation. Runs even mid-load: that load may have sent its counts request before the
+  /// write, and the newest request wins. Skipped until a load has begun for this athlete, so it can never keep
+  /// another athlete's signals.
   func refreshFirstRunSignals() async {
-    guard !isLoading, let athleteId = currentAthleteId else { return }
+    guard let athleteId = currentAthleteId, loadedAthleteId == athleteId else { return }
     await fetchFirstRunSignals(for: athleteId)
+  }
+
+  /// For returning to the screen, where nothing was written: a load in flight already reads fresh counts.
+  func refreshFirstRunSignalsIfIdle() async {
+    guard !isSummaryLoadInFlight else { return }
+    await refreshFirstRunSignals()
   }
 
   private func fetchSummary() async throws {

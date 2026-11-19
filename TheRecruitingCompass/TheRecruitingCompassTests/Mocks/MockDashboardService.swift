@@ -80,11 +80,14 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
 
   func fetchFirstRunSignals(familyUnitId: String) async throws -> FirstRunSignals {
     requestedFirstRunSignalFamilyUnitIds.append(familyUnitId)
+    // What the server held when the request was sent, however long the response takes to come back.
+    let snapshot = stubbedFirstRunSignals
+    let shouldThrow = shouldThrowFetchFirstRunSignals
     await fetchFirstRunSignalsGate?()
-    if shouldThrowFetchFirstRunSignals {
+    if shouldThrow {
       throw NSError(domain: "MockDashboard", code: 7, userInfo: [NSLocalizedDescriptionKey: "Mock signals error"])
     }
-    return stubbedFirstRunSignals
+    return snapshot
   }
 
   func fetchSchools(familyUnitId: String) async throws -> [School] {

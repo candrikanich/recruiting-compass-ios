@@ -191,15 +191,161 @@ final class TimelineViewModelFirstRunFollowUpTests: XCTestCase {
     XCTAssertTrue(sut.isPhaseResolved)
   }
 
-  func testRefreshFirstRunSignals_failureFailsClosed() async {
-    dashboard.stubbedFirstRunSignals = signals(coaches: 1, conversations: 1)
+  func testRefreshFirstRunSignals_failureKeepsThePriorSignals() async {
+    dashboard.stubbedFirstRunSignals = signals(coaches: 1, conversations: 1, favorite: "State")
     await sut.loadSummary()
     XCTAssertNotNil(sut.visibleStatus)
 
     dashboard.shouldThrowFetchFirstRunSignals = true
     await sut.refreshFirstRunSignals()
 
+    XCTAssertNotNil(sut.visibleStatus)
+    XCTAssertEqual(sut.favoriteSchoolName, "State")
+  }
+
+  func testInitialLoadFailure_stillFailsClosed() async {
+    api.stubbedStatusScore = 8
+    api.stubbedStatusLabel = .atRisk
+    dashboard.shouldThrowFetchFirstRunSignals = true
+
+    await sut.loadSummary()
+
     XCTAssertNil(sut.visibleStatus)
+    XCTAssertNil(sut.summaryCard.status)
+    XCTAssertNil(sut.statPillsStatus)
+  }
+
+  func testRefreshAfterAFailedInitialLoad_recovers() async {
+    dashboard.shouldThrowFetchFirstRunSignals = true
+    await sut.loadSummary()
+
+    dashboard.shouldThrowFetchFirstRunSignals = false
+    dashboard.stubbedFirstRunSignals = signals(coaches: 1, conversations: 1)
+    await sut.refreshFirstRunSignals()
+
+    XCTAssertNotNil(sut.visibleStatus)
+  }
+
+  func testRefreshBeforeAnyLoad_sendsNoRequest() async {
+    await sut.refreshFirstRunSignals()
+
+    XCTAssertTrue(dashboard.requestedFirstRunSignalFamilyUnitIds.isEmpty)
+  }
+
+  func testRefreshAfterSwitchingAthlete_beforeTheirLoad_doesNotKeepTheOthersSignals() async {
+    dashboard.stubbedFirstRunSignals = signals(coaches: 2, conversations: 2, favorite: "A School")
+    await sut.loadSummary()
+    ParentViewingAthleteFixture.selectSecondAthlete(in: family)
+    dashboard.shouldThrowFetchFirstRunSignals = true
+
+    await sut.refreshFirstRunSignals()
+    await sut.loadSummary()
+
+    XCTAssertNil(sut.visibleStatus)
+    XCTAssertNil(sut.favoriteSchoolName)
+  }
+
+  // MARK: - Refresh while a load is in flight (a write landed after the load's counts request was sent)
+
+  func testRefreshDuringInFlightLoad_isNotDropped_andItsNewerAnswerWins() async {
+    let gate = AsyncGate(blockedEntries: 1)
+    dashboard.fetchFirstRunSignalsGate = { await gate.wait() }
+    dashboard.stubbedFirstRunSignals = signals(coaches: 0, conversations: 0)
+    let load = Task { await sut.loadSummary() }
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered)
+    XCTAssertTrue(sut.isLoading)
+
+    dashboard.stubbedFirstRunSignals = signals(coaches: 1, conversations: 1, favorite: "State")
+    await sut.refreshFirstRunSignals()
+    gate.open()
+    await load.value
+
+    XCTAssertEqual(dashboard.requestedFirstRunSignalFamilyUnitIds.count, 2)
+    XCTAssertNotNil(sut.visibleStatus)
+    XCTAssertEqual(sut.favoriteSchoolName, "State")
+  }
+
+  func testOlderSignalsResponseLandingLate_doesNotOverwriteANewerOne() async {
+    dashboard.stubbedFirstRunSignals = signals(coaches: 0, conversations: 0)
+    await sut.loadSummary()
+    let gate = AsyncGate(blockedEntries: 1)
+    dashboard.fetchFirstRunSignalsGate = { await gate.wait() }
+
+    let older = Task { await sut.refreshFirstRunSignals() }
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered)
+    dashboard.stubbedFirstRunSignals = signals(coaches: 1, conversations: 1)
+    await sut.refreshFirstRunSignals()
+    XCTAssertNotNil(sut.visibleStatus)
+    gate.open()
+    await older.value
+
+    XCTAssertNotNil(sut.visibleStatus)
+  }
+
+  func testOlderSignalsFailureLandingLate_doesNotDisturbANewerAnswer() async {
+    dashboard.stubbedFirstRunSignals = signals(coaches: 0, conversations: 0)
+    await sut.loadSummary()
+    let gate = AsyncGate(blockedEntries: 1)
+    dashboard.fetchFirstRunSignalsGate = { await gate.wait() }
+    dashboard.shouldThrowFetchFirstRunSignals = true
+
+    let older = Task { await sut.refreshFirstRunSignals() }
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered)
+    dashboard.shouldThrowFetchFirstRunSignals = false
+    dashboard.stubbedFirstRunSignals = signals(coaches: 1, conversations: 1)
+    await sut.refreshFirstRunSignals()
+    gate.open()
+    await older.value
+
+    XCTAssertNotNil(sut.visibleStatus)
+  }
+
+  // MARK: - Returning to the screen
+
+  func testRefreshIfIdle_whileALoadIsInFlight_sendsNoSecondRequest() async {
+    let gate = AsyncGate()
+    dashboard.fetchFirstRunSignalsGate = { await gate.wait() }
+    let load = Task { await sut.loadSummary() }
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered)
+
+    await sut.refreshFirstRunSignalsIfIdle()
+    gate.open()
+    await load.value
+
+    XCTAssertEqual(dashboard.requestedFirstRunSignalFamilyUnitIds.count, 1)
+  }
+
+  func testRefreshIfIdle_afterTheLoad_refreshes() async {
+    dashboard.stubbedFirstRunSignals = signals(coaches: 0, conversations: 0)
+    await sut.loadSummary()
+    dashboard.stubbedFirstRunSignals = signals(coaches: 1, conversations: 1)
+
+    await sut.refreshFirstRunSignalsIfIdle()
+
+    XCTAssertNotNil(sut.visibleStatus)
+  }
+
+  // MARK: - The steps card
+
+  func testStepsCard_showsWhileTheCountsRequestIsStillPending() async {
+    let gate = AsyncGate()
+    dashboard.fetchFirstRunSignalsGate = { await gate.wait() }
+    api.stubbedWhatMatters = [step("1")]
+    let load = Task { await sut.loadSummary() }
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered)
+    for _ in 0..<50 where !sut.shouldShowNextStepsCard { await Task.yield() }
+
+    XCTAssertTrue(sut.shouldShowNextStepsCard)
+    XCTAssertEqual(sut.summaryCard.nextSteps.count, 1)
+    XCTAssertNil(sut.summaryCard.status)
+
+    gate.open()
+    await load.value
   }
 
   func testStepsDoNotWaitForTheSignalsRequest() async {

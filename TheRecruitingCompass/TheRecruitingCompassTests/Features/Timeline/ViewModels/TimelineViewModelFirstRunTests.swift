@@ -94,7 +94,7 @@ final class TimelineViewModelFirstRunTests: XCTestCase {
     XCTAssertNil(sut.favoriteSchoolName)
   }
 
-  func testCard_hiddenWhileLoading_andBeforeAnyLoad() {
+  func testCard_hiddenBeforeAnyLoad() {
     XCTAssertFalse(sut.shouldShowNextStepsCard)
   }
 
@@ -164,7 +164,7 @@ final class TimelineViewModelFirstRunTests: XCTestCase {
     XCTAssertNil(sut.visibleStatus)
   }
 
-  func testScore_hidesAgainWhenALaterSignalsReadFails() async {
+  func testScore_keepsShowingWhenALaterReloadsSignalsReadFails() async {
     dashboard.stubbedFirstRunSignals = FirstRunSignals(coachCount: 1, conversationCount: 1, favoriteSchoolName: "A")
     await sut.loadSummary()
     XCTAssertNotNil(sut.visibleStatus)
@@ -172,8 +172,8 @@ final class TimelineViewModelFirstRunTests: XCTestCase {
     dashboard.shouldThrowFetchFirstRunSignals = true
     await sut.loadSummary()
 
-    XCTAssertNil(sut.visibleStatus)
-    XCTAssertNil(sut.favoriteSchoolName)
+    XCTAssertNotNil(sut.visibleStatus)
+    XCTAssertEqual(sut.favoriteSchoolName, "A")
   }
 
   func testScore_withoutFamily_staysHidden() async {
