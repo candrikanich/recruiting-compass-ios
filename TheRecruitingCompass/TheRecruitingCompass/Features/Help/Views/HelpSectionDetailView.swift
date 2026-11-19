@@ -87,6 +87,14 @@ private struct HelpGettingStartedContent: View {
       }
 
       sectionBlock {
+        HelpSectionHeader(title: "Your dashboard")
+        Text(FirstRunCopy.helpDashboard)
+          .font(.brand(.subheadline))
+          .foregroundStyle(.secondary)
+        HelpCallout(type: .info, text: FirstRunCopy.helpStatusScore)
+      }
+
+      sectionBlock {
         HelpSectionHeader(title: "Understanding the dashboard")
         Text("The dashboard gives you a snapshot of your recruiting progress at a glance.")
           .font(.brand(.subheadline))

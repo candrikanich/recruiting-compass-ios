@@ -6,7 +6,7 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 
 /// Sendable: Stateless service with no mutable properties
 final class DashboardServiceImpl: DashboardManaging, Sendable {
-  private let supabaseManager: SupabaseManager
+  let supabaseManager: SupabaseManager
   private let session: URLSession
   private let baseURLOverride: URL?
 
@@ -103,7 +103,7 @@ final class DashboardServiceImpl: DashboardManaging, Sendable {
     }
   }
 
-  private func exactCount(table: String, column: String, value: String) async throws -> Int {
+  func exactCount(table: String, column: String, value: String) async throws -> Int {
     do {
       let response = try await supabaseManager.client
         .from(table)

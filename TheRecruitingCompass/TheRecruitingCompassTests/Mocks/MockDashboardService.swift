@@ -59,6 +59,10 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
 
   var lastSuggestionsAthleteId: String?
 
+  var stubbedFirstRunSignals = FirstRunSignals(coachCount: 0, conversationCount: 0, favoriteSchoolName: nil)
+  var shouldThrowFetchFirstRunSignals = false
+  private(set) var requestedFirstRunSignalFamilyUnitIds: [String] = []
+
   // MARK: - DashboardManaging
 
   func fetchStats(familyUnitId: String, userId: String) async throws -> DashboardStats {
@@ -70,6 +74,14 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
       throw NSError(domain: "MockDashboard", code: 1, userInfo: [NSLocalizedDescriptionKey: "Mock fetch stats error"])
     }
     return stubbedStats
+  }
+
+  func fetchFirstRunSignals(familyUnitId: String) async throws -> FirstRunSignals {
+    requestedFirstRunSignalFamilyUnitIds.append(familyUnitId)
+    if shouldThrowFetchFirstRunSignals {
+      throw NSError(domain: "MockDashboard", code: 7, userInfo: [NSLocalizedDescriptionKey: "Mock signals error"])
+    }
+    return stubbedFirstRunSignals
   }
 
   func fetchSchools(familyUnitId: String) async throws -> [School] {

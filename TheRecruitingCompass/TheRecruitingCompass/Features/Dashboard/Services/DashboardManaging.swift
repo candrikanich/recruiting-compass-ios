@@ -15,6 +15,9 @@ protocol DashboardManaging: Sendable {
   func fetchInteractions(familyUnitId: String, since: Date) async throws -> [Interaction]
   /// Returns the family's single newest interaction by `occurredAt` (rows without one sort last).
   func fetchLatestInteraction(familyUnitId: String) async throws -> Interaction?
+  /// Family-wide coach and conversation counts plus the favorite school's name, for the first-run Home screen.
+  /// Throws on any failed read so the caller can fail closed rather than treat an unknown count as zero or many.
+  func fetchFirstRunSignals(familyUnitId: String) async throws -> FirstRunSignals
   /// Returns scholarship offers received by the user.
   func fetchOffers(userId: String) async throws -> [Offer]
   /// Returns upcoming and past events for the user, optionally capped at `limit`.

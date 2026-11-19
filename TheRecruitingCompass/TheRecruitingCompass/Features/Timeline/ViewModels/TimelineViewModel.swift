@@ -32,6 +32,37 @@ final class TimelineViewModel {
   /// Top-5 "what matters now" items, server-ranked, for the guidance widget.
   var whatMattersItems: [WhatMattersItem] = []
 
+  /// True only once a phase fetch for the athlete on screen has returned. `currentPhase` defaults to freshman, so
+  /// without this a failed fetch (or a switch to another athlete) would show freshman steps as if they were right.
+  private(set) var isPhaseResolved = false
+
+  /// Family-wide coach / conversation counts and the favorite school. `nil` until loaded or when a read failed,
+  /// which hides the status score (fail closed).
+  private(set) var firstRunSignals: FirstRunSignals?
+
+  var isStatusScoreVisible: Bool { firstRunSignals?.isStatusScoreVisible ?? false }
+  var favoriteSchoolName: String? { firstRunSignals?.favoriteSchoolName }
+
+  /// The next one to three steps for the athlete's grade; empty until the phase is known.
+  var nextSteps: [WhatMattersItem] {
+    isPhaseResolved ? Array(whatMattersItems.prefix(Self.maxNextSteps)) : []
+  }
+
+  /// The score and its server-derived color, or `nil` while it must stay hidden.
+  var visibleStatus: DashboardTimelineSummaryCard.Status? {
+    guard isStatusScoreVisible, let statusScore else { return nil }
+    return .init(score: statusScore.score, color: statusScore.color)
+  }
+
+  /// Hidden while the first load is in flight; afterwards shown either with steps or with the failure message.
+  var shouldShowNextStepsCard: Bool {
+    guard !isLoading else { return false }
+    return isPhaseResolved || errorMessage != nil
+  }
+
+  private static let maxNextSteps = 3
+  @ObservationIgnored private var loadedAthleteId: String?
+
   var isViewingAsParent: Bool { familyManager.isParentViewingAthlete }
   /// Friendly explanation shown when a parent tries an action that stays with the athlete.
   var restrictionNotice: String?
@@ -47,6 +78,7 @@ final class TimelineViewModel {
   private let preferenceService: any PreferenceManaging
   private let authManager: any AuthManaging
   private let familyManager: FamilyManager
+  private let dashboardService: any DashboardManaging
 
   var allTasks: [TaskWithStatus] {
     tasksByGrade.values.flatMap { $0 }
@@ -76,13 +108,15 @@ final class TimelineViewModel {
     apiService: (any TimelineAPIManaging)? = nil,
     preferenceService: (any PreferenceManaging)? = nil,
     authManager: (any AuthManaging)? = nil,
-    familyManager: FamilyManager? = nil
+    familyManager: FamilyManager? = nil,
+    dashboardService: (any DashboardManaging)? = nil
   ) {
     self.tasksService = tasksService ?? TasksServiceImpl(supabaseManager: .shared)
     self.apiService = apiService ?? TimelineAPIService()
     self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
     self.familyManager = familyManager ?? .shared
+    self.dashboardService = dashboardService ?? DashboardServiceImpl(supabaseManager: .shared)
   }
 
   func load() async {
@@ -155,10 +189,46 @@ final class TimelineViewModel {
     }
   }
 
+  /// Drops everything that described another athlete, so a switch (or a failed load) never shows their steps,
+  /// phase or score as this athlete's.
+  private func resetSummaryIfAthleteChanged() {
+    guard loadedAthleteId != currentAthleteId else { return }
+    loadedAthleteId = currentAthleteId
+    isPhaseResolved = false
+    statusScore = nil
+    currentTask = nil
+    whatMattersItems = []
+    firstRunSignals = nil
+  }
+
+  private func fetchFirstRunSignals() async {
+    guard let familyUnitId = familyManager.familyUnitId else {
+      firstRunSignals = nil
+      return
+    }
+    do {
+      firstRunSignals = try await dashboardService.fetchFirstRunSignals(familyUnitId: familyUnitId)
+    } catch {
+      logger.error("first-run signals failed (non-fatal): \(error.localizedDescription)")
+      firstRunSignals = nil
+    }
+  }
+
   private func fetchSummary() async throws {
+    resetSummaryIfAthleteChanged()
+    do {
+      try await fetchSummaryUnchecked()
+    } catch {
+      isPhaseResolved = false
+      throw error
+    }
+  }
+
+  private func fetchSummaryUnchecked() async throws {
     let token = authManager.session?.accessToken
 
     let athleteId = familyManager.selectedAthlete?.userId
+    async let signalsResult: Void = fetchFirstRunSignals()
     async let phaseResult = apiService.fetchPhase(accessToken: token, athleteId: athleteId)
     async let statusResult = apiService.fetchStatus(accessToken: token, athleteId: athleteId)
     async let whatMattersResult = apiService.fetchWhatMattersNow(accessToken: token, athleteId: athleteId)
@@ -183,6 +253,9 @@ final class TimelineViewModel {
       whatMattersItems = []
       currentTask = nil
     }
+
+    await signalsResult
+    isPhaseResolved = true
 
     logger.info("Timeline loaded: phase=\(phaseData.phase.rawValue), status=\(status.score)/100")
   }

@@ -26,6 +26,13 @@ struct FirstRunCopyTests {
     #expect(FirstRunCopy.schoolPrompt(for: .parent) == "Which school is your athlete most excited about?")
   }
 
+  @Test func dashboardHelpAndUnavailableMessageMatchWeb() {
+    #expect(FirstRunCopy.nextStepsUnavailable == "Couldn't load your next steps. Pull to refresh.")
+    #expect(FirstRunCopy.helpStatusScore.hasPrefix("Your status score appears once you've added a coach"))
+    #expect(FirstRunCopy.helpDashboard.contains("your next 1-3 steps for your grade"))
+    #expect(!FirstRunCopy.helpDashboard.contains("TRC") && !FirstRunCopy.helpStatusScore.contains("TRC"))
+  }
+
   @Test func skipLabelIsNotSureYet() {
     #expect(FirstRunCopy.skipLabel == "Not sure yet")
   }
