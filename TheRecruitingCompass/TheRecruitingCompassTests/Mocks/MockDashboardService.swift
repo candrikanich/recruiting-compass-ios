@@ -61,6 +61,8 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
 
   var stubbedFirstRunSignals = FirstRunSignals(coachCount: 0, conversationCount: 0, favoriteSchoolName: nil)
   var shouldThrowFetchFirstRunSignals = false
+  /// Awaited inside `fetchFirstRunSignals` so tests can hold the counts request in flight.
+  var fetchFirstRunSignalsGate: (@Sendable () async -> Void)?
   private(set) var requestedFirstRunSignalFamilyUnitIds: [String] = []
 
   // MARK: - DashboardManaging
@@ -78,6 +80,7 @@ final class MockDashboardService: DashboardManaging, @unchecked Sendable {
 
   func fetchFirstRunSignals(familyUnitId: String) async throws -> FirstRunSignals {
     requestedFirstRunSignalFamilyUnitIds.append(familyUnitId)
+    await fetchFirstRunSignalsGate?()
     if shouldThrowFetchFirstRunSignals {
       throw NSError(domain: "MockDashboard", code: 7, userInfo: [NSLocalizedDescriptionKey: "Mock signals error"])
     }

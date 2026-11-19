@@ -1,14 +1,28 @@
 import SwiftUI
 
 struct TimelineStatPills: View {
-  let statusScore: Int
-  /// False until the family has a coach and a conversation; a new account would otherwise read "at risk".
-  var showStatus = true
-  let statusLabel: StatusLabel?
+  /// `nil` until the family has a coach and a conversation; a new account would otherwise read "at risk".
+  let status: Status?
   let taskCompleted: Int
   let taskTotal: Int
   let milestonesCompleted: Int
   let milestonesTotal: Int
+
+  @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+  struct Status: Equatable {
+    let score: Int
+    let label: StatusLabel?
+  }
+
+  enum Card: Hashable {
+    case status, tasks, milestones
+  }
+
+  /// The cards on screen, in order. The status card exists only when there is a status to show.
+  var visibleCards: [Card] {
+    (status == nil ? [] : [.status]) + [.tasks, .milestones]
+  }
 
   private var taskPercent: Int {
     guard taskTotal > 0 else { return 0 }
@@ -16,7 +30,7 @@ struct TimelineStatPills: View {
   }
 
   private var statusColor: Color {
-    guard let label = statusLabel else { return .secondary }
+    guard let label = status?.label else { return .secondary }
     switch label {
     case .onTrack: return .successGreen
     case .slightlyBehind: return Color(hex: "F59E0B")
@@ -26,16 +40,23 @@ struct TimelineStatPills: View {
   }
 
   var body: some View {
-    HStack(spacing: 12) {
-      if showStatus {
-        statusCard
+    let layout = dynamicTypeSize.isAccessibilitySize
+      ? AnyLayout(VStackLayout(spacing: 12))
+      : AnyLayout(HStackLayout(spacing: 12))
+    layout {
+      ForEach(visibleCards, id: \.self) { card in
+        switch card {
+        case .status: statusCard
+        case .tasks: tasksCard
+        case .milestones: milestonesCard
+        }
       }
-      taskAndMilestoneCards
     }
   }
 
   @ViewBuilder
   private var statusCard: some View {
+    let statusScore = status?.score ?? 0
     statCard(
       icon: "gauge.with.dots.needle.bottom.50percent",
       label: String(localized: "Status"),
@@ -48,7 +69,7 @@ struct TimelineStatPills: View {
   }
 
   @ViewBuilder
-  private var taskAndMilestoneCards: some View {
+  private var tasksCard: some View {
     statCard(
       icon: "checklist",
       label: String(localized: "Tasks"),
@@ -58,7 +79,10 @@ struct TimelineStatPills: View {
       total: Double(taskTotal),
       accessibility: String(localized: "Tasks \(taskCompleted) of \(taskTotal) complete, \(taskPercent) percent")
     )
+  }
 
+  @ViewBuilder
+  private var milestonesCard: some View {
     statCard(
       icon: "flag.checkered",
       label: String(localized: "Milestones"),
@@ -109,8 +133,7 @@ struct TimelineStatPills: View {
 
 #Preview {
   TimelineStatPills(
-    statusScore: 72,
-    statusLabel: .onTrack,
+    status: .init(score: 72, label: .onTrack),
     taskCompleted: 14,
     taskTotal: 28,
     milestonesCompleted: 3,

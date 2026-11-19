@@ -82,7 +82,12 @@ struct DashboardView: View {
       }
       .sheet(
         isPresented: $showAddSchool,
-        onDismiss: { Task { await viewModel.fetchDashboardData() } },
+        onDismiss: {
+          Task {
+            await viewModel.fetchDashboardData()
+            await timelineViewModel.refreshFirstRunSignals()
+          }
+        },
         content: {
           DashboardAddSchoolSheet(
             familyUnitId: FamilyUnitID.normalized(familyManager.currentMember?.familyUnitId),
@@ -99,6 +104,8 @@ struct DashboardView: View {
       .task(id: timelineViewModel.currentAthleteId) {
         await timelineViewModel.loadSummary()
       }
+      // Coming back from another tab: a coach, conversation or favorite may have changed meanwhile.
+      .onAppear { Task { await timelineViewModel.refreshFirstRunSignals() } }
       .task {
         if let userId = authManager.user?.id {
           await nuxProgressManager.load(userId: userId)
@@ -119,8 +126,11 @@ struct DashboardView: View {
     let service = DashboardRealtimeService()
     realtimeService = service
     do {
-      try await service.subscribe(familyUnitId: familyUnitId) { [viewModel] in
-        Task { await viewModel.refresh() }
+      try await service.subscribe(familyUnitId: familyUnitId) { [viewModel, timelineViewModel] in
+        Task {
+          await viewModel.refresh()
+          await timelineViewModel.refreshFirstRunSignals()
+        }
       }
     } catch {
       // Non-fatal — dashboard still works with pull-to-refresh
@@ -209,11 +219,7 @@ struct DashboardView: View {
 
       if timelineViewModel.shouldShowNextStepsCard {
         DashboardTimelineSummaryCard(
-          phase: timelineViewModel.isPhaseResolved ? timelineViewModel.currentPhase : nil,
-          status: timelineViewModel.visibleStatus,
-          favoriteSchoolName: timelineViewModel.favoriteSchoolName,
-          nextSteps: timelineViewModel.nextSteps,
-          stepsUnavailable: !timelineViewModel.isPhaseResolved,
+          content: timelineViewModel.summaryCard,
           onViewTimeline: { openMoreSection(.timeline) }
         )
       }
@@ -351,14 +357,20 @@ struct DashboardView: View {
         Task { await viewModel.completeSuggestion(id) }
       },
       onActionCompleted: {
-        Task { await viewModel.fetchDashboardData() }
+        Task {
+          await viewModel.fetchDashboardData()
+          await timelineViewModel.refreshFirstRunSignals()
+        }
       },
       onAddTask: viewModel.addTask,
       onToggleTask: viewModel.toggleTaskCompletion,
       onDeleteTask: viewModel.deleteTask,
       onClearCompleted: viewModel.clearCompletedTasks,
       onCoachContacted: {
-        Task { await viewModel.fetchDashboardData() }
+        Task {
+          await viewModel.fetchDashboardData()
+          await timelineViewModel.refreshFirstRunSignals()
+        }
       },
       onEventCreated: {
         Task { await viewModel.fetchDashboardData() }

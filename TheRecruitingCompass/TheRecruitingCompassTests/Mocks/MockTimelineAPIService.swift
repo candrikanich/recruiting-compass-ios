@@ -24,6 +24,8 @@ final class MockTimelineAPIService: TimelineAPIManaging, @unchecked Sendable {
   )
   var stubbedWhatMatters: [WhatMattersItem] = []
   var shouldThrowError = false
+  /// Fails only the what-matters-now request, leaving phase and status healthy.
+  var shouldThrowWhatMatters = false
 
   /// Awaited inside `fetchPhase` so tests can hold a load in flight.
   var fetchPhaseGate: (@Sendable () async -> Void)?
@@ -78,6 +80,9 @@ final class MockTimelineAPIService: TimelineAPIManaging, @unchecked Sendable {
   func fetchWhatMattersNow(accessToken: String?, athleteId: String?) async throws -> [WhatMattersItem] {
     record(\.whatMattersCallCount, accessToken: accessToken, athleteId: athleteId)
     try throwIfNeeded()
+    if shouldThrowWhatMatters {
+      throw NSError(domain: "MockError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Steps failed"])
+    }
     return stubbedWhatMatters
   }
 
