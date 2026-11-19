@@ -201,60 +201,74 @@ final class TimelineViewModel {
     firstRunSignals = nil
   }
 
-  private func fetchFirstRunSignals() async {
+  /// A load only writes while the athlete it started for is still the one on screen. `coalescing` runs it in an
+  /// unstructured Task, so cancelling the view's `.task(id:)` on a switch doesn't stop it landing late.
+  private func isCurrent(_ requestedAthleteId: String?) -> Bool {
+    currentAthleteId == requestedAthleteId
+  }
+
+  private func fetchFirstRunSignals(for requestedAthleteId: String?) async {
     guard let familyUnitId = familyManager.familyUnitId else {
       firstRunSignals = nil
       return
     }
     do {
-      firstRunSignals = try await dashboardService.fetchFirstRunSignals(familyUnitId: familyUnitId)
+      let signals = try await dashboardService.fetchFirstRunSignals(familyUnitId: familyUnitId)
+      guard isCurrent(requestedAthleteId) else { return }
+      firstRunSignals = signals
     } catch {
       logger.error("first-run signals failed (non-fatal): \(error.localizedDescription)")
+      guard isCurrent(requestedAthleteId) else { return }
       firstRunSignals = nil
     }
   }
 
   private func fetchSummary() async throws {
+    let requestedAthleteId = currentAthleteId
     resetSummaryIfAthleteChanged()
     do {
-      try await fetchSummaryUnchecked()
+      try await fetchSummaryUnchecked(for: requestedAthleteId)
     } catch {
-      isPhaseResolved = false
+      if isCurrent(requestedAthleteId) { isPhaseResolved = false }
       throw error
     }
   }
 
-  private func fetchSummaryUnchecked() async throws {
+  private func fetchSummaryUnchecked(for requestedAthleteId: String?) async throws {
     let token = authManager.session?.accessToken
 
     let athleteId = familyManager.selectedAthlete?.userId
-    async let signalsResult: Void = fetchFirstRunSignals()
+    async let signalsResult: Void = fetchFirstRunSignals(for: requestedAthleteId)
     async let phaseResult = apiService.fetchPhase(accessToken: token, athleteId: athleteId)
     async let statusResult = apiService.fetchStatus(accessToken: token, athleteId: athleteId)
     async let whatMattersResult = apiService.fetchWhatMattersNow(accessToken: token, athleteId: athleteId)
 
     let phaseData = try await phaseResult
+    guard isCurrent(requestedAthleteId) else { return }
     currentPhase = phaseData.phase
     milestoneProgress = phaseData.milestoneProgress
     canAdvancePhase = phaseData.canAdvance
 
     let status = try await statusResult
+    guard isCurrent(requestedAthleteId) else { return }
     statusScore = StatusScore(score: status.score, label: status.label, breakdown: status.breakdown)
 
     // Non-fatal: a missing/failing what-matters-now endpoint must degrade to
     // "no pending priorities", not abort the whole timeline load. The card
     // already renders on statusScore alone.
+    let items: [WhatMattersItem]
     do {
-      let items = try await whatMattersResult
-      whatMattersItems = Array(items.prefix(5))
-      currentTask = items.first
+      items = try await whatMattersResult
     } catch {
       logger.error("what-matters-now failed (non-fatal): \(error.localizedDescription)")
-      whatMattersItems = []
-      currentTask = nil
+      items = []
     }
+    guard isCurrent(requestedAthleteId) else { return }
+    whatMattersItems = Array(items.prefix(5))
+    currentTask = items.first
 
     await signalsResult
+    guard isCurrent(requestedAthleteId) else { return }
     isPhaseResolved = true
 
     logger.info("Timeline loaded: phase=\(phaseData.phase.rawValue), status=\(status.score)/100")

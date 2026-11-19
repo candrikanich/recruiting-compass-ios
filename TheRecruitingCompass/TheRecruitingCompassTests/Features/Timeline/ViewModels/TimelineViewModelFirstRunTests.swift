@@ -164,6 +164,18 @@ final class TimelineViewModelFirstRunTests: XCTestCase {
     XCTAssertNil(sut.visibleStatus)
   }
 
+  func testScore_hidesAgainWhenALaterSignalsReadFails() async {
+    dashboard.stubbedFirstRunSignals = FirstRunSignals(coachCount: 1, conversationCount: 1, favoriteSchoolName: "A")
+    await sut.loadSummary()
+    XCTAssertNotNil(sut.visibleStatus)
+
+    dashboard.shouldThrowFetchFirstRunSignals = true
+    await sut.loadSummary()
+
+    XCTAssertNil(sut.visibleStatus)
+    XCTAssertNil(sut.favoriteSchoolName)
+  }
+
   func testScore_withoutFamily_staysHidden() async {
     let solo = MockAuthManager()
     solo.setMockUser(User(

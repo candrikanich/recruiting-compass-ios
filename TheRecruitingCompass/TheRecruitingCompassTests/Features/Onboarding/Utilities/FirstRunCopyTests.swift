@@ -26,7 +26,8 @@ struct FirstRunCopyTests {
     #expect(FirstRunCopy.schoolPrompt(for: .parent) == "Which school is your athlete most excited about?")
   }
 
-  @Test func dashboardHelpAndUnavailableMessageMatchWeb() {
+  @Test func dashboardHelpMatchesWebAndUnavailableMessageIsAnIosVariant() {
+    // Platform variant on purpose: web says "Refresh to try again."; pull to refresh is the iOS gesture.
     #expect(FirstRunCopy.nextStepsUnavailable == "Couldn't load your next steps. Pull to refresh.")
     #expect(FirstRunCopy.helpStatusScore.hasPrefix("Your status score appears once you've added a coach"))
     #expect(FirstRunCopy.helpDashboard.contains("your next 1-3 steps for your grade"))
