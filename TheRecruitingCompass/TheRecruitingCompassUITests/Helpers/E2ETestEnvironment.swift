@@ -47,7 +47,7 @@ enum E2ETestEnvironment {
   }
 
   /// Tests that call the family API must run against the local web server: without `E2E_API_BASE_URL` the app
-  /// would use the embedded (production) API base URL, which a seeded local database cannot satisfy.
+  /// has no API base URL under `--uitesting` (never the embedded production one), so those calls fail.
   static func requireAPIBaseURL() throws {
     let value = ProcessInfo.processInfo.environment["E2E_API_BASE_URL"] ?? ""
     guard !value.isEmpty else {

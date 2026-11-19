@@ -120,8 +120,8 @@ final class SignupFlowE2ETests: XCTestCase {
   // MARK: - Completed Parent Form
 
   /// Fills every required field and checks the form becomes submittable. It stops short of
-  /// tapping "Create account": signup goes through the web API, which the E2E job points at
-  /// production (API_BASE_URL), so a real submit would hit prod with a placeholder captcha.
+  /// tapping "Create account": signup goes through the web API, which the E2E job may leave unset
+  /// (no API_BASE_URL under --uitesting) or point at a real server, so a real submit is not a safe check here.
   /// The account is auto-confirmed and signed in on success, so there is no
   /// "Verify Your Email" screen to wait for either.
   @MainActor
