@@ -50,6 +50,10 @@ Copy into the release PR description.
 - [ ] `fastlane prepare_release` → creates the App Store version, uploads notes, enables phased release.
 - [ ] `fastlane submit_release build:<N>` → attaches the Xcode Cloud build and submits.
 - [ ] After approval: watch crashes for 48h (Sentry / Xcode Organizer) before phased release passes ~20%.
+      Xcode Cloud's archive post-script (`ci_post_xcodebuild.sh`) uploads dSYMs and creates/finalizes the Sentry
+      release `<bundle id>@<version>+<build>` with commits attached. Its `SENTRY_AUTH_TOKEN` needs
+      `project:releases` + `org:read` (set-commits reads the org's linked repos); a missing token or a Sentry
+      failure only logs a warning, never fails the build.
 - [ ] Tag the commit the build came from: `git tag vX.Y.Z <sha> && git push origin vX.Y.Z`
       (sha = the Xcode Cloud build's commit, shown in App Store Connect → Xcode Cloud → Builds).
 - [ ] `fastlane bump_version type:patch` on a branch → PR → merge, so `main` is on the next version.
