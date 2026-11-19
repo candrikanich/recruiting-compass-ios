@@ -52,7 +52,8 @@ final class TimelineViewModelTests: XCTestCase {
       apiService: mockAPIService,
       preferenceService: mockPreferenceManager,
       authManager: parentAuth,
-      familyManager: parentFamilyManager
+      familyManager: parentFamilyManager,
+      dashboardService: MockDashboardService()
     )
 
     XCTAssertEqual(sut.currentAthleteId, ParentViewingAthleteFixture.athleteUserId)
@@ -355,7 +356,8 @@ final class TimelineViewModelTests: XCTestCase {
       apiService: mockAPIService,
       preferenceService: mockPreferenceManager,
       authManager: parentAuth,
-      familyManager: parentFamilyManager
+      familyManager: parentFamilyManager,
+      dashboardService: MockDashboardService()
     )
     mockTasksService.stubbedTasksByGrade = [9: [makeTask(id: "t1", gradeLevel: 9, required: true)]]
     await sut.load()

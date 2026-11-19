@@ -25,6 +25,17 @@ enum FirstRunCopy {
     + "Everyone gets this step, whatever their age. Not sure yet? Tap Not sure yet. Nothing is marked "
     + "incomplete, and you can add schools any time from the Schools tab."
 
+  static let helpDashboard =
+    "The top of your dashboard shows the school you're most excited about and your next 1-3 steps for your "
+    + "grade. Finish those first, and the rest of the dashboard fills in as you add schools, coaches, and "
+    + "conversations."
+
+  static let helpStatusScore =
+    "Your status score appears once you've added a coach and logged a conversation. Until then there's "
+    + "nothing to measure, so we don't show one."
+
+  static let nextStepsUnavailable = "Couldn't load your next steps. Pull to refresh."
+
   /// A parent only gets the school step once an athlete has joined the family: until then there is nobody
   /// whose favorite this would be, and the write stays with #492.
   static func connectedAthlete(in members: [FamilyMember]) -> FamilyMember? {

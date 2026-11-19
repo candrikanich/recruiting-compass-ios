@@ -26,7 +26,8 @@ final class ParentRestrictionTests: XCTestCase {
       apiService: MockTimelineAPIService(),
       preferenceService: MockPreferenceManager(),
       authManager: auth,
-      familyManager: family
+      familyManager: family,
+      dashboardService: MockDashboardService()
     )
     tasks.stubbedTasksByGrade = [9: [TaskWithStatus(
       id: "t1", title: "T", gradeLevel: 9, category: "c", required: true, hasIncompletePrerequisites: false)]]

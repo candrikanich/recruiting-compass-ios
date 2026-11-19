@@ -207,13 +207,13 @@ struct DashboardView: View {
         userFirstName: viewModel.userFirstName
       )
 
-      if timelineViewModel.statusScore != nil {
+      if timelineViewModel.shouldShowNextStepsCard {
         DashboardTimelineSummaryCard(
-          phase: timelineViewModel.currentPhase,
-          statusScore: timelineViewModel.statusScoreValue,
-          statusColor: timelineViewModel.statusScore?.color ?? .secondary,
-          taskTitle: timelineViewModel.currentTask?.title,
-          taskWhyItMatters: timelineViewModel.currentTask?.whyItMatters,
+          phase: timelineViewModel.isPhaseResolved ? timelineViewModel.currentPhase : nil,
+          status: timelineViewModel.visibleStatus,
+          favoriteSchoolName: timelineViewModel.favoriteSchoolName,
+          nextSteps: timelineViewModel.nextSteps,
+          stepsUnavailable: !timelineViewModel.isPhaseResolved,
           onViewTimeline: { openMoreSection(.timeline) }
         )
       }

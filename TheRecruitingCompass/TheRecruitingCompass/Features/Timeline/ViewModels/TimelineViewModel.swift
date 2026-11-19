@@ -32,6 +32,37 @@ final class TimelineViewModel {
   /// Top-5 "what matters now" items, server-ranked, for the guidance widget.
   var whatMattersItems: [WhatMattersItem] = []
 
+  /// True only once a phase fetch for the athlete on screen has returned. `currentPhase` defaults to freshman, so
+  /// without this a failed fetch (or a switch to another athlete) would show freshman steps as if they were right.
+  private(set) var isPhaseResolved = false
+
+  /// Family-wide coach / conversation counts and the favorite school. `nil` until loaded or when a read failed,
+  /// which hides the status score (fail closed).
+  private(set) var firstRunSignals: FirstRunSignals?
+
+  var isStatusScoreVisible: Bool { firstRunSignals?.isStatusScoreVisible ?? false }
+  var favoriteSchoolName: String? { firstRunSignals?.favoriteSchoolName }
+
+  /// The next one to three steps for the athlete's grade; empty until the phase is known.
+  var nextSteps: [WhatMattersItem] {
+    isPhaseResolved ? Array(whatMattersItems.prefix(Self.maxNextSteps)) : []
+  }
+
+  /// The score and its server-derived color, or `nil` while it must stay hidden.
+  var visibleStatus: DashboardTimelineSummaryCard.Status? {
+    guard isStatusScoreVisible, let statusScore else { return nil }
+    return .init(score: statusScore.score, color: statusScore.color)
+  }
+
+  /// Hidden while the first load is in flight; afterwards shown either with steps or with the failure message.
+  var shouldShowNextStepsCard: Bool {
+    guard !isLoading else { return false }
+    return isPhaseResolved || errorMessage != nil
+  }
+
+  private static let maxNextSteps = 3
+  @ObservationIgnored private var loadedAthleteId: String?
+
   var isViewingAsParent: Bool { familyManager.isParentViewingAthlete }
   /// Friendly explanation shown when a parent tries an action that stays with the athlete.
   var restrictionNotice: String?
@@ -47,6 +78,7 @@ final class TimelineViewModel {
   private let preferenceService: any PreferenceManaging
   private let authManager: any AuthManaging
   private let familyManager: FamilyManager
+  private let dashboardService: any DashboardManaging
 
   var allTasks: [TaskWithStatus] {
     tasksByGrade.values.flatMap { $0 }
@@ -76,13 +108,15 @@ final class TimelineViewModel {
     apiService: (any TimelineAPIManaging)? = nil,
     preferenceService: (any PreferenceManaging)? = nil,
     authManager: (any AuthManaging)? = nil,
-    familyManager: FamilyManager? = nil
+    familyManager: FamilyManager? = nil,
+    dashboardService: (any DashboardManaging)? = nil
   ) {
     self.tasksService = tasksService ?? TasksServiceImpl(supabaseManager: .shared)
     self.apiService = apiService ?? TimelineAPIService()
     self.preferenceService = preferenceService ?? PreferenceServiceImpl(supabaseManager: .shared)
     self.authManager = authManager ?? AuthManager.shared
     self.familyManager = familyManager ?? .shared
+    self.dashboardService = dashboardService ?? DashboardServiceImpl(supabaseManager: .shared)
   }
 
   func load() async {
@@ -155,34 +189,87 @@ final class TimelineViewModel {
     }
   }
 
+  /// Drops everything that described another athlete, so a switch (or a failed load) never shows their steps,
+  /// phase or score as this athlete's.
+  private func resetSummaryIfAthleteChanged() {
+    guard loadedAthleteId != currentAthleteId else { return }
+    loadedAthleteId = currentAthleteId
+    isPhaseResolved = false
+    statusScore = nil
+    currentTask = nil
+    whatMattersItems = []
+    firstRunSignals = nil
+  }
+
+  /// A load only writes while the athlete it started for is still the one on screen. `coalescing` runs it in an
+  /// unstructured Task, so cancelling the view's `.task(id:)` on a switch doesn't stop it landing late.
+  private func isCurrent(_ requestedAthleteId: String?) -> Bool {
+    currentAthleteId == requestedAthleteId
+  }
+
+  private func fetchFirstRunSignals(for requestedAthleteId: String?) async {
+    guard let familyUnitId = familyManager.familyUnitId else {
+      firstRunSignals = nil
+      return
+    }
+    do {
+      let signals = try await dashboardService.fetchFirstRunSignals(familyUnitId: familyUnitId)
+      guard isCurrent(requestedAthleteId) else { return }
+      firstRunSignals = signals
+    } catch {
+      logger.error("first-run signals failed (non-fatal): \(error.localizedDescription)")
+      guard isCurrent(requestedAthleteId) else { return }
+      firstRunSignals = nil
+    }
+  }
+
   private func fetchSummary() async throws {
+    let requestedAthleteId = currentAthleteId
+    resetSummaryIfAthleteChanged()
+    do {
+      try await fetchSummaryUnchecked(for: requestedAthleteId)
+    } catch {
+      if isCurrent(requestedAthleteId) { isPhaseResolved = false }
+      throw error
+    }
+  }
+
+  private func fetchSummaryUnchecked(for requestedAthleteId: String?) async throws {
     let token = authManager.session?.accessToken
 
     let athleteId = familyManager.selectedAthlete?.userId
+    async let signalsResult: Void = fetchFirstRunSignals(for: requestedAthleteId)
     async let phaseResult = apiService.fetchPhase(accessToken: token, athleteId: athleteId)
     async let statusResult = apiService.fetchStatus(accessToken: token, athleteId: athleteId)
     async let whatMattersResult = apiService.fetchWhatMattersNow(accessToken: token, athleteId: athleteId)
 
     let phaseData = try await phaseResult
+    guard isCurrent(requestedAthleteId) else { return }
     currentPhase = phaseData.phase
     milestoneProgress = phaseData.milestoneProgress
     canAdvancePhase = phaseData.canAdvance
 
     let status = try await statusResult
+    guard isCurrent(requestedAthleteId) else { return }
     statusScore = StatusScore(score: status.score, label: status.label, breakdown: status.breakdown)
 
     // Non-fatal: a missing/failing what-matters-now endpoint must degrade to
     // "no pending priorities", not abort the whole timeline load. The card
     // already renders on statusScore alone.
+    let items: [WhatMattersItem]
     do {
-      let items = try await whatMattersResult
-      whatMattersItems = Array(items.prefix(5))
-      currentTask = items.first
+      items = try await whatMattersResult
     } catch {
       logger.error("what-matters-now failed (non-fatal): \(error.localizedDescription)")
-      whatMattersItems = []
-      currentTask = nil
+      items = []
     }
+    guard isCurrent(requestedAthleteId) else { return }
+    whatMattersItems = Array(items.prefix(5))
+    currentTask = items.first
+
+    await signalsResult
+    guard isCurrent(requestedAthleteId) else { return }
+    isPhaseResolved = true
 
     logger.info("Timeline loaded: phase=\(phaseData.phase.rawValue), status=\(status.score)/100")
   }

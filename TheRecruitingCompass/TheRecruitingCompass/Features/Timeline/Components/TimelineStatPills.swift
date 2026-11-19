@@ -2,6 +2,8 @@ import SwiftUI
 
 struct TimelineStatPills: View {
   let statusScore: Int
+  /// False until the family has a coach and a conversation; a new account would otherwise read "at risk".
+  var showStatus = true
   let statusLabel: StatusLabel?
   let taskCompleted: Int
   let taskTotal: Int
@@ -25,36 +27,47 @@ struct TimelineStatPills: View {
 
   var body: some View {
     HStack(spacing: 12) {
-      statCard(
-        icon: "gauge.with.dots.needle.bottom.50percent",
-        label: String(localized: "Status"),
-        value: "\(statusScore)/100",
-        accent: statusColor,
-        progress: Double(statusScore),
-        total: 100,
-        accessibility: String(localized: "Status score \(statusScore) out of 100")
-      )
-
-      statCard(
-        icon: "checklist",
-        label: String(localized: "Tasks"),
-        value: "\(taskCompleted)/\(taskTotal)",
-        accent: Color.accentPrimary,
-        progress: Double(taskCompleted),
-        total: Double(taskTotal),
-        accessibility: String(localized: "Tasks \(taskCompleted) of \(taskTotal) complete, \(taskPercent) percent")
-      )
-
-      statCard(
-        icon: "flag.checkered",
-        label: String(localized: "Milestones"),
-        value: "\(milestonesCompleted)/\(milestonesTotal)",
-        accent: Color.amberGold,
-        progress: Double(milestonesCompleted),
-        total: Double(milestonesTotal),
-        accessibility: String(localized: "Milestones \(milestonesCompleted) of \(milestonesTotal) complete")
-      )
+      if showStatus {
+        statusCard
+      }
+      taskAndMilestoneCards
     }
+  }
+
+  @ViewBuilder
+  private var statusCard: some View {
+    statCard(
+      icon: "gauge.with.dots.needle.bottom.50percent",
+      label: String(localized: "Status"),
+      value: "\(statusScore)/100",
+      accent: statusColor,
+      progress: Double(statusScore),
+      total: 100,
+      accessibility: String(localized: "Status score \(statusScore) out of 100")
+    )
+  }
+
+  @ViewBuilder
+  private var taskAndMilestoneCards: some View {
+    statCard(
+      icon: "checklist",
+      label: String(localized: "Tasks"),
+      value: "\(taskCompleted)/\(taskTotal)",
+      accent: Color.accentPrimary,
+      progress: Double(taskCompleted),
+      total: Double(taskTotal),
+      accessibility: String(localized: "Tasks \(taskCompleted) of \(taskTotal) complete, \(taskPercent) percent")
+    )
+
+    statCard(
+      icon: "flag.checkered",
+      label: String(localized: "Milestones"),
+      value: "\(milestonesCompleted)/\(milestonesTotal)",
+      accent: Color.amberGold,
+      progress: Double(milestonesCompleted),
+      total: Double(milestonesTotal),
+      accessibility: String(localized: "Milestones \(milestonesCompleted) of \(milestonesTotal) complete")
+    )
   }
 
   private func statCard(
