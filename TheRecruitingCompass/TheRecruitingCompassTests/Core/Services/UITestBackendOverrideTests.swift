@@ -97,4 +97,60 @@ final class UITestBackendOverrideTests: XCTestCase {
     ))
     XCTAssertEqual(api(isUITesting: false, ["API_BASE_URL": "example.com"])?.absoluteString, "https://example.com")
   }
+
+  // MARK: - SupabaseConfig wiring (arguments + environment -> resolved values)
+
+  #if DEBUG
+  private let uiTestArgs = ["myCompass", "--uitesting"]
+
+  func test_resolvedURL_uiTestingWithoutEnvironment_failsClosed() {
+    XCTAssertEqual(SupabaseConfig.resolvedURL(arguments: uiTestArgs, environment: [:]),
+                   .failure(.init(key: "SUPABASE_URL")))
+    XCTAssertEqual(SupabaseConfig.resolvedURL(arguments: uiTestArgs, environment: ["SUPABASE_ANON_KEY": "k"]),
+                   .failure(.init(key: "SUPABASE_URL")))
+  }
+
+  func test_resolvedURL_uiTestingWithEnvironment_usesIt() {
+    XCTAssertEqual(
+      SupabaseConfig.resolvedURL(arguments: uiTestArgs, environment: ["SUPABASE_URL": "http://127.0.0.1:54321"]),
+      .success("http://127.0.0.1:54321")
+    )
+  }
+
+  func test_resolvedAnonKey_uiTestingWithoutItsOwnKey_failsClosedEvenWhenURLIsSet() {
+    XCTAssertEqual(SupabaseConfig.resolvedAnonKey(arguments: uiTestArgs, environment: [:]),
+                   .failure(.init(key: "SUPABASE_ANON_KEY")))
+    XCTAssertEqual(SupabaseConfig.resolvedAnonKey(arguments: uiTestArgs, environment: ["SUPABASE_URL": "http://x"]),
+                   .failure(.init(key: "SUPABASE_ANON_KEY")))
+  }
+
+  func test_resolvedAnonKey_uiTestingWithEnvironment_usesIt() {
+    XCTAssertEqual(
+      SupabaseConfig.resolvedAnonKey(arguments: uiTestArgs, environment: ["SUPABASE_ANON_KEY": "local-key"]),
+      .success("local-key")
+    )
+  }
+
+  func test_resolvedAPIBaseURL_uiTestingWithoutEnvironment_isNilEvenWhenEmbeddedIsProd() {
+    XCTAssertNil(SupabaseConfig.resolvedAPIBaseURL(
+      arguments: uiTestArgs, environment: [:], embedded: "https://prod.example.com"
+    ))
+  }
+
+  func test_resolvedAPIBaseURL_withoutUITestingFlag_fallsBackToEmbedded() {
+    let url = SupabaseConfig.resolvedAPIBaseURL(
+      arguments: ["myCompass"], environment: [:], embedded: "https://prod.example.com"
+    )
+    XCTAssertEqual(url?.absoluteString, "https://prod.example.com")
+  }
+
+  func test_isUITestBackendOverride_trueOnlyWhenUITestingSuppliedTheURL() {
+    let url = ["SUPABASE_URL": "http://127.0.0.1:54321"]
+    XCTAssertTrue(SupabaseConfig.resolvedIsUITestBackendOverride(arguments: uiTestArgs, environment: url))
+    XCTAssertFalse(SupabaseConfig.resolvedIsUITestBackendOverride(arguments: uiTestArgs, environment: [:]))
+    let blank = ["SUPABASE_URL": " \n"]
+    XCTAssertFalse(SupabaseConfig.resolvedIsUITestBackendOverride(arguments: uiTestArgs, environment: blank))
+    XCTAssertFalse(SupabaseConfig.resolvedIsUITestBackendOverride(arguments: ["myCompass"], environment: url))
+  }
+  #endif
 }

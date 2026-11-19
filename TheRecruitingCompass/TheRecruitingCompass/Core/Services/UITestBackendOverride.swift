@@ -13,6 +13,15 @@ enum UITestBackendOverride: Equatable {
   /// UI-test launch without the setting (absent, empty or whitespace): never fall back to embedded config.
   case missing
 
+  /// True when launched by the UI test runner. Debug-only: a Release binary must never honor a backend override.
+  static func isUITesting(arguments: [String]) -> Bool {
+    #if DEBUG
+    arguments.contains("--uitesting")
+    #else
+    false
+    #endif
+  }
+
   static func resolve(_ key: String, isUITesting: Bool, environment: [String: String]) -> UITestBackendOverride {
     guard isUITesting else { return .inactive }
     let value = (environment[key] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
