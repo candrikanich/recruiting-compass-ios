@@ -144,6 +144,22 @@ final class UITestBackendOverrideTests: XCTestCase {
     XCTAssertEqual(url?.absoluteString, "https://prod.example.com")
   }
 
+  func test_resolvedAPIBaseURL_uiTestingWithEnvironment_usesItNotEmbedded() {
+    let url = SupabaseConfig.resolvedAPIBaseURL(
+      arguments: uiTestArgs, environment: ["API_BASE_URL": "http://localhost:3003"],
+      embedded: "https://prod.example.com"
+    )
+    XCTAssertEqual(url?.absoluteString, "http://localhost:3003")
+  }
+
+  func test_resolvedAPIBaseURL_withoutUITestingFlag_prefersEnvironmentOverEmbedded() {
+    let url = SupabaseConfig.resolvedAPIBaseURL(
+      arguments: ["myCompass"], environment: ["API_BASE_URL": "http://env.local"],
+      embedded: "https://prod.example.com"
+    )
+    XCTAssertEqual(url?.absoluteString, "http://env.local")
+  }
+
   func test_isUITestBackendOverride_trueOnlyWhenUITestingSuppliedTheURL() {
     let url = ["SUPABASE_URL": "http://127.0.0.1:54321"]
     XCTAssertTrue(SupabaseConfig.resolvedIsUITestBackendOverride(arguments: uiTestArgs, environment: url))
