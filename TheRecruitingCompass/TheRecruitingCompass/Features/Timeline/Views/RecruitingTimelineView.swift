@@ -91,9 +91,7 @@ struct RecruitingTimelineView: View {
               isLoading: viewModel.isLoading,
               tasksByGrade: viewModel.tasksByGrade,
               errorMessage: viewModel.errorMessage,
-              statusScoreValue: viewModel.statusScoreValue,
-              showStatus: viewModel.isStatusScoreVisible,
-              statusLabel: viewModel.statusLabel,
+              status: viewModel.statPillsStatus,
               taskCompletedCount: viewModel.taskCompletedCount,
               taskTotalCount: viewModel.taskTotalCount,
               milestonesCompletedCount: viewModel.milestonesCompletedCount,
@@ -198,9 +196,7 @@ private struct TimelineMainContent: View {
   let isLoading: Bool
   let tasksByGrade: [Int: [TaskWithStatus]]
   let errorMessage: String?
-  let statusScoreValue: Int
-  let showStatus: Bool
-  let statusLabel: StatusLabel?
+  let status: TimelineStatPills.Status?
   let taskCompletedCount: Int
   let taskTotalCount: Int
   let milestonesCompletedCount: Int
@@ -234,9 +230,7 @@ private struct TimelineMainContent: View {
       )
     } else {
       TimelineStatPills(
-        statusScore: statusScoreValue,
-        showStatus: showStatus,
-        statusLabel: statusLabel,
+        status: status,
         taskCompleted: taskCompletedCount,
         taskTotal: taskTotalCount,
         milestonesCompleted: milestonesCompletedCount,

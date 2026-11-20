@@ -40,6 +40,9 @@ final class TimelineViewModel {
   /// which hides the status score (fail closed).
   private(set) var firstRunSignals: FirstRunSignals?
 
+  /// The what-matters-now request failed: the card must say so rather than claim there is nothing to do.
+  private(set) var stepsFailed = false
+
   var isStatusScoreVisible: Bool { firstRunSignals?.isStatusScoreVisible ?? false }
   var favoriteSchoolName: String? { firstRunSignals?.favoriteSchoolName }
 
@@ -54,10 +57,26 @@ final class TimelineViewModel {
     return .init(score: statusScore.score, color: statusScore.color)
   }
 
-  /// Hidden while the first load is in flight; afterwards shown either with steps or with the failure message.
+  /// Everything the Home card renders, decided here so the view only passes it through.
+  var summaryCard: DashboardTimelineSummaryCard.Content {
+    .init(
+      phase: isPhaseResolved ? currentPhase : nil,
+      status: visibleStatus,
+      favoriteSchoolName: favoriteSchoolName,
+      nextSteps: nextSteps,
+      stepsUnavailable: !isPhaseResolved || stepsFailed
+    )
+  }
+
+  /// What the Timeline screen's stat pills show for the status score; `nil` hides it.
+  var statPillsStatus: TimelineStatPills.Status? {
+    visibleStatus.map { _ in .init(score: statusScoreValue, label: statusLabel) }
+  }
+
+  /// Hidden until the phase fetch settles; then shown either with steps or with the failure message. It never waits
+  /// on the counts request (the score is what stays hidden until that lands) and stays up during a reload.
   var shouldShowNextStepsCard: Bool {
-    guard !isLoading else { return false }
-    return isPhaseResolved || errorMessage != nil
+    isPhaseResolved || errorMessage != nil
   }
 
   private static let maxNextSteps = 3
@@ -72,6 +91,9 @@ final class TimelineViewModel {
   }
 
   @ObservationIgnored private var inFlightLoad: (key: String, task: Task<Void, Never>)?
+  /// Bumped for every signals request; only the newest one may write, so a slow older answer (a stale 0) can't
+  /// overwrite a newer one.
+  @ObservationIgnored private var signalsRequestSequence = 0
 
   private let tasksService: any TasksManaging
   private let apiService: any TimelineAPIManaging
@@ -198,6 +220,7 @@ final class TimelineViewModel {
     statusScore = nil
     currentTask = nil
     whatMattersItems = []
+    stepsFailed = false
     firstRunSignals = nil
   }
 
@@ -207,20 +230,42 @@ final class TimelineViewModel {
     currentAthleteId == requestedAthleteId
   }
 
+  /// One fence for the load's read and every refresh (as web's `createRequestFence`): only the newest request may
+  /// write, on success and on failure. A failed newest read fails closed (score hidden), as on web.
   private func fetchFirstRunSignals(for requestedAthleteId: String?) async {
+    signalsRequestSequence += 1
+    let sequence = signalsRequestSequence
     guard let familyUnitId = familyManager.familyUnitId else {
-      firstRunSignals = nil
+      if isCurrent(requestedAthleteId) { firstRunSignals = nil }
       return
     }
     do {
       let signals = try await dashboardService.fetchFirstRunSignals(familyUnitId: familyUnitId)
-      guard isCurrent(requestedAthleteId) else { return }
+      guard isCurrent(requestedAthleteId), sequence == signalsRequestSequence else { return }
       firstRunSignals = signals
     } catch {
       logger.error("first-run signals failed (non-fatal): \(error.localizedDescription)")
-      guard isCurrent(requestedAthleteId) else { return }
+      guard isCurrent(requestedAthleteId), sequence == signalsRequestSequence else { return }
       firstRunSignals = nil
     }
+  }
+
+  /// A summary load is running or about to: it reads the signals itself.
+  var isSummaryLoadInFlight: Bool { isLoading || inFlightLoad != nil }
+
+  /// Re-reads only the coach / conversation counts and favorite school, for when the family adds a coach or
+  /// school or logs a conversation. Runs even mid-load: that load may have sent its counts request before the
+  /// write, and the newest request wins. Skipped until a load has begun for this athlete, so it can never keep
+  /// another athlete's signals.
+  func refreshFirstRunSignals() async {
+    guard let athleteId = currentAthleteId, loadedAthleteId == athleteId else { return }
+    await fetchFirstRunSignals(for: athleteId)
+  }
+
+  /// For returning to the screen, where nothing was written: a load in flight already reads fresh counts.
+  func refreshFirstRunSignalsIfIdle() async {
+    guard !isSummaryLoadInFlight else { return }
+    await refreshFirstRunSignals()
   }
 
   private func fetchSummary() async throws {
@@ -253,23 +298,25 @@ final class TimelineViewModel {
     guard isCurrent(requestedAthleteId) else { return }
     statusScore = StatusScore(score: status.score, label: status.label, breakdown: status.breakdown)
 
-    // Non-fatal: a missing/failing what-matters-now endpoint must degrade to
-    // "no pending priorities", not abort the whole timeline load. The card
-    // already renders on statusScore alone.
+    // Non-fatal: a failing what-matters-now endpoint must not abort the whole timeline load, but the card says
+    // the steps are unavailable instead of claiming there is nothing to do.
     let items: [WhatMattersItem]
+    var failed = false
     do {
       items = try await whatMattersResult
     } catch {
       logger.error("what-matters-now failed (non-fatal): \(error.localizedDescription)")
       items = []
+      failed = true
     }
     guard isCurrent(requestedAthleteId) else { return }
     whatMattersItems = Array(items.prefix(5))
     currentTask = items.first
+    stepsFailed = failed
+    // The steps never wait on the counts request; the score stays hidden until it lands.
+    isPhaseResolved = true
 
     await signalsResult
-    guard isCurrent(requestedAthleteId) else { return }
-    isPhaseResolved = true
 
     logger.info("Timeline loaded: phase=\(phaseData.phase.rawValue), status=\(status.score)/100")
   }

@@ -14,6 +14,17 @@ struct DashboardTimelineSummaryCard: View {
   let stepsUnavailable: Bool
   let onViewTimeline: () -> Void
 
+  @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+  /// The card's inputs as one value, so what a new account sees is decided (and tested) outside the view.
+  struct Content {
+    let phase: TimelinePhase?
+    let status: Status?
+    let favoriteSchoolName: String?
+    let nextSteps: [WhatMattersItem]
+    let stepsUnavailable: Bool
+  }
+
   struct Status: Equatable {
     let score: Int
     /// From the server's `label`/`color` (via `StatusScore.color`); the card never re-thresholds the score.
@@ -34,16 +45,7 @@ struct DashboardTimelineSummaryCard: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
-      HStack(spacing: 10) {
-        if let phase {
-          phaseBadge(phase)
-        }
-        if let status {
-          statusIndicator(status)
-        }
-        Spacer(minLength: 8)
-        timelineButton
-      }
+      header
 
       if let favoriteSchoolName {
         (Text("Your top school: ") + Text(favoriteSchoolName).fontWeight(.semibold))
@@ -59,7 +61,30 @@ struct DashboardTimelineSummaryCard: View {
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .accessibilityElement(children: .combine)
     .accessibilityLabel(accessibilityText)
+    .accessibilityAddTraits(.isButton)
+    .accessibilityInputLabels(["Timeline", "View timeline"])
     .accessibilityHint("Opens your recruiting timeline")
+    .accessibilityAction(.default) { onViewTimeline() }
+  }
+
+  /// Badges and the Timeline link share a row until text is large enough that they would collide.
+  @ViewBuilder
+  private var header: some View {
+    let layout = dynamicTypeSize.isAccessibilitySize
+      ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
+      : AnyLayout(HStackLayout(spacing: 10))
+    layout {
+      if let phase {
+        phaseBadge(phase)
+      }
+      if let status {
+        statusIndicator(status)
+      }
+      if !dynamicTypeSize.isAccessibilitySize {
+        Spacer(minLength: 8)
+      }
+      timelineButton
+    }
   }
 
   private func phaseBadge(_ phase: TimelinePhase) -> some View {
@@ -94,7 +119,7 @@ struct DashboardTimelineSummaryCard: View {
       }
       .font(.brand(.caption, weight: .semibold))
       .foregroundStyle(Color.accentPrimary)
-      .padding(.vertical, 4)
+      .frame(minHeight: 44)
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
@@ -147,6 +172,19 @@ struct DashboardTimelineSummaryCard: View {
       parts.append(String(localized: "No pending priorities"))
     }
     return parts.joined(separator: ". ")
+  }
+}
+
+extension DashboardTimelineSummaryCard {
+  init(content: Content, onViewTimeline: @escaping () -> Void) {
+    self.init(
+      phase: content.phase,
+      status: content.status,
+      favoriteSchoolName: content.favoriteSchoolName,
+      nextSteps: content.nextSteps,
+      stepsUnavailable: content.stepsUnavailable,
+      onViewTimeline: onViewTimeline
+    )
   }
 }
 

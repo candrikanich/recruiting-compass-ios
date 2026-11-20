@@ -82,7 +82,9 @@ struct DashboardView: View {
       }
       .sheet(
         isPresented: $showAddSchool,
-        onDismiss: { Task { await viewModel.fetchDashboardData() } },
+        onDismiss: {
+          Task { await refreshTriggers.addSchoolSheetDismissed() }
+        },
         content: {
           DashboardAddSchoolSheet(
             familyUnitId: FamilyUnitID.normalized(familyManager.currentMember?.familyUnitId),
@@ -99,6 +101,7 @@ struct DashboardView: View {
       .task(id: timelineViewModel.currentAthleteId) {
         await timelineViewModel.loadSummary()
       }
+      .onAppear { Task { await refreshTriggers.screenAppeared() } }
       .task {
         if let userId = authManager.user?.id {
           await nuxProgressManager.load(userId: userId)
@@ -114,13 +117,17 @@ struct DashboardView: View {
       }
   }
 
+  private var refreshTriggers: DashboardRefreshTriggers {
+    DashboardRefreshTriggers(dashboard: viewModel, timeline: timelineViewModel)
+  }
+
   private func subscribeRealtime() async {
     guard realtimeService == nil, let familyUnitId = familyManager.familyUnitId else { return }
     let service = DashboardRealtimeService()
     realtimeService = service
     do {
-      try await service.subscribe(familyUnitId: familyUnitId) { [viewModel] in
-        Task { await viewModel.refresh() }
+      try await service.subscribe(familyUnitId: familyUnitId) { [refreshTriggers] in
+        Task { await refreshTriggers.realtimeEventReceived() }
       }
     } catch {
       // Non-fatal — dashboard still works with pull-to-refresh
@@ -209,11 +216,7 @@ struct DashboardView: View {
 
       if timelineViewModel.shouldShowNextStepsCard {
         DashboardTimelineSummaryCard(
-          phase: timelineViewModel.isPhaseResolved ? timelineViewModel.currentPhase : nil,
-          status: timelineViewModel.visibleStatus,
-          favoriteSchoolName: timelineViewModel.favoriteSchoolName,
-          nextSteps: timelineViewModel.nextSteps,
-          stepsUnavailable: !timelineViewModel.isPhaseResolved,
+          content: timelineViewModel.summaryCard,
           onViewTimeline: { openMoreSection(.timeline) }
         )
       }
@@ -351,14 +354,14 @@ struct DashboardView: View {
         Task { await viewModel.completeSuggestion(id) }
       },
       onActionCompleted: {
-        Task { await viewModel.fetchDashboardData() }
+        Task { await refreshTriggers.actionCompleted() }
       },
       onAddTask: viewModel.addTask,
       onToggleTask: viewModel.toggleTaskCompletion,
       onDeleteTask: viewModel.deleteTask,
       onClearCompleted: viewModel.clearCompletedTasks,
       onCoachContacted: {
-        Task { await viewModel.fetchDashboardData() }
+        Task { await refreshTriggers.coachContacted() }
       },
       onEventCreated: {
         Task { await viewModel.fetchDashboardData() }

@@ -94,7 +94,7 @@ final class TimelineViewModelFirstRunTests: XCTestCase {
     XCTAssertNil(sut.favoriteSchoolName)
   }
 
-  func testCard_hiddenWhileLoading_andBeforeAnyLoad() {
+  func testCard_hiddenBeforeAnyLoad() {
     XCTAssertFalse(sut.shouldShowNextStepsCard)
   }
 
