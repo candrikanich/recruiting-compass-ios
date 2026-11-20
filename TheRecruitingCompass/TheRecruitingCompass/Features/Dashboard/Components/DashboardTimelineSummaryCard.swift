@@ -62,6 +62,7 @@ struct DashboardTimelineSummaryCard: View {
     .accessibilityElement(children: .combine)
     .accessibilityLabel(accessibilityText)
     .accessibilityAddTraits(.isButton)
+    .accessibilityInputLabels(["Timeline", "View timeline"])
     .accessibilityHint("Opens your recruiting timeline")
     .accessibilityAction(.default) { onViewTimeline() }
   }

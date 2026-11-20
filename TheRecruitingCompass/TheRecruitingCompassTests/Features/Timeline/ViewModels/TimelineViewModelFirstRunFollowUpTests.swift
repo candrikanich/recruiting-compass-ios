@@ -191,16 +191,15 @@ final class TimelineViewModelFirstRunFollowUpTests: XCTestCase {
     XCTAssertTrue(sut.isPhaseResolved)
   }
 
-  func testRefreshFirstRunSignals_failureKeepsThePriorSignals() async {
-    dashboard.stubbedFirstRunSignals = signals(coaches: 1, conversations: 1, favorite: "State")
+  func testRefreshFirstRunSignals_failureFailsClosed() async {
+    dashboard.stubbedFirstRunSignals = signals(coaches: 1, conversations: 1)
     await sut.loadSummary()
     XCTAssertNotNil(sut.visibleStatus)
 
     dashboard.shouldThrowFetchFirstRunSignals = true
     await sut.refreshFirstRunSignals()
 
-    XCTAssertNotNil(sut.visibleStatus)
-    XCTAssertEqual(sut.favoriteSchoolName, "State")
+    XCTAssertNil(sut.visibleStatus)
   }
 
   func testInitialLoadFailure_stillFailsClosed() async {

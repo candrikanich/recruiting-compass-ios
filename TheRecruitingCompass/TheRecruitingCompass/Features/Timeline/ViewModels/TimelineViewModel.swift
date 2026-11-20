@@ -230,9 +230,8 @@ final class TimelineViewModel {
     currentAthleteId == requestedAthleteId
   }
 
-  /// Writes only if it is the newest request and the athlete is still on screen. A failed read leaves what was
-  /// there: a switch already cleared it, so a first load fails closed (hidden) while a transient blip on a
-  /// later refresh doesn't hide an established family's score.
+  /// One fence for the load's read and every refresh (as web's `createRequestFence`): only the newest request may
+  /// write, on success and on failure. A failed newest read fails closed (score hidden), as on web.
   private func fetchFirstRunSignals(for requestedAthleteId: String?) async {
     signalsRequestSequence += 1
     let sequence = signalsRequestSequence
@@ -246,6 +245,8 @@ final class TimelineViewModel {
       firstRunSignals = signals
     } catch {
       logger.error("first-run signals failed (non-fatal): \(error.localizedDescription)")
+      guard isCurrent(requestedAthleteId), sequence == signalsRequestSequence else { return }
+      firstRunSignals = nil
     }
   }
 
