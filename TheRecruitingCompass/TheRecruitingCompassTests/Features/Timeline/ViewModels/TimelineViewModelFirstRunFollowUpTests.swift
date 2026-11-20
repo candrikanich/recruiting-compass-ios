@@ -318,6 +318,35 @@ final class TimelineViewModelFirstRunFollowUpTests: XCTestCase {
     XCTAssertEqual(dashboard.requestedFirstRunSignalFamilyUnitIds.count, 1)
   }
 
+  /// A coalesced load is still registered while `isLoading` is false: before its body starts (`.task(id:)` on
+  /// re-appear registers it, then the appear Task runs) and after its body ends, until its caller resumes. The
+  /// first gap can't be held from a test on iOS 18 (no `Task.immediate`), so this holds the second: a joiner wakes
+  /// before the load's own caller has cleared it. The appear trigger must still see the load there.
+  func testRefreshIfIdle_whileACoalescedLoadIsRegisteredButNotLoading_sendsNoSecondRequest() async {
+    await sut.loadSummary()
+    let gate = AsyncGate()
+    dashboard.fetchFirstRunSignalsGate = { await gate.wait() }
+    var reloadReturned = false
+    let reload = Task {
+      await sut.loadSummary()
+      reloadReturned = true
+    }
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered)
+    let opener = Task { gate.open() }
+
+    await sut.loadSummary()
+    XCTAssertFalse(sut.isLoading, "precondition: the reload's body has finished")
+    XCTAssertFalse(reloadReturned, "precondition: the reload's caller has not cleared it yet")
+    XCTAssertEqual(dashboard.requestedFirstRunSignalFamilyUnitIds.count, 2, "precondition: one per load")
+
+    await sut.refreshFirstRunSignalsIfIdle()
+    await opener.value
+    await reload.value
+
+    XCTAssertEqual(dashboard.requestedFirstRunSignalFamilyUnitIds.count, 2)
+  }
+
   func testRefreshIfIdle_afterTheLoad_refreshes() async {
     dashboard.stubbedFirstRunSignals = signals(coaches: 0, conversations: 0)
     await sut.loadSummary()
