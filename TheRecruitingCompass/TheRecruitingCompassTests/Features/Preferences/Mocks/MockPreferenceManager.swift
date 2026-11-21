@@ -7,6 +7,8 @@ final class MockPreferenceManager: PreferenceManaging, @unchecked Sendable {
   var fetchPreferencesResultByCategory: [PreferenceCategory: Result<Any?, Error>] = [:]
   var savePreferencesResult: Result<Any, Error>?
   var deletePreferencesCalled = false
+  /// Awaited after the result is chosen, so a test can hold a read in flight and still get the answer it was given.
+  var fetchPreferencesGate: (@Sendable () async -> Void)?
 
   var fetchPreferencesCalls: [(category: PreferenceCategory, userId: String?)] = []
   var savePreferencesCalls: [(category: PreferenceCategory, userId: String?, data: Any)] = []
@@ -16,6 +18,7 @@ final class MockPreferenceManager: PreferenceManaging, @unchecked Sendable {
     fetchPreferencesCalls.append((category: category, userId: userId))
 
     let result = fetchPreferencesResultByCategory[category] ?? fetchPreferencesResult
+    await fetchPreferencesGate?()
     switch result {
     case .success(let value):
       return value as? T
