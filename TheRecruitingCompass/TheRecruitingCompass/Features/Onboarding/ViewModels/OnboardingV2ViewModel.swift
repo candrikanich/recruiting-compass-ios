@@ -32,8 +32,17 @@ final class OnboardingV2ViewModel {
   /// True while a search pick is being saved; blocks a second tap from inserting twice.
   private(set) var isPickingSchool = false
   /// Whose recommendations to load and dismiss. Nil means the signed-in user; a parent on the school step
-  /// sets the connected athlete's id, since recommendations belong to the athlete.
+  /// sets the connected athlete's id, since recommendations belong to the athlete. A parent with no athlete yet
+  /// leaves it nil and gets none (see `recommendationSubjectId`).
   var recommendationAthleteId: String?
+
+  /// Never the parent's own id: their own profile says nothing about the athlete, so a parent whose athlete has
+  /// not joined gets search only.
+  private var recommendationSubjectId: String? {
+    if let recommendationAthleteId { return recommendationAthleteId }
+    guard authManager.user?.role != .parent else { return nil }
+    return authManager.user?.id
+  }
 
   // MARK: - Shared state
 
@@ -211,7 +220,7 @@ final class OnboardingV2ViewModel {
   // MARK: - Step 2
 
   func loadRecommendations() async {
-    guard let userId = recommendationAthleteId ?? authManager.user?.id else { return }
+    guard let userId = recommendationSubjectId else { return }
 
     isLoadingRecommendations = true
     defer { isLoadingRecommendations = false }
@@ -433,7 +442,7 @@ final class OnboardingV2ViewModel {
   }
 
   func dismissRecommendation(_ recommendation: SchoolRecommendation) async {
-    guard let userId = recommendationAthleteId ?? authManager.user?.id else { return }
+    guard let userId = recommendationSubjectId else { return }
 
     recommendations.removeAll { $0.catalogKey == recommendation.catalogKey }
 

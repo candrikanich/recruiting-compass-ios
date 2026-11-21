@@ -3,6 +3,7 @@ import SwiftUI
 struct DashboardView: View {
   @State private var viewModel = DashboardViewModel()
   @State private var timelineViewModel = TimelineViewModel()
+  @State private var pendingAthleteViewModel = PendingAthleteViewModel()
   @State private var showParentWizard = false
   @State private var parentOnboardingWizardViewModel = ParentOnboardingWizardViewModel()
   @State private var showAddSchool = false
@@ -16,6 +17,14 @@ struct DashboardView: View {
   @Environment(\.horizontalSizeClass) private var sizeClass
 
   private var nuxProgressManager: NuxProgressManager { .shared }
+
+  private var showsPendingAthleteCard: Bool {
+    FirstRunCopy.showsPendingAthleteCard(
+      isParent: familyManager.currentMember?.isParent == true,
+      membership: familyManager.membership,
+      athleteCount: familyManager.athletes.count
+    )
+  }
 
   init(viewModel: DashboardViewModel? = nil, emailVerificationBannerViewModel: EmailVerificationBannerViewModel? = nil) {
     if let viewModel {
@@ -62,6 +71,9 @@ struct DashboardView: View {
         .refreshable {
           await viewModel.refresh()
           await timelineViewModel.loadSummary()
+          if showsPendingAthleteCard {
+            await pendingAthleteViewModel.load(familyUnitId: familyManager.familyUnitId)
+          }
         }
       }
       .navigationTitle("Dashboard")
@@ -101,7 +113,18 @@ struct DashboardView: View {
       .task(id: timelineViewModel.currentAthleteId) {
         await timelineViewModel.loadSummary()
       }
-      .onAppear { Task { await refreshTriggers.screenAppeared() } }
+      // A parent whose athlete has not joined sees the family's school and steps; the id changes on a family
+      // switch, and `showsPendingAthleteCard` turns false the moment the athlete joins.
+      .task(id: showsPendingAthleteCard ? familyManager.familyUnitId : nil) {
+        await pendingAthleteViewModel.load(familyUnitId: showsPendingAthleteCard ? familyManager.familyUnitId : nil)
+      }
+      .onAppear {
+        Task {
+          await refreshTriggers.screenAppeared()
+          // A school added from the Schools tab must show up on return.
+          if showsPendingAthleteCard { await pendingAthleteViewModel.load(familyUnitId: familyManager.familyUnitId) }
+        }
+      }
       .task {
         if let userId = authManager.user?.id {
           await nuxProgressManager.load(userId: userId)
@@ -214,7 +237,16 @@ struct DashboardView: View {
         userFirstName: viewModel.userFirstName
       )
 
-      if timelineViewModel.shouldShowNextStepsCard {
+      if showsPendingAthleteCard {
+        if pendingAthleteViewModel.isVisible {
+          PendingAthleteStepsCard(
+            heading: pendingAthleteViewModel.heading,
+            note: pendingAthleteViewModel.note,
+            favoriteSchoolName: pendingAthleteViewModel.favoriteSchoolName,
+            steps: pendingAthleteViewModel.steps
+          )
+        }
+      } else if timelineViewModel.shouldShowNextStepsCard {
         DashboardTimelineSummaryCard(
           content: timelineViewModel.summaryCard,
           onViewTimeline: { openMoreSection(.timeline) }

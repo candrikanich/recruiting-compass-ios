@@ -116,6 +116,13 @@ private struct HelpGettingStartedContent: View {
       }
 
       sectionBlock {
+        HelpSectionHeader(title: "Signing up before your athlete")
+        Text(FirstRunCopy.helpParentBeforeAthlete)
+          .font(.brand(.subheadline))
+          .foregroundStyle(.secondary)
+      }
+
+      sectionBlock {
         HelpSectionHeader(title: "Your first action")
         Text("Once your profile is set up, the most impactful first step is building your school list.")
           .font(.brand(.subheadline))

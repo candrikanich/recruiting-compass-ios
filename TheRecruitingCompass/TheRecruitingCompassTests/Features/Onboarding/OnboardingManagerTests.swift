@@ -378,20 +378,25 @@ final class OnboardingManagerTests: XCTestCase {
     )
   }
 
-  func testInvitedParentDestination_noAthlete_isTheDashboard() {
-    XCTAssertEqual(OnboardingGate.invitedParentDestination(for: .schoolStepOnly, members: []), .dashboard)
+  func testInvitedParentDestination_noAthlete_isStillTheSchoolStep() {
+    XCTAssertEqual(
+      OnboardingGate.invitedParentDestination(for: .schoolStepOnly, members: []), .schoolStep(athleteUserId: nil)
+    )
   }
 
   func testInvitedParentDestination_wizardRouteDecidesItsOwnExit() {
     XCTAssertNil(OnboardingGate.invitedParentDestination(for: .wizard, members: [athleteMember()]))
   }
 
-  func testInvitedParentDestination_parentOnlyFamily_isTheDashboardNeverASchoolWrite() {
+  func testInvitedParentDestination_parentOnlyFamily_isTheSchoolStepNeverAnotherParentsRecommendations() {
     let parentOnly = FamilyMember(
       id: "m-p", userId: "other-parent", familyUnitId: "family-1", role: "parent",
       addedAt: nil, user: nil, canRemove: nil, removeBlockedReason: nil
     )
-    XCTAssertEqual(OnboardingGate.invitedParentDestination(for: .schoolStepOnly, members: [parentOnly]), .dashboard)
+    XCTAssertEqual(
+      OnboardingGate.invitedParentDestination(for: .schoolStepOnly, members: [parentOnly]),
+      .schoolStep(athleteUserId: nil)
+    )
   }
 
   // MARK: - First-run ends once, and is not cut short by errors

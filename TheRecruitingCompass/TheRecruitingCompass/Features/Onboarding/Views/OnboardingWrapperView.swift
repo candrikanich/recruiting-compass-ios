@@ -21,9 +21,8 @@ struct OnboardingWrapperView: View {
 /// Parent onboarding: single player-details step, saved directly — matches production web. Inviting the
 /// athlete is deferred to the dashboard's "Invite Athlete" banner. No skip: web's wizard has none, and the
 /// family now comes from signup, not from finishing this step.
-/// After the details, a parent whose family already has a connected athlete gets the first-run school step
-/// ("Which school is your athlete most excited about?"); with no connected athlete they go straight to the
-/// dashboard, and no school is written (that path is #492).
+/// After the details, every parent gets the first-run school step ("Which school is your athlete most excited
+/// about?"). With no athlete yet the school is still written to the family, so it is theirs once they join.
 private struct ParentOnboardingWrapperContent: View {
   var onComplete: () -> Void
   @Environment(AuthManager.self) private var authManager
@@ -59,7 +58,7 @@ private struct ParentOnboardingWrapperContent: View {
     }
   }
 
-  /// An invited parent skips the wizard: the school step for the athlete already in the family, else the dashboard.
+  /// An invited parent skips the wizard and goes to the school step.
   private func routeInvitedParent() async {
     await familyManager.loadFamilyData()
     guard let route = onboardingManager.parentFirstRun else { return }

@@ -66,6 +66,16 @@ struct FamilyAPIClient: Sendable {
     )
   }
 
+  /// GET /api/family/pending-athlete: what a parent staged about an athlete who has not joined (first name and
+  /// graduation year only). Parents of the family only; `familyUnitId` is sent so a multi-family parent reads
+  /// the family on screen, not the newest one.
+  func fetchPendingAthlete(familyId: String) async throws -> PendingAthlete? {
+    let data = try await send(
+      "GET", "api/family/pending-athlete", query: [URLQueryItem(name: "familyUnitId", value: familyId)]
+    )
+    return try JSONDecoder().decode(PendingAthleteResponse.self, from: data).pending
+  }
+
   private func send(_ method: String, _ path: String, body: [String: String]? = nil) async throws -> Data {
     try await send(method, path, jsonBody: try body.map { try JSONEncoder().encode($0) })
   }
