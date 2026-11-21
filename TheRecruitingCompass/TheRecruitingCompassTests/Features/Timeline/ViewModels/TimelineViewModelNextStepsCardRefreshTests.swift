@@ -105,6 +105,50 @@ final class TimelineViewModelNextStepsCardRefreshTests: XCTestCase {
     XCTAssertTrue(sut.nextSteps.isEmpty)
     XCTAssertTrue(sut.summaryCard.nextSteps.isEmpty)
     XCTAssertNil(sut.summaryCard.phase)
+    XCTAssertTrue(sut.summaryCard.stepsUnavailable)
+  }
+
+  func testSwitchingAthlete_dropsThePreviousAthletesErrorCardBeforeAnyNewLoadStarts() async {
+    await sut.loadSummary()
+    api.shouldThrowError = true
+    await sut.loadSummary()
+    XCTAssertTrue(sut.shouldShowNextStepsCard, "precondition: the failure card is showing")
+
+    ParentViewingAthleteFixture.selectSecondAthlete(in: family)
+
+    XCTAssertFalse(sut.shouldShowNextStepsCard)
+  }
+
+  func testSwitchingAthlete_dropsThePreviousAthletesScoreAndSchoolBeforeAnyNewLoadStarts() async {
+    let dashboard = MockDashboardService()
+    dashboard.stubbedFirstRunSignals = FirstRunSignals(coachCount: 2, conversationCount: 2, favoriteSchoolName: "A")
+    sut = TimelineViewModel(
+      tasksService: MockTasksService(),
+      apiService: api,
+      preferenceService: MockPreferenceManager(),
+      authManager: auth,
+      familyManager: family,
+      dashboardService: dashboard
+    )
+    await sut.loadSummary()
+    XCTAssertNotNil(sut.visibleStatus, "precondition: A's score is showing")
+    XCTAssertEqual(sut.favoriteSchoolName, "A")
+
+    ParentViewingAthleteFixture.selectSecondAthlete(in: family)
+
+    XCTAssertNil(sut.visibleStatus)
+    XCTAssertNil(sut.favoriteSchoolName)
+  }
+
+  func testFirstLoadFailure_forTheNewAthleteStillShowsTheFailureCard() async {
+    await sut.loadSummary()
+    ParentViewingAthleteFixture.selectSecondAthlete(in: family)
+    api.shouldThrowError = true
+
+    await sut.loadSummary()
+
+    XCTAssertTrue(sut.shouldShowNextStepsCard)
+    XCTAssertTrue(sut.summaryCard.stepsUnavailable)
   }
 
   func testSwitchingAthlete_keepsTheCardHiddenUntilTheNewAthleteResolves() async {

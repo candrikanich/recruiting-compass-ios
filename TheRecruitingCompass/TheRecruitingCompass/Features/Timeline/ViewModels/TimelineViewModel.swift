@@ -43,8 +43,8 @@ final class TimelineViewModel {
   /// The what-matters-now request failed: the card must say so rather than claim there is nothing to do.
   private(set) var stepsFailed = false
 
-  var isStatusScoreVisible: Bool { firstRunSignals?.isStatusScoreVisible ?? false }
-  var favoriteSchoolName: String? { firstRunSignals?.favoriteSchoolName }
+  var isStatusScoreVisible: Bool { isLoadedForAthleteOnScreen && firstRunSignals?.isStatusScoreVisible ?? false }
+  var favoriteSchoolName: String? { isLoadedForAthleteOnScreen ? firstRunSignals?.favoriteSchoolName : nil }
 
   /// The next one to three steps for the athlete's grade; empty until the phase is known.
   var nextSteps: [WhatMattersItem] {
@@ -77,20 +77,26 @@ final class TimelineViewModel {
   /// failure message, and it stays up through every later reload (a retry after a failure included) so the list
   /// doesn't jump. It never waits on the counts request: the score is what stays hidden until that lands.
   var shouldShowNextStepsCard: Bool {
-    isPhaseResolvedForAthleteOnScreen || hasSettledForAthleteOnScreen || errorMessage != nil
+    isPhaseResolvedForAthleteOnScreen
+      || hasSettledForAthleteOnScreen
+      || (errorMessage != nil && isLoadedForAthleteOnScreen)
   }
+
+  /// Everything stored here (steps, score, signals, error) was loaded for `loadedAthleteId`; after a switch it must
+  /// not read as the new athlete's before that athlete's load has reset it.
+  private var isLoadedForAthleteOnScreen: Bool { loadedAthleteId == currentAthleteId }
 
   /// `isPhaseResolved` and the stored steps describe `loadedAthleteId`; the moment the selection moves to someone
   /// else they must read as unresolved, before any new load has had the chance to reset them.
   private var isPhaseResolvedForAthleteOnScreen: Bool {
-    isPhaseResolved && loadedAthleteId == currentAthleteId
+    isPhaseResolved && isLoadedForAthleteOnScreen
   }
 
   private var hasSettledForAthleteOnScreen: Bool {
-    hasSettledOnce && loadedAthleteId == currentAthleteId
+    hasSettledOnce && isLoadedForAthleteOnScreen
   }
 
-  /// Set once a summary fetch has finished (success or failure) for `loadedAthleteId`; cleared on a switch.
+  /// Set when a summary fetch fails for `loadedAthleteId` (a success is already `isPhaseResolved`); cleared on a switch.
   private var hasSettledOnce = false
 
   private static let maxNextSteps = 3
@@ -292,7 +298,6 @@ final class TimelineViewModel {
     resetSummaryIfAthleteChanged()
     do {
       try await fetchSummaryUnchecked(for: requestedAthleteId)
-      if isCurrent(requestedAthleteId) { hasSettledOnce = true }
     } catch {
       if isCurrent(requestedAthleteId) {
         isPhaseResolved = false
