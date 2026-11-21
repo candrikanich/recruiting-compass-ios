@@ -34,9 +34,7 @@ final class EmailVerificationBannerViewModel {
     EmailVerificationBannerVisibility.isVisible(
       isVerified: isVerified,
       isDismissed: isDismissed,
-      awaitsGuardianStatus: guardian != nil,
-      guardianLoaded: guardian?.hasLoaded ?? false,
-      guardianLocked: guardian?.isPending ?? false
+      guardian: guardian.map { (loaded: $0.hasLoaded, locked: $0.isPending) }
     )
   }
 

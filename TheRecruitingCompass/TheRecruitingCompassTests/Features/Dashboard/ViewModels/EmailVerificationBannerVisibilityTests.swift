@@ -13,7 +13,7 @@ final class EmailVerificationBannerVisibilityTests: XCTestCase {
   ) -> Bool {
     EmailVerificationBannerVisibility.isVisible(
       isVerified: verified, isDismissed: dismissed,
-      awaitsGuardianStatus: awaits, guardianLoaded: loaded, guardianLocked: locked)
+      guardian: awaits ? (loaded: loaded, locked: locked) : nil)
   }
 
   func testHiddenWhileGuardianConsentPending() {
