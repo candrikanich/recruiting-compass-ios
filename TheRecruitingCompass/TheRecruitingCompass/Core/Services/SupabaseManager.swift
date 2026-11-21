@@ -104,6 +104,11 @@ final class SupabaseManager: SupabaseManaging, @unchecked Sendable {
     return f
   }()
 
+  /// Test seam: lets a service be pointed at a stubbed `SupabaseClient` without touching the prod singleton.
+  init(client: SupabaseClient) {
+    self.client = client
+  }
+
   private init() {
     self.client = SupabaseClient(
       supabaseURL: SupabaseConfig.url,
