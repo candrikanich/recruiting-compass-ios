@@ -8,7 +8,7 @@ struct StatCard: View {
   let count: Int
   var badge: String?
   let icon: String
-  let accent: StatAccent
+  let metric: StatMetric
   let isEnabled: Bool
   let destination: DashboardDestination?
 
@@ -16,9 +16,13 @@ struct StatCard: View {
   @ScaledMetric(relativeTo: .title3) private var iconSize: CGFloat = 20
   @ScaledMetric(relativeTo: .title3) private var chipSize: CGFloat = 32
 
+  private var accent: StatAccent { metric.accent }
+
+  static func stacksHeader(for size: DynamicTypeSize) -> Bool { size.isAccessibilitySize }
+
   /// Accessibility sizes stack the chip above the title so the title keeps the full tile width.
   private var headerLayout: AnyLayout {
-    dynamicTypeSize.isAccessibilitySize
+    Self.stacksHeader(for: dynamicTypeSize)
       ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
       : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
   }
@@ -29,7 +33,7 @@ struct StatCard: View {
         Text(title)
           .font(.brand(.subheadline, weight: .medium))
           .foregroundStyle(Color.Text.secondary)
-        if !dynamicTypeSize.isAccessibilitySize { Spacer() }
+        if !Self.stacksHeader(for: dynamicTypeSize) { Spacer() }
         Image(systemName: icon)
           .font(.system(size: iconSize))
           .foregroundStyle(accent.icon)
@@ -73,7 +77,7 @@ struct StatCard: View {
     count: 12,
     badge: "3 pending",
     icon: "trophy",
-    accent: .forest,
+    metric: .schools,
     isEnabled: true,
     destination: .coaches
   )
