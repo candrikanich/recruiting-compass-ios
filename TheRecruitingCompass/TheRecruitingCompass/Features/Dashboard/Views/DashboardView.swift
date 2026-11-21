@@ -424,7 +424,7 @@ private struct DashboardLoadingSection: View {
           title: String(localized: "Loading"),
           count: 0,
           icon: "circle",
-          accent: StatMetric.schools.accent,
+          metric: .schools,
           isEnabled: false,
           destination: nil
         )
