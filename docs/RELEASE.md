@@ -51,7 +51,7 @@ Copy into the release PR description.
 - [ ] `fastlane submit_release build:<N>` → attaches the Xcode Cloud build and submits.
 - [ ] Immediately after `submit_release`: `fastlane bump_version type:patch` on a branch → PR → merge, so `main`
       is on the next version before Apple approves (`release-status.mjs` reports `needs-bump` from this point).
-      If review rejects the build, fix it on a hotfix branch from the submitted commit (see Hotfixes).
+      If review rejects it, see "Rejected in review" under Hotfixes.
 - [ ] After approval: watch crashes for 48h (Sentry / Xcode Organizer) before phased release passes ~20%.
       Xcode Cloud's archive post-script (`ci_post_xcodebuild.sh`) uploads dSYMs and creates/finalizes the Sentry
       release `<bundle id>@<version>+<build>` with commits attached. Its `SENTRY_AUTH_TOKEN` needs
@@ -78,6 +78,11 @@ Copy into the release PR description.
   (`git cherry-pick <sha>` on a branch → PR) — never merge the hotfix branch, or its older
   `MARKETING_VERSION` conflicts with `main`'s. If `main` was already on the hotfix's version (e.g. both 1.0.2),
   run `fastlane bump_version type:patch` on `main` too, since that version is now taken.
+- **Rejected in review (`REJECTED`, `INVALID_BINARY`, `DEVELOPER_REJECTED`):** the fix is a new build of the **same**
+  version, not a bump. Find the submitted commit (ASC build number → Xcode Cloud run `sourceCommit`), branch from
+  that sha, fix, leave `MARKETING_VERSION` alone, run the Xcode Cloud workflow manually on the branch, submit the new
+  build, then cherry-pick the fix to `main` (it is already on the next version). `METADATA_REJECTED` needs no new
+  build: fix the metadata in App Store Connect and resubmit.
 - **Critical bug in review/live:** App Store Connect → *Contact Us* → **Request Expedited Review**
   (use sparingly — for crashes/data loss, not polish). Meanwhile pause the phased release.
 - **A feature is broken but the app works:** flip its PostHog kill switch (below) — no review needed.

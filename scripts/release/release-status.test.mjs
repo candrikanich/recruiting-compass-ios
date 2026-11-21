@@ -41,12 +41,12 @@ test('submitted version, main already bumped past it → not needs-bump', () => 
   assert.notEqual(stageOf(git({ mainVersion: '1.0.2' }), a), 'needs-bump');
 });
 
-test('bumped main with its own build still prepared is unaffected by an in-review older version', () => {
+test('older version still in review outranks main\'s own prepared version', () => {
   const a = { versions: [
     { version: '1.0.1', state: 'IN_REVIEW', build: '40' },
     { version: '1.0.2', state: 'PREPARE_FOR_SUBMISSION', build: null },
   ], builds: [build(50, 'aaaa1111')] };
-  assert.equal(stageOf(git({ mainVersion: '1.0.2', mainHead: 'aaaa1111' }), a), 'ready-to-submit');
+  assert.equal(stageOf(git({ mainVersion: '1.0.2', mainHead: 'aaaa1111' }), a), 'in-review');
 });
 
 test('rejected version → rejected', () => {
@@ -146,4 +146,79 @@ test('tag on the approved build commit is not flagged', () => {
 
 test('mismatched MARKETING_VERSION → version-conflict', () => {
   assert.equal(stageOf(git({ mainVersion: null, mainVersionConflict: ['1.0', '1.0.1'] }), {}), 'version-conflict');
+});
+
+// Main already bumped to 1.0.2; 1.0.1 is the version that was just submitted.
+const bumped = (state, extra = {}) => ({
+  g: git({ mainVersion: '1.0.2', tags: ['v1.0.0'], tagCommits: {} }),
+  a: { versions: [{ version: '1.0.1', state, build: '40', phased: null }, live10], builds: [build(40, 'bbbb2222'), build(50, 'aaaa1111')], ...extra },
+});
+const stageFor = (state, extra) => { const { g, a } = bumped(state, extra); return decideStage(g, a); };
+
+for (const [state, stage] of [
+  ['IN_REVIEW', 'in-review'],
+  ['WAITING_FOR_REVIEW', 'in-review'],
+  ['REJECTED', 'rejected'],
+  ['METADATA_REJECTED', 'rejected'],
+  ['DEVELOPER_REJECTED', 'rejected'],
+  ['PENDING_DEVELOPER_RELEASE', 'released'],
+  ['PENDING_APPLE_RELEASE', 'approved-held'],
+  ['READY_FOR_SALE', 'released'],
+]) {
+  test(`main bumped past ${state} 1.0.1 → ${stage}, not ready-to-prepare`, () => {
+    assert.equal(stageFor(state).stage, stage);
+  });
+}
+
+test('bumped main: untagged approved version prints the build → commit tag step', () => {
+  assert.match(stageFor('READY_FOR_SALE').next, /Tag the commit build 40 .*bbbb2222.* as v1\.0\.1/);
+});
+
+test('bumped main: approved version already tagged on its build commit falls through to main stages', () => {
+  const { g, a } = bumped('READY_FOR_SALE');
+  const tagged = { ...g, tags: ['v1.0.0', 'v1.0.1'], tagCommits: { 'v1.0.1': 'bbbb2222' } };
+  assert.equal(decideStage(tagged, a).stage, 'ready-to-prepare');
+});
+
+test('bumped main: held version already tagged falls through to main stages', () => {
+  const { g, a } = bumped('PENDING_APPLE_RELEASE');
+  const tagged = { ...g, tags: ['v1.0.0', 'v1.0.1'], tagCommits: { 'v1.0.1': 'bbbb2222' } };
+  assert.equal(decideStage(tagged, a).stage, 'ready-to-prepare');
+});
+
+test('bumped main: rejection says new build of the same version from the submitted commit', () => {
+  const next = stageFor('REJECTED').next;
+  assert.match(next, /SAME version 1\.0\.1/);
+  assert.match(next, /branch from the submitted commit bbbb2222/);
+  assert.match(next, /cherry-pick/);
+  assert.doesNotMatch(next, /bump_version/);
+});
+
+test('metadata rejection needs no new build', () => {
+  const next = stageFor('METADATA_REJECTED').next;
+  assert.match(next, /no new build is needed/);
+  assert.doesNotMatch(next, /SAME version/);
+});
+
+test('rejection of main\'s own version (not bumped) uses the same new-build guidance', () => {
+  const r = decideStage(git(), { versions: [{ version: '1.0.1', state: 'DEVELOPER_REJECTED', build: '40' }], builds: [] });
+  assert.equal(r.stage, 'rejected');
+  assert.match(r.next, /SAME version 1\.0\.1/);
+});
+
+test('only the newest older version is considered', () => {
+  const g = git({ mainVersion: '1.0.3', tags: ['v1.0.0', 'v1.0.1', 'v1.0.2'] });
+  const a = { versions: [
+    { version: '1.0.1', state: 'REJECTED', build: '30' },
+    { version: '1.0.2', state: 'IN_REVIEW', build: '40' },
+  ], builds: [] };
+  assert.equal(decideStage(g, a).stage, 'in-review');
+});
+
+test('bumped main: approved-but-unreleased version asks to release it even when already tagged', () => {
+  const { g, a } = bumped('PENDING_DEVELOPER_RELEASE');
+  const tagged = { ...g, tags: ['v1.0.0', 'v1.0.1'], tagCommits: { 'v1.0.1': 'bbbb2222' } };
+  const r = decideStage(tagged, a);
+  assert.equal(r.stage, 'released');
+  assert.match(r.next, /waiting for you to release it/);
 });

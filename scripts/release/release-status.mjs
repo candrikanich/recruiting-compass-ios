@@ -27,7 +27,7 @@ const REVIEW_STATES = new Set(['WAITING_FOR_REVIEW', 'IN_REVIEW']);
 const APPROVED_STATES = new Set([
   'PENDING_DEVELOPER_RELEASE', 'PROCESSING_FOR_APP_STORE', 'READY_FOR_DISTRIBUTION', 'READY_FOR_SALE',
 ]);
-const REJECTED_STATES = new Set(['REJECTED', 'METADATA_REJECTED', 'INVALID_BINARY']);
+const REJECTED_STATES = new Set(['REJECTED', 'METADATA_REJECTED', 'DEVELOPER_REJECTED', 'INVALID_BINARY']);
 
 // ---------- versions ----------
 
@@ -71,6 +71,55 @@ function tagNote(g, a, version, build) {
   return null;
 }
 
+/** What to do about a rejection. Only a metadata rejection can be fixed without a new build. */
+function rejectionNext(g, a, v) {
+  const head = `${v.version} was rejected (${v.state}). Read Apple's message in App Store Connect → App Review.`;
+  if (v.state === 'METADATA_REJECTED') {
+    return `${head} Fix the metadata in App Store Connect and resubmit; no new build is needed.`;
+  }
+  const commit = a.builds.find((b) => String(b.number) === String(v.build))?.commit ?? null;
+  const from = commit
+    ? `the submitted commit ${commit}`
+    : `the submitted commit (build ${v.build ?? '?'} → its Xcode Cloud run's sourceCommit)`;
+  return `${head} If the app needs a fix, it ships as a new build of the SAME version ${v.version}: branch from ${from}, ` +
+    `fix it, keep MARKETING_VERSION at ${v.version}, run the Xcode Cloud workflow manually on that branch, ` +
+    `submit the new build, then cherry-pick the fix to main (docs/RELEASE.md → Hotfixes).`;
+}
+
+/**
+ * Once main is bumped, the version that was just submitted has no row for main's version. It is the newest version
+ * below main's that is in review, rejected or approved; its stage outranks main's own, because a rejection, an
+ * untagged approval or a pending release needs attention before the next release can be prepared.
+ */
+function pendingOlderStage(g, a, main) {
+  const older = a.versions
+    .filter((v) => compareVersions(v.version, main) < 0)
+    .sort((x, y) => compareVersions(y.version, x.version))[0];
+  if (!older) return null;
+  if (REJECTED_STATES.has(older.state)) return { stage: 'rejected', next: rejectionNext(g, a, older) };
+  if (REVIEW_STATES.has(older.state)) {
+    return {
+      stage: 'in-review',
+      next: `${older.version} (build ${older.build ?? '?'}) is ${older.state}. main is already on ${main}. ` +
+        'Nothing to do until Apple responds (usually under 48h).',
+    };
+  }
+  if (older.state === 'PENDING_APPLE_RELEASE') {
+    const tag = tagNote(g, a, older.version, older.build);
+    return tag
+      ? { stage: 'approved-held', next: `${older.version} passed review; Apple releases it when the matching iOS version ships. ${tag}` }
+      : null;
+  }
+  if (APPROVED_STATES.has(older.state)) {
+    const waiting = older.state === 'PENDING_DEVELOPER_RELEASE';
+    const tag = tagNote(g, a, older.version, older.build);
+    if (!waiting && !tag) return null;
+    const steps = waiting ? [`${older.version} is approved and waiting for you to release it in App Store Connect.`] : [];
+    return { stage: 'released', next: [...steps, tag].filter(Boolean).join(' ') };
+  }
+  return null;
+}
+
 /**
  * Pure: git facts + App Store Connect facts → { stage, next }.
  * g: { mainVersion, mainVersionConflict, mainHead, lastTag, tags, tagCommits, commitsSinceTag, notesReady }
@@ -92,16 +141,15 @@ function decideCore(g, a) {
     };
   }
 
+  const pendingOlder = pendingOlderStage(g, a, main);
+  if (pendingOlder) return pendingOlder;
+
   const forMain = a.versions.find((v) => compareVersions(v.version, main) === 0) ?? null;
   const live = a.versions.find((v) => v.state === 'READY_FOR_SALE') ?? null;
   const headBuild = a.builds.find((b) => sameCommit(b.commit, g.mainHead));
 
   if (forMain && REJECTED_STATES.has(forMain.state)) {
-    return {
-      stage: 'rejected',
-      next: `${main} was rejected (${forMain.state}). Read Apple's message in App Store Connect → App Review, ` +
-        'fix it, then resubmit (with a new build if the app itself changed).',
-    };
+    return { stage: 'rejected', next: rejectionNext(g, a, forMain) };
   }
   if (forMain && REVIEW_STATES.has(forMain.state)) {
     // Submitting attaches the build, so main can move to the next version right away. Waiting for approval
@@ -110,7 +158,7 @@ function decideCore(g, a) {
       stage: 'needs-bump',
       next: `${main} (build ${forMain.build ?? '?'}) is ${forMain.state}. Bump main now, don't wait for approval: ` +
         'fastlane bump_version type:patch (or minor) on a branch → PR. ' +
-        'If Apple rejects it, fix on a hotfix branch from the submitted commit (docs/RELEASE.md → Hotfixes).',
+        'If Apple rejects it, the fix is a new build of the same version from the submitted commit (docs/RELEASE.md → Hotfixes).',
     };
   }
   if (forMain && forMain.state === 'PENDING_APPLE_RELEASE') {
