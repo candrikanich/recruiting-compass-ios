@@ -16,7 +16,7 @@ final class MockPendingAthleteService: PendingAthleteManaging, @unchecked Sendab
     requestedFamilyIds.append(familyUnitId)
     await pendingGate?(familyUnitId)
     if let pendingError { throw pendingError }
-    return pendingByFamily[familyUnitId] ?? nil
+    return pendingByFamily[familyUnitId].flatMap { $0 }
   }
 
   func fetchTaskCatalog(gradeLevel: Int) async throws -> [TaskRow] {
