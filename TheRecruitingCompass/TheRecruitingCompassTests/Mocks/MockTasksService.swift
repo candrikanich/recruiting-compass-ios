@@ -34,11 +34,12 @@ final class MockTasksService: TasksManaging, @unchecked Sendable {
   func fetchAllTasksWithStatus(athleteId: String) async throws -> [Int: [TaskWithStatus]] {
     fetchAllTasksCallCount += 1
     lastFetchAthleteId = athleteId
+    let result = stubbedTasksByGrade ?? [9: stubbedTasks, 10: [], 11: [], 12: []]
     await fetchAllTasksGate?()
     if shouldThrowFetchError {
       throw NSError(domain: "MockError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Fetch failed"])
     }
-    return stubbedTasksByGrade ?? [9: stubbedTasks, 10: [], 11: [], 12: []]
+    return result
   }
 
   func updateTaskStatus(taskId: String, status: TaskStatus, userId: String) async throws -> AthleteTaskStatus {

@@ -9,6 +9,8 @@ private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompas
 enum ProfileServiceError: LocalizedError {
     case notConfigured
     case wrongPassword
+    case sessionExpired
+    case tooManyAttempts
     case serverError(String)
     case networkError(Error)
     case noPendingDeletion
@@ -22,6 +24,10 @@ enum ProfileServiceError: LocalizedError {
             return "Service is not available."
         case .wrongPassword:
             return "Current password is incorrect."
+        case .sessionExpired:
+            return "Your session has expired. Please sign in again."
+        case .tooManyAttempts:
+            return "Too many attempts. Try again later."
         case .serverError(let message):
             return message
         case .networkError:
@@ -237,6 +243,16 @@ final class ProfileServiceImpl: ProfileManaging, Sendable {
             : .serverError("Too many requests. Please wait a moment and try again.")
     }
 
+    /// Only the server's `incorrect_password` code means the typed password was wrong; other 401s
+    /// (invalid/expired token, account without an email) are about the session.
+    static func isIncorrectPassword(body: Data) -> Bool {
+        struct Body: Decodable {
+            struct Payload: Decodable { let code: String? }
+            let data: Payload?
+        }
+        return (try? JSONDecoder().decode(Body.self, from: body))?.data?.code == "incorrect_password"
+    }
+
     /// Picks the server's date-of-birth message out of a failed PATCH /api/user/profile, if it carries one.
     static func dateOfBirthError(from body: Data) -> ProfileServiceError? {
         struct Body: Decodable {
@@ -295,8 +311,11 @@ final class ProfileServiceImpl: ProfileManaging, Sendable {
             throw ProfileServiceError.serverError("Invalid response.")
         }
 
+        if http.statusCode == 429 {
+            throw ProfileServiceError.tooManyAttempts
+        }
         if http.statusCode == 401 {
-            throw ProfileServiceError.wrongPassword
+            throw Self.isIncorrectPassword(body: data) ? ProfileServiceError.wrongPassword : .sessionExpired
         }
         if !(200..<300).contains(http.statusCode) {
             let body = String(data: data, encoding: .utf8) ?? "(unreadable)"

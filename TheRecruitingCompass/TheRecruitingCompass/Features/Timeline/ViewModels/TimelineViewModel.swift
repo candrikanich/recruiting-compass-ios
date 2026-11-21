@@ -156,7 +156,7 @@ final class TimelineViewModel {
       errorMessage = "Unable to load timeline."
       return
     }
-    await coalescing("summary:\(athleteId)") { await self.performSummaryLoad() }
+    await coalescing("summary:\(athleteId)") { await self.performSummaryLoad(athleteId: athleteId) }
   }
 
   /// Joins a load already in flight for the same key instead of starting a second one. The dashboard
@@ -175,7 +175,7 @@ final class TimelineViewModel {
   private func performLoad(athleteId: String) async {
     isLoading = true
     errorMessage = nil
-    defer { isLoading = false }
+    defer { if isCurrent(athleteId) { isLoading = false } }
 
     do {
       async let prefsResult = preferenceService.fetchPreferences(category: .player, userId: athleteId) as PlayerDetails?
@@ -183,31 +183,35 @@ final class TimelineViewModel {
       async let summaryResult: Void = fetchSummary()
 
       let prefs = try await prefsResult
+      guard isCurrent(athleteId) else { return }
       graduationYear = prefs?.graduationYear
       athleteSport = prefs?.primarySport
       athleteGender = prefs?.gender
-      tasksByGrade = try await tasksResult.mapValues { TimelineTaskSort.sorted($0) }
+      let tasksByGrade = try await tasksResult.mapValues { TimelineTaskSort.sorted($0) }
+      guard isCurrent(athleteId) else { return }
+      self.tasksByGrade = tasksByGrade
       try await summaryResult
 
+      guard isCurrent(athleteId) else { return }
       if expandedPhaseGrade == nil {
         expandedPhaseGrade = currentPhase.gradeLevel
       }
     } catch {
       logger.error("Failed to load timeline: \(error.localizedDescription)")
-      errorMessage = "Failed to load timeline. Please try again."
+      if isCurrent(athleteId) { errorMessage = "Failed to load timeline. Please try again." }
     }
   }
 
-  private func performSummaryLoad() async {
+  private func performSummaryLoad(athleteId: String) async {
     isLoading = true
     errorMessage = nil
-    defer { isLoading = false }
+    defer { if isCurrent(athleteId) { isLoading = false } }
 
     do {
       try await fetchSummary()
     } catch {
       logger.error("Failed to load timeline summary: \(error.localizedDescription)")
-      errorMessage = "Failed to load timeline. Please try again."
+      if isCurrent(athleteId) { errorMessage = "Failed to load timeline. Please try again." }
     }
   }
 
