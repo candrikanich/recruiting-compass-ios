@@ -18,6 +18,7 @@ struct DashboardStatsCardsSection: View {
             title: String(localized: "Coaches"),
             count: stats.coachCount,
             icon: "person.2",
+            accent: StatMetric.coaches.accent,
             isEnabled: true,
             destination: .coaches
           )
@@ -35,6 +36,7 @@ struct DashboardStatsCardsSection: View {
             title: String(localized: "Schools"),
             count: stats.schoolCount,
             icon: "building.2",
+            accent: StatMetric.schools.accent,
             isEnabled: true,
             destination: .schools
           )
@@ -52,6 +54,7 @@ struct DashboardStatsCardsSection: View {
             title: String(localized: "Interactions"),
             count: stats.interactionCount,
             icon: "bubble.left.and.bubble.right",
+            accent: StatMetric.interactions.accent,
             isEnabled: true,
             destination: .interactions
           )
@@ -69,6 +72,7 @@ struct DashboardStatsCardsSection: View {
             title: String(localized: "Events"),
             count: stats.upcomingEventCount,
             icon: "calendar",
+            accent: StatMetric.events.accent,
             isEnabled: true,
             destination: nil
           )
