@@ -11,8 +11,8 @@ final class StatCardRenderingTests: XCTestCase {
     let height: Int
     let data: [UInt8]
     func rgb(_ x: Int, _ y: Int) -> [Double] {
-      let i = (y * width + x) * 4
-      return [Double(data[i]) / 255, Double(data[i + 1]) / 255, Double(data[i + 2]) / 255]
+      let offset = (y * width + x) * 4
+      return [Double(data[offset]) / 255, Double(data[offset + 1]) / 255, Double(data[offset + 2]) / 255]
     }
   }
 
