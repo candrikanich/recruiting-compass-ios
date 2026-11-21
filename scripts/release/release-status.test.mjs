@@ -245,13 +245,14 @@ const ownAndOlder = (ownState, older, { tagged = false, ownBuild = '50' } = {}) 
 });
 const decideOwn = (ownState, older, opts) => { const { g, a } = ownAndOlder(ownState, older, opts); return decideStage(g, a); };
 const TAG_OLDER = /Tag the commit build 40 came from \(bbbb2222\) as v1\.0\.1/;
+const ALSO_TAG_LIVE_OLDER = /Also, 1\.0\.1 \(READY_FOR_SALE\): Tag the commit build 40 came from \(bbbb2222\) as v1\.0\.1\./;
 
 for (const ownState of ['WAITING_FOR_REVIEW', 'IN_REVIEW']) {
   test(`main's own ${ownState} 1.0.2 beats an untagged live 1.0.1 → needs-bump, tag step appended`, () => {
     const r = decideOwn(ownState, { state: 'READY_FOR_SALE' });
     assert.equal(r.stage, 'needs-bump');
     assert.match(r.next, new RegExp(`1\\.0\\.2 \\(build 50\\) is ${ownState}\\. Bump main now`));
-    assert.match(r.next, TAG_OLDER);
+    assert.match(r.next, ALSO_TAG_LIVE_OLDER);
   });
 }
 
@@ -259,12 +260,14 @@ for (const [ownState, rx] of [
   ['REJECTED', /SAME version 1\.0\.2: branch from the submitted commit aaaa1111/],
   ['DEVELOPER_REJECTED', /SAME version 1\.0\.2/],
   ['METADATA_REJECTED', /no new build is needed/],
+  ['INVALID_BINARY', /SAME version 1\.0\.2: branch from the submitted commit aaaa1111/],
 ]) {
   test(`main's own ${ownState} 1.0.2 beats an untagged live 1.0.1 → rejected guidance + tag step`, () => {
     const r = decideOwn(ownState, { state: 'READY_FOR_SALE' });
     assert.equal(r.stage, 'rejected');
+    assert.match(r.next, new RegExp(`^1\\.0\\.2 was rejected \\(${ownState}\\)`));
     assert.match(r.next, rx);
-    assert.match(r.next, TAG_OLDER);
+    assert.match(r.next, ALSO_TAG_LIVE_OLDER);
   });
 }
 
@@ -281,6 +284,17 @@ test('main\'s own PENDING_DEVELOPER_RELEASE 1.0.2 keeps its release step while 1
   assert.match(r.next, /1\.0\.2 is approved and waiting for you to release it/);
   assert.match(r.next, TAG_OLDER);
 });
+
+for (const ownState of ['PROCESSING_FOR_APP_STORE', 'READY_FOR_DISTRIBUTION']) {
+  test(`main's own ${ownState} 1.0.2 keeps its own tag and bump steps while 1.0.1 still needs a tag`, () => {
+    const r = decideOwn(ownState, { state: 'READY_FOR_SALE' });
+    assert.equal(r.stage, 'released');
+    assert.match(r.next, /^Tag the commit build 50 came from \(aaaa1111\) as v1\.0\.2\./);
+    assert.match(r.next, /Bump main for the next release/);
+    assert.doesNotMatch(r.next, /waiting for you to release it/);
+    assert.match(r.next, ALSO_TAG_LIVE_OLDER);
+  });
+}
 
 test('main\'s own review stage also reports an untagged held 1.0.1\'s tag step', () => {
   const r = decideOwn('WAITING_FOR_REVIEW', { state: 'PENDING_APPLE_RELEASE' });
