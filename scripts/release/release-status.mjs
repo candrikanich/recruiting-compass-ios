@@ -168,7 +168,7 @@ function decideCore(g, a) {
     if (pendingOlder) return pendingOlder;
   }
   const withOlderTag = (decision) => {
-    const note = ownStageWins ? olderTagNote(g, a, main) : null;
+    const note = olderTagNote(g, a, main);
     return note ? { ...decision, next: `${decision.next} ${note}` } : decision;
   };
   const live = a.versions.find((v) => v.state === 'READY_FOR_SALE') ?? null;
