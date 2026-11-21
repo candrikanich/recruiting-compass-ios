@@ -86,15 +86,18 @@ function rejectionNext(g, a, v) {
     `submit the new build, then cherry-pick the fix to main (docs/RELEASE.md → Hotfixes).`;
 }
 
+/** The newest version below main's: after main is bumped, it is the one that was just submitted. */
+const newestOlder = (a, main) => a.versions
+  .filter((v) => compareVersions(v.version, main) < 0)
+  .sort((x, y) => compareVersions(y.version, x.version))[0] ?? null;
+
 /**
- * Once main is bumped, the version that was just submitted has no row for main's version. It is the newest version
- * below main's that is in review, rejected or approved; its stage outranks main's own, because a rejection, an
- * untagged approval or a pending release needs attention before the next release can be prepared.
+ * Once main is bumped, the version that was just submitted has no row for main's version. When main's own version
+ * isn't past submission yet, the newest older version's stage (in review, rejected, held, approved-but-untagged)
+ * outranks it, because it needs attention before the next release can be prepared.
  */
 function pendingOlderStage(g, a, main) {
-  const older = a.versions
-    .filter((v) => compareVersions(v.version, main) < 0)
-    .sort((x, y) => compareVersions(y.version, x.version))[0];
+  const older = newestOlder(a, main);
   if (!older) return null;
   if (REJECTED_STATES.has(older.state)) return { stage: 'rejected', next: rejectionNext(g, a, older) };
   if (REVIEW_STATES.has(older.state)) {
@@ -120,6 +123,21 @@ function pendingOlderStage(g, a, main) {
   return null;
 }
 
+/** True once a version is in review, rejected, held by Apple or approved, i.e. past submission. */
+const isPastSubmission = (state) => REVIEW_STATES.has(state) || REJECTED_STATES.has(state) ||
+  APPROVED_STATES.has(state) || state === 'PENDING_APPLE_RELEASE';
+
+/**
+ * The newest older version's tag step, for when main's own stage takes the headline. Only an approved or held
+ * older version has a build to tag; an older one in review or rejected can't coexist with main's submitted version.
+ */
+function olderTagNote(g, a, main) {
+  const older = newestOlder(a, main);
+  if (!older || !(APPROVED_STATES.has(older.state) || older.state === 'PENDING_APPLE_RELEASE')) return null;
+  const tag = tagNote(g, a, older.version, older.build);
+  return tag ? `Also, ${older.version} (${older.state}): ${tag}` : null;
+}
+
 /**
  * Pure: git facts + App Store Connect facts → { stage, next }.
  * g: { mainVersion, mainVersionConflict, mainHead, lastTag, tags, tagCommits, commitsSinceTag, notesReady }
@@ -141,25 +159,33 @@ function decideCore(g, a) {
     };
   }
 
-  const pendingOlder = pendingOlderStage(g, a, main);
-  if (pendingOlder) return pendingOlder;
-
   const forMain = a.versions.find((v) => compareVersions(v.version, main) === 0) ?? null;
+  // ASC allows one version in flight, so once main's own version is in review, rejected, held or approved, the older
+  // one can only be approved or live: main's stage wins and the older version's tag step is appended to it.
+  const ownStageWins = forMain !== null && isPastSubmission(forMain.state);
+  if (!ownStageWins) {
+    const pendingOlder = pendingOlderStage(g, a, main);
+    if (pendingOlder) return pendingOlder;
+  }
+  const withOlderTag = (decision) => {
+    const note = ownStageWins ? olderTagNote(g, a, main) : null;
+    return note ? { ...decision, next: `${decision.next} ${note}` } : decision;
+  };
   const live = a.versions.find((v) => v.state === 'READY_FOR_SALE') ?? null;
   const headBuild = a.builds.find((b) => sameCommit(b.commit, g.mainHead));
 
   if (forMain && REJECTED_STATES.has(forMain.state)) {
-    return { stage: 'rejected', next: rejectionNext(g, a, forMain) };
+    return withOlderTag({ stage: 'rejected', next: rejectionNext(g, a, forMain) });
   }
   if (forMain && REVIEW_STATES.has(forMain.state)) {
     // Submitting attaches the build, so main can move to the next version right away. Waiting for approval
     // lets Xcode Cloud upload builds against a train Apple closes on approval (ITMS-90186 / ITMS-90062).
-    return {
+    return withOlderTag({
       stage: 'needs-bump',
       next: `${main} (build ${forMain.build ?? '?'}) is ${forMain.state}. Bump main now, don't wait for approval: ` +
         'fastlane bump_version type:patch (or minor) on a branch → PR. ' +
         'If Apple rejects it, the fix is a new build of the same version from the submitted commit (docs/RELEASE.md → Hotfixes).',
-    };
+    });
   }
   if (forMain && forMain.state === 'PENDING_APPLE_RELEASE') {
     const steps = [
@@ -167,7 +193,7 @@ function decideCore(g, a) {
       tagNote(g, a, main, forMain.build),
       'Safe to bump main now: fastlane bump_version type:patch (or minor) on a branch → PR.',
     ];
-    return { stage: 'approved-held', next: steps.filter(Boolean).join(' ') };
+    return withOlderTag({ stage: 'approved-held', next: steps.filter(Boolean).join(' ') });
   }
   if (forMain && APPROVED_STATES.has(forMain.state)) {
     const steps = [];
@@ -181,7 +207,7 @@ function decideCore(g, a) {
     }
     steps.push(tagNote(g, a, main, forMain.build));
     steps.push('Bump main for the next release: fastlane bump_version type:patch (or minor) on a branch → PR.');
-    return { stage: 'released', next: steps.filter(Boolean).join(' ') };
+    return withOlderTag({ stage: 'released', next: steps.filter(Boolean).join(' ') });
   }
   if (forMain && forMain.state === 'PREPARE_FOR_SUBMISSION') {
     // Only ever suggest the build of main's current commit: an older green build may be a different version.
@@ -295,6 +321,8 @@ async function asc(path, token) {
   return res.json();
 }
 
+// Apple documents no sort parameter for appStoreVersions; decisions rely on the newest versions being inside this
+// window, which is how ASC returns them in practice.
 async function ascState(token) {
   const versions = await asc(
     `/v1/apps/${APP_ID}/appStoreVersions?filter[platform]=IOS&limit=5` +

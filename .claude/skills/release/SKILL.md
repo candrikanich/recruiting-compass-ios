@@ -60,7 +60,7 @@ docs/RELEASE.md "Update gate".
 ## Teaching as you go
 
 He'll get the hang of it over a few versions. Per step, add one short line on *why* when it isn't obvious — e.g.
-"bump now, because App Store Connect rejects new uploads for a version that's already live", or "phased release
+"bump right after submitting, because approval closes that version's train and App Store Connect then rejects new uploads for it", or "phased release
 means only ~1% of users get it on day 1, so a bad crash stays small". Skip the explanations he's clearly already
 absorbed in the conversation.
 
