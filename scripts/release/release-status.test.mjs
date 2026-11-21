@@ -24,9 +24,29 @@ test('versions compare numerically and treat 1.0 == 1.0.0', () => {
   assert.equal(tagFor('1.0'), 'v1.0.0');
 });
 
-test('first release waiting on Apple → in-review', () => {
+test('submitted, waiting on Apple, main not bumped → needs-bump (before approval)', () => {
   const a = { versions: [{ version: '1.0', state: 'WAITING_FOR_REVIEW', build: '32' }] };
-  assert.equal(stageOf(git({ mainVersion: '1.0' }), a), 'in-review');
+  const r = decideStage(git({ mainVersion: '1.0' }), { builds: [], ...a });
+  assert.equal(r.stage, 'needs-bump');
+  assert.match(r.next, /WAITING_FOR_REVIEW.*Bump main now/);
+});
+
+test('submitted and in review, main not bumped → needs-bump', () => {
+  const a = { versions: [{ version: '1.0.1', state: 'IN_REVIEW', build: '40' }] };
+  assert.equal(stageOf(git(), a), 'needs-bump');
+});
+
+test('submitted version, main already bumped past it → not needs-bump', () => {
+  const a = { versions: [{ version: '1.0.1', state: 'WAITING_FOR_REVIEW', build: '40' }] };
+  assert.notEqual(stageOf(git({ mainVersion: '1.0.2' }), a), 'needs-bump');
+});
+
+test('bumped main with its own build still prepared is unaffected by an in-review older version', () => {
+  const a = { versions: [
+    { version: '1.0.1', state: 'IN_REVIEW', build: '40' },
+    { version: '1.0.2', state: 'PREPARE_FOR_SUBMISSION', build: null },
+  ], builds: [build(50, 'aaaa1111')] };
+  assert.equal(stageOf(git({ mainVersion: '1.0.2', mainHead: 'aaaa1111' }), a), 'ready-to-submit');
 });
 
 test('rejected version → rejected', () => {

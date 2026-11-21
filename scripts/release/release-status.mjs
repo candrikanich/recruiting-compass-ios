@@ -104,10 +104,13 @@ function decideCore(g, a) {
     };
   }
   if (forMain && REVIEW_STATES.has(forMain.state)) {
+    // Submitting attaches the build, so main can move to the next version right away. Waiting for approval
+    // lets Xcode Cloud upload builds against a train Apple closes on approval (ITMS-90186 / ITMS-90062).
     return {
-      stage: 'in-review',
-      next: `${main} (build ${forMain.build ?? '?'}) is ${forMain.state}. Nothing to do until Apple responds ` +
-        "(usually under 48h). Keep merging to main, but don't bump the version until it's approved.",
+      stage: 'needs-bump',
+      next: `${main} (build ${forMain.build ?? '?'}) is ${forMain.state}. Bump main now, don't wait for approval: ` +
+        'fastlane bump_version type:patch (or minor) on a branch → PR. ' +
+        'If Apple rejects it, fix on a hotfix branch from the submitted commit (docs/RELEASE.md → Hotfixes).',
     };
   }
   if (forMain && forMain.state === 'PENDING_APPLE_RELEASE') {
