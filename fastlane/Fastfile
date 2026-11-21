@@ -1,6 +1,7 @@
 require "json"
 require "tmpdir"
 require "fileutils"
+require "open3"
 
 default_platform(:ios)
 
@@ -63,6 +64,21 @@ def next_version(version, type)
   end
 end
 
+# The lanes read the version and release notes from this checkout, so it must be exactly the origin/main that
+# Xcode Cloud builds; a stale local main once tried to create an already-released version.
+def ensure_checkout_matches_origin_main!
+  git = ->(*args) { Open3.capture2("git", "-C", REPO_ROOT, *args).first.strip }
+  system("git", "-C", REPO_ROOT, "fetch", "--quiet", "origin", "main") or UI.user_error!("git fetch origin main failed")
+  head = git.call("rev-parse", "HEAD")
+  upstream = git.call("rev-parse", "origin/main")
+  unless head == upstream
+    UI.user_error!("This checkout is at #{head[0, 8]} but origin/main is #{upstream[0, 8]}. " \
+                   "Run `git switch main && git pull --ff-only`, then retry.")
+  end
+  dirty = git.call("status", "--porcelain", "--", "fastlane/metadata", PBXPROJ_PATH)
+  UI.user_error!("Uncommitted changes to the version or App Store text:\n#{dirty}") unless dirty.empty?
+end
+
 def release_notes!
   notes = File.exist?(RELEASE_NOTES_PATH) ? File.read(RELEASE_NOTES_PATH).strip : ""
   UI.user_error!("#{RELEASE_NOTES_PATH} is empty — App Store updates need \"What's New\" text") if notes.empty?
@@ -82,6 +98,7 @@ platform :ios do
 
   desc "Create/refresh the App Store version for the current MARKETING_VERSION with release notes + phased release"
   lane :prepare_release do
+    ensure_checkout_matches_origin_main!
     version = current_marketing_version
     release_notes!
     deliver(
