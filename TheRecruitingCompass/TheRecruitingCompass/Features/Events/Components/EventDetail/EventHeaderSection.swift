@@ -18,11 +18,11 @@ struct EventHeaderSection: View {
 
       Label(formattedDateRange, systemImage: "calendar")
         .accessibilityLabel(String(localized: "Date: \(formattedDateRange)"))
-      if let startTime = event.startTime, !startTime.isEmpty {
-        Label(timeRange(start: startTime, end: event.endTime), systemImage: "clock")
-          .accessibilityLabel(String(localized: "Time: \(timeRange(start: startTime, end: event.endTime))"))
+      if let timeText = timeRangeText {
+        Label(timeText, systemImage: "clock")
+          .accessibilityLabel(String(localized: "Time: \(timeText)"))
       }
-      if let checkinTime = event.checkinTime, !checkinTime.isEmpty {
+      if let checkinTime = TimeOfDay.display(event.checkinTime) {
         Label("Check-in: \(checkinTime)", systemImage: "checkmark.circle")
           .accessibilityLabel(String(localized: "Check-in time: \(checkinTime)"))
       }
@@ -46,8 +46,9 @@ struct EventHeaderSection: View {
     return "Not Registered"
   }
 
-  private func timeRange(start: String, end: String?) -> String {
-    guard let end, !end.isEmpty else { return start }
+  private var timeRangeText: String? {
+    guard let start = TimeOfDay.display(event.startTime) else { return nil }
+    guard let end = TimeOfDay.display(event.endTime) else { return start }
     return "\(start) – \(end)"
   }
 }

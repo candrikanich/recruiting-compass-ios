@@ -27,9 +27,9 @@ struct EditEventData {
       type: EventType(rawValue: event.type),
       startDate: event.startDate,
       endDate: event.endDate ?? "",
-      startTime: event.startTime ?? "",
-      endTime: event.endTime ?? "",
-      checkinTime: event.checkinTime ?? "",
+      startTime: event.startTime.map(TimeOfDay.normalized) ?? "",
+      endTime: event.endTime.map(TimeOfDay.normalized) ?? "",
+      checkinTime: event.checkinTime.map(TimeOfDay.normalized) ?? "",
       schoolId: event.schoolId,
       location: event.location ?? "",
       address: event.address ?? "",
@@ -66,7 +66,8 @@ struct EditEventData {
       registered: registered,
       attended: attended,
       performanceNotes: performanceNotes.isEmpty ? nil : performanceNotes,
-      coachesPresent: nil
+      coachesPresent: nil,
+      writesTimes: true
     )
   }
 }

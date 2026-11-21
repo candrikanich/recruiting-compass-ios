@@ -62,12 +62,9 @@ struct EditEventSheet: View {
         .accessibilityLabel(String(localized: "Start date"))
       TextField("End Date (YYYY-MM-DD)", text: $editData.endDate)
         .accessibilityLabel(String(localized: "End date"))
-      TextField("Start Time", text: $editData.startTime)
-        .accessibilityLabel(String(localized: "Start time"))
-      TextField("End Time", text: $editData.endTime)
-        .accessibilityLabel(String(localized: "End time"))
-      TextField("Check-in Time", text: $editData.checkinTime)
-        .accessibilityLabel(String(localized: "Check-in time"))
+      TimeToggleRow(title: "Start Time", time: $editData.startTime)
+      TimeToggleRow(title: "End Time", time: $editData.endTime)
+      TimeToggleRow(title: "Check-in Time", time: $editData.checkinTime)
     } header: {
       Text("Date & Time")
     }
@@ -138,6 +135,32 @@ struct EditEventSheet: View {
         .accessibilityLabel(String(localized: "Performance notes"))
     } header: {
       Text("Performance")
+    }
+  }
+}
+
+/// Optional time of day: toggle on shows an hour-and-minute picker (like Create Event); off clears the time.
+private struct TimeToggleRow: View {
+  let title: LocalizedStringKey
+  @Binding var time: String
+
+  var body: some View {
+    Toggle(title, isOn: Binding(
+      get: { !time.isEmpty },
+      set: { time = $0 ? TimeOfDay.string(from: .now) : "" }
+    ))
+    .frame(minHeight: 44)
+
+    if !time.isEmpty {
+      DatePicker(
+        title,
+        selection: Binding(
+          get: { TimeOfDay.pickerDate(from: time) ?? .now },
+          set: { time = TimeOfDay.string(from: $0) }
+        ),
+        displayedComponents: .hourAndMinute
+      )
+      .accessibilityLabel(title)
     }
   }
 }

@@ -19,7 +19,7 @@ struct EventRowView: View {
         .font(.brand(.subheadline))
         .foregroundStyle(.secondary)
 
-      if let time = event.startTime, !time.isEmpty {
+      if let time = TimeOfDay.display(event.startTime) {
         Label(time, systemImage: "clock")
           .font(.brand(.subheadline))
           .foregroundStyle(.secondary)
