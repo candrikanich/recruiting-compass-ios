@@ -21,6 +21,9 @@ struct EventUpdateRequest: Encodable, Sendable {
   let attended: Bool?
   let performanceNotes: String?
   let coachesPresent: [String]?
+  /// The edit form always owns all three times: send nil as JSON null so clearing a time reaches the database.
+  /// Partial updates (attended, coaches) leave this false and never touch the times.
+  let writesTimes: Bool
 
   init(
     name: String? = nil,
@@ -42,7 +45,8 @@ struct EventUpdateRequest: Encodable, Sendable {
     registered: Bool? = nil,
     attended: Bool? = nil,
     performanceNotes: String? = nil,
-    coachesPresent: [String]? = nil
+    coachesPresent: [String]? = nil,
+    writesTimes: Bool = false
   ) {
     self.name = name
     self.type = type
@@ -64,6 +68,7 @@ struct EventUpdateRequest: Encodable, Sendable {
     self.attended = attended
     self.performanceNotes = performanceNotes
     self.coachesPresent = coachesPresent
+    self.writesTimes = writesTimes
   }
 
   enum CodingKeys: String, CodingKey {
@@ -77,5 +82,41 @@ struct EventUpdateRequest: Encodable, Sendable {
     case eventSource = "event_source"
     case performanceNotes = "performance_notes"
     case coachesPresent = "coaches_present"
+  }
+}
+
+extension EventUpdateRequest {
+  func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encodeIfPresent(name, forKey: .name)
+    try container.encodeIfPresent(type, forKey: .type)
+    try container.encodeIfPresent(startDate, forKey: .startDate)
+    try container.encodeIfPresent(endDate, forKey: .endDate)
+    try encodeTime(startTime, forKey: .startTime, in: &container)
+    try encodeTime(endTime, forKey: .endTime, in: &container)
+    try encodeTime(checkinTime, forKey: .checkinTime, in: &container)
+    try container.encodeIfPresent(schoolId, forKey: .schoolId)
+    try container.encodeIfPresent(location, forKey: .location)
+    try container.encodeIfPresent(address, forKey: .address)
+    try container.encodeIfPresent(city, forKey: .city)
+    try container.encodeIfPresent(state, forKey: .state)
+    try container.encodeIfPresent(url, forKey: .url)
+    try container.encodeIfPresent(description, forKey: .description)
+    try container.encodeIfPresent(eventSource, forKey: .eventSource)
+    try container.encodeIfPresent(cost, forKey: .cost)
+    try container.encodeIfPresent(registered, forKey: .registered)
+    try container.encodeIfPresent(attended, forKey: .attended)
+    try container.encodeIfPresent(performanceNotes, forKey: .performanceNotes)
+    try container.encodeIfPresent(coachesPresent, forKey: .coachesPresent)
+  }
+
+  private func encodeTime(
+    _ value: String?, forKey key: CodingKeys, in container: inout KeyedEncodingContainer<CodingKeys>
+  ) throws {
+    if writesTimes {
+      try container.encode(value, forKey: key)
+    } else {
+      try container.encodeIfPresent(value, forKey: key)
+    }
   }
 }
