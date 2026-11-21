@@ -198,6 +198,52 @@ final class FamilyAPIClientTests: XCTestCase {
     }
   }
 
+  // MARK: - fetchPendingAthlete (GET /api/family/pending-athlete, web#1540)
+
+  func test_fetchPendingAthlete_getsTheRouteWithFamilyUnitIdAuthAndClientHeaders() async throws {
+    nonisolated(unsafe) var captured: URLRequest?
+    respond(200, #"{"pending":{"athleteFirstName":"Riley","graduationYear":2028}}"#) { captured = $0 }
+
+    let pending = try await makeClient().fetchPendingAthlete(familyId: "fam-1")
+
+    XCTAssertEqual(captured?.httpMethod, "GET")
+    XCTAssertEqual(captured?.url?.path, "/api/family/pending-athlete")
+    let items = captured?.url.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false)?.queryItems }
+    XCTAssertEqual(items?.count, 1)
+    XCTAssertEqual(items?.first?.name, "familyUnitId")
+    XCTAssertEqual(items?.first?.value, "fam-1")
+    XCTAssertEqual(captured?.value(forHTTPHeaderField: "Authorization"), "Bearer tok-1")
+    XCTAssertEqual(captured?.value(forHTTPHeaderField: "X-Client-Platform"), "ios")
+    XCTAssertEqual(pending, PendingAthlete(athleteFirstName: "Riley", graduationYear: 2028))
+  }
+
+  func test_fetchPendingAthlete_nothingStaged_isNil() async throws {
+    respond(200, #"{"pending":null}"#)
+
+    let pending = try await makeClient().fetchPendingAthlete(familyId: "fam-1")
+
+    XCTAssertNil(pending)
+  }
+
+  func test_fetchPendingAthlete_nullFieldsDecodeAsNil() async throws {
+    respond(200, #"{"pending":{"athleteFirstName":null,"graduationYear":null}}"#)
+
+    let pending = try await makeClient().fetchPendingAthlete(familyId: "fam-1")
+
+    XCTAssertEqual(pending, PendingAthlete(athleteFirstName: nil, graduationYear: nil))
+  }
+
+  func test_fetchPendingAthlete_403_throwsServerMessage() async {
+    respond(403, #"{"statusCode":403,"message":"Only a parent can see this"}"#)
+
+    do {
+      _ = try await makeClient().fetchPendingAthlete(familyId: "fam-1")
+      XCTFail("expected throw")
+    } catch {
+      XCTAssertEqual(error.localizedDescription, "Only a parent can see this")
+    }
+  }
+
   private static func read(_ stream: InputStream) -> Data {
     stream.open()
     defer { stream.close() }
