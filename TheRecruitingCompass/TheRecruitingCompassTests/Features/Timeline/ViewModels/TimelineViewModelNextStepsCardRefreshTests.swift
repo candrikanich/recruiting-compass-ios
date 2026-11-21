@@ -140,6 +140,23 @@ final class TimelineViewModelNextStepsCardRefreshTests: XCTestCase {
     XCTAssertNil(sut.favoriteSchoolName)
   }
 
+  func testSwitchingAthlete_afterAFailure_keepsTheCardHiddenUntilTheNewAthleteResolves() async {
+    api.shouldThrowError = true
+    await sut.loadSummary()
+    XCTAssertTrue(sut.shouldShowNextStepsCard, "precondition: the failure card is showing")
+    ParentViewingAthleteFixture.selectSecondAthlete(in: family)
+    api.shouldThrowError = false
+
+    let gate = AsyncGate()
+    let load = await loadHeldAtPhase(gate)
+
+    XCTAssertFalse(sut.shouldShowNextStepsCard)
+
+    gate.open()
+    await load.value
+    XCTAssertTrue(sut.shouldShowNextStepsCard)
+  }
+
   func testFirstLoadFailure_forTheNewAthleteStillShowsTheFailureCard() async {
     await sut.loadSummary()
     ParentViewingAthleteFixture.selectSecondAthlete(in: family)
