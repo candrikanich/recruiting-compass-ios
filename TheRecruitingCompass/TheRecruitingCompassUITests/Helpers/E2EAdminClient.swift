@@ -92,6 +92,17 @@ final class E2EAdminClient {
       .from("schools").select("name, is_favorite").eq("family_unit_id", value: familyUnitId).execute().value
   }
 
+  func guardianClaimEmails(playerUserId: String) async throws -> [String] {
+    struct ClaimRow: Decodable {
+      let guardianEmail: String
+
+      enum CodingKeys: String, CodingKey { case guardianEmail = "guardian_email" }
+    }
+    let rows: [ClaimRow] = try await client
+      .from("guardian_claims").select("guardian_email").eq("player_user_id", value: playerUserId).execute().value
+    return rows.map(\.guardianEmail)
+  }
+
   func onboardingComplete(userId: String) async throws -> Bool {
     let rows: [MilestoneRow] = try await client
       .from("users").select("phase_milestone_data").eq("id", value: userId).execute().value

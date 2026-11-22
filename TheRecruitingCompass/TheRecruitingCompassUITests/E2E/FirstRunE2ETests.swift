@@ -121,6 +121,21 @@ final class FirstRunE2ETests: XCTestCase {
     XCTAssertEqual(status, 403, "A minor with no confirmed guardian cannot message coaches")
   }
 
+  @MainActor
+  func testNewMinorNamingGuardianCreatesGuardianClaim() async throws {
+    let minor = TestUserData.uniquePlayer()
+    let guardianEmail = "guardian+\(Int(Date().timeIntervalSince1970))@example.com"
+    signUpPlayer(minor, birthYear: nil, guardianEmail: guardianEmail)
+    finishPlayerOnboarding(picking: false)
+    requireDashboard("after the minor's onboarding")
+
+    let userId = try await admin.userId(email: minor.email)
+    let claims = try await admin.guardianClaimEmails(playerUserId: userId)
+    XCTAssertEqual(claims, [guardianEmail], "Only the minor signup endpoint records the named guardian's claim")
+    let completed = try await admin.onboardingComplete(userId: userId)
+    XCTAssertTrue(completed)
+  }
+
   /// Signs in over REST and posts a coach message with an unknown school; the response status is all that matters.
   private func coachMessageStatus(email: String, password: String, userId: String) async throws -> Int {
     let base = try XCTUnwrap(URL(string: E2ETestEnvironment.supabaseURL))
@@ -149,7 +164,7 @@ final class FirstRunE2ETests: XCTestCase {
 
   /// Fills the player form. `birthYear` nil keeps the form's default date of birth (15 years ago, a minor, who may
   /// leave the guardian email blank); a year makes an adult.
-  private func signUpPlayer(_ player: TestUserData, birthYear: Int?) {
+  private func signUpPlayer(_ player: TestUserData, birthYear: Int?, guardianEmail: String = "") {
     screen.navigateToSignup()
     screen.selectRole(.player)
     let nameParts = player.fullName.split(separator: " ", maxSplits: 1).map(String.init)
@@ -163,7 +178,7 @@ final class FirstRunE2ETests: XCTestCase {
     let isMinor = birthYear == nil
     // nil stands for the zip code: its number pad has no Return key, so focus moves with the keyboard's Next arrow.
     let typed: [String?] = [nameParts[0], nameParts[1], player.email, nil]
-      + (isMinor ? [""] : []) + [player.password, player.password]
+      + (isMinor ? [guardianEmail] : []) + [player.password, player.password]
     for value in typed {
       guard let value else {
         app.buttons["Next field"].tap()
