@@ -10,7 +10,7 @@ next step.
 ```
 PR → main ──(Xcode Cloud "Default")──▶ build N in TestFlight
                                             │  test on device
-bump_version → release notes → prepare_release → submit_release build:N
+release notes → prepare_release → submit_release build:N → bump_version (main, right away)
                                             │  App Review (~24h)
                                    phased release 7 days → tag vX.Y.Z
 ```
@@ -24,9 +24,9 @@ bump_version → release notes → prepare_release → submit_release build:N
   - `MAJOR` (**2**.0.0): big redesigns / breaking changes. Rare.
 - **Build number:** assigned by Xcode Cloud; never edit `CURRENT_PROJECT_VERSION`. It must only go up —
   if you ever upload a local archive, bump Xcode Cloud's "Next Build Number" above it.
-- **`main` always carries the *next* version.** The moment a version is approved, bump `main`:
-  App Store Connect rejects uploads for a version that is already live, so every Xcode Cloud build would
-  fail until you do.
+- **`main` always carries the *next* version.** The moment a version is submitted, bump `main`: the submitted
+  build is already attached, and once Apple approves it the train closes, so App Store Connect rejects further
+  uploads of that version (ITMS-90186 / ITMS-90062) and every Xcode Cloud build would fail until you do.
 
 ```bash
 fastlane bump_version type:patch   # or minor / major — edits every configuration
@@ -49,14 +49,18 @@ Copy into the release PR description.
       "Backend compatibility").
 - [ ] `fastlane prepare_release` → creates the App Store version, uploads notes, enables phased release.
 - [ ] `fastlane submit_release build:<N>` → attaches the Xcode Cloud build and submits.
+- [ ] Immediately after `submit_release`: `fastlane bump_version type:patch` on a branch → PR → merge, so `main`
+      is on the next version before Apple approves (`release-status.mjs` reports `needs-bump` from this point).
+      If review rejects it, see "Rejected in review" under Hotfixes.
 - [ ] After approval: watch crashes for 48h (Sentry / Xcode Organizer) before phased release passes ~20%.
       Xcode Cloud's archive post-script (`ci_post_xcodebuild.sh`) uploads dSYMs and creates/finalizes the Sentry
       release `<bundle id>@<version>+<build>` with commits attached. Its `SENTRY_AUTH_TOKEN` needs
       `project:releases` + `org:read` (set-commits reads the org's linked repos); a missing token or a Sentry
       failure only logs a warning, never fails the build.
 - [ ] Tag the commit the build came from: `git tag vX.Y.Z <sha> && git push origin vX.Y.Z`
-      (sha = the Xcode Cloud build's commit, shown in App Store Connect → Xcode Cloud → Builds).
-- [ ] `fastlane bump_version type:patch` on a branch → PR → merge, so `main` is on the next version.
+      Not `main`'s head: `main` has moved on since the bump. Find the sha from the approved build: App Store
+      Connect → the version's build number → the Xcode Cloud run with that number → its `sourceCommit`
+      (`release-status.mjs` prints build → commit).
 - [ ] Raise `ios_recommended_version` to the new version once it is 100% rolled out (see below).
 
 `prepare_release` / `submit_release` touch production App Store Connect, so run them yourself
@@ -74,6 +78,11 @@ Copy into the release PR description.
   (`git cherry-pick <sha>` on a branch → PR) — never merge the hotfix branch, or its older
   `MARKETING_VERSION` conflicts with `main`'s. If `main` was already on the hotfix's version (e.g. both 1.0.2),
   run `fastlane bump_version type:patch` on `main` too, since that version is now taken.
+- **Rejected in review (`REJECTED`, `INVALID_BINARY`, `DEVELOPER_REJECTED`):** the fix is a new build of the **same**
+  version, not a bump. Find the submitted commit (ASC build number → Xcode Cloud run `sourceCommit`), branch from
+  that sha, fix, leave `MARKETING_VERSION` alone, run the Xcode Cloud workflow manually on the branch, submit the new
+  build, then cherry-pick the fix to `main` (it is already on the next version). `METADATA_REJECTED` needs no new
+  build: fix the metadata in App Store Connect and resubmit.
 - **Critical bug in review/live:** App Store Connect → *Contact Us* → **Request Expedited Review**
   (use sparingly — for crashes/data loss, not polish). Meanwhile pause the phased release.
 - **A feature is broken but the app works:** flip its PostHog kill switch (below) — no review needed.

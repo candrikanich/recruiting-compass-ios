@@ -25,15 +25,15 @@ something the stage didn't account for (e.g. an error line), say so rather than 
 
 ## 2. Act on the stage
 
-Lead your reply with the stage in plain words ("1.0 is in review — nothing to do yet") and the next step. Then:
+Lead your reply with the stage in plain words ("1.0 is submitted — bump main now, then wait for Apple") and the next step. Then:
 
 | Stage | What you do | What Chris does |
 |---|---|---|
-| `in-review` | Nothing. Mention merges can continue but the version must not be bumped until approval (a rejection would need another build of the same version). | Wait. |
-| `rejected` | Help read and fix the rejection; if code changed, it ships as a new build of the same version. | Paste Apple's message; resubmit after the fix. |
-| `approved-held` | Explain Apple approved it but is holding release until the matching iOS version ships (it goes out automatically). Tag + bump are safe now, same as `released`. | Nothing; wait for Apple's OS release. |
-| `released` | Walk the post-release list in the Next line, in order. You may create the version tag **after he confirms** the commit (`git tag vX.Y.Z <sha> && git push origin vX.Y.Z` — the sha is the commit of the build that was approved; the status report lists build → commit). You may open the bump PR (`fastlane bump_version type:patch` on a branch). | Release it in App Store Connect if pending; watch the rollout. |
-| `needs-bump` | Open the bump PR: branch, `fastlane bump_version type:patch` (minor if features are already merged), commit `chore: bump version to X.Y.Z`, PR. | Merge it. |
+| `in-review` | Main is already bumped; the submitted version is with Apple. Nothing to do. | Wait. |
+| `rejected` | Help read the rejection. Metadata rejection: fix in ASC, no build. Otherwise a new build of the SAME version: branch from the submitted commit (ASC build → Xcode Cloud `sourceCommit`), manual Xcode Cloud run, submit, cherry-pick to main (docs/RELEASE.md → Hotfixes). Applies after the bump too. | Paste Apple's message; resubmit after the fix. |
+| `approved-held` | Explain Apple approved it but is holding release until the matching iOS version ships (it goes out automatically). Tag is safe now; the bump should already be done (`needs-bump` fires at submit). | Nothing; wait for Apple's OS release. |
+| `released` | Walk the post-release list in the Next line, in order. You may create the version tag **after he confirms** the commit (`git tag vX.Y.Z <sha> && git push origin vX.Y.Z` — the sha is the commit of the build that was approved, not main's head, since main has moved on after the bump: ASC build number → Xcode Cloud run `sourceCommit`; the status report lists build → commit). You may open the bump PR (`fastlane bump_version type:patch` on a branch). | Release it in App Store Connect if pending; watch the rollout. |
+| `needs-bump` | Fires as soon as the current version is submitted (`WAITING_FOR_REVIEW`/`IN_REVIEW`), not only after approval, and when main is on an already-live version. Open the bump PR: branch, `fastlane bump_version type:patch` (minor if features are already merged), commit `chore: bump version to X.Y.Z`, PR. Don't wait for Apple: an approved version closes its train and the next Xcode Cloud upload is rejected. | Merge it. Wait for Apple. |
 | `nothing-to-release` | Say so. | Keep building. |
 | `draft-notes` | Invoke the **whats-new** skill, then open a PR with its output. | Edit/approve the wording, merge. |
 | `waiting-for-build` / `build-failed` | Report the build; for failures, fetch the logs if asked (App Store Connect → Xcode Cloud, or the ASC API). | Wait / decide on a fix. |
@@ -60,7 +60,7 @@ docs/RELEASE.md "Update gate".
 ## Teaching as you go
 
 He'll get the hang of it over a few versions. Per step, add one short line on *why* when it isn't obvious — e.g.
-"bump now, because App Store Connect rejects new uploads for a version that's already live", or "phased release
+"bump right after submitting, because approval closes that version's train and App Store Connect then rejects new uploads for it", or "phased release
 means only ~1% of users get it on day 1, so a bad crash stays small". Skip the explanations he's clearly already
 absorbed in the conversation.
 
