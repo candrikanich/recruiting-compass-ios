@@ -43,12 +43,12 @@ final class TimelineViewModel {
   /// The what-matters-now request failed: the card must say so rather than claim there is nothing to do.
   private(set) var stepsFailed = false
 
-  var isStatusScoreVisible: Bool { firstRunSignals?.isStatusScoreVisible ?? false }
-  var favoriteSchoolName: String? { firstRunSignals?.favoriteSchoolName }
+  var isStatusScoreVisible: Bool { isLoadedForAthleteOnScreen && firstRunSignals?.isStatusScoreVisible ?? false }
+  var favoriteSchoolName: String? { isLoadedForAthleteOnScreen ? firstRunSignals?.favoriteSchoolName : nil }
 
   /// The next one to three steps for the athlete's grade; empty until the phase is known.
   var nextSteps: [WhatMattersItem] {
-    isPhaseResolved ? Array(whatMattersItems.prefix(Self.maxNextSteps)) : []
+    isPhaseResolvedForAthleteOnScreen ? Array(whatMattersItems.prefix(Self.maxNextSteps)) : []
   }
 
   /// The score and its server-derived color, or `nil` while it must stay hidden.
@@ -60,11 +60,11 @@ final class TimelineViewModel {
   /// Everything the Home card renders, decided here so the view only passes it through.
   var summaryCard: DashboardTimelineSummaryCard.Content {
     .init(
-      phase: isPhaseResolved ? currentPhase : nil,
+      phase: isPhaseResolvedForAthleteOnScreen ? currentPhase : nil,
       status: visibleStatus,
       favoriteSchoolName: favoriteSchoolName,
       nextSteps: nextSteps,
-      stepsUnavailable: !isPhaseResolved || stepsFailed
+      stepsUnavailable: !isPhaseResolvedForAthleteOnScreen || stepsFailed
     )
   }
 
@@ -73,11 +73,31 @@ final class TimelineViewModel {
     visibleStatus.map { _ in .init(score: statusScoreValue, label: statusLabel) }
   }
 
-  /// Hidden until the phase fetch settles; then shown either with steps or with the failure message. It never waits
-  /// on the counts request (the score is what stays hidden until that lands) and stays up during a reload.
+  /// Hidden until the first phase fetch for the athlete on screen settles; then shown either with steps or with the
+  /// failure message, and it stays up through every later reload (a retry after a failure included) so the list
+  /// doesn't jump. It never waits on the counts request: the score is what stays hidden until that lands.
   var shouldShowNextStepsCard: Bool {
-    isPhaseResolved || errorMessage != nil
+    isPhaseResolvedForAthleteOnScreen
+      || hasSettledForAthleteOnScreen
+      || (errorMessage != nil && isLoadedForAthleteOnScreen)
   }
+
+  /// Everything stored here (steps, score, signals, error) was loaded for `loadedAthleteId`; after a switch it must
+  /// not read as the new athlete's before that athlete's load has reset it.
+  private var isLoadedForAthleteOnScreen: Bool { loadedAthleteId == currentAthleteId }
+
+  /// `isPhaseResolved` and the stored steps describe `loadedAthleteId`; the moment the selection moves to someone
+  /// else they must read as unresolved, before any new load has had the chance to reset them.
+  private var isPhaseResolvedForAthleteOnScreen: Bool {
+    isPhaseResolved && isLoadedForAthleteOnScreen
+  }
+
+  private var hasSettledForAthleteOnScreen: Bool {
+    hasSettledOnce && isLoadedForAthleteOnScreen
+  }
+
+  /// Set when a summary fetch fails for `loadedAthleteId` (a success is already `isPhaseResolved`); cleared on a switch.
+  private var hasSettledOnce = false
 
   private static let maxNextSteps = 3
   @ObservationIgnored private var loadedAthleteId: String?
@@ -221,6 +241,7 @@ final class TimelineViewModel {
     guard loadedAthleteId != currentAthleteId else { return }
     loadedAthleteId = currentAthleteId
     isPhaseResolved = false
+    hasSettledOnce = false
     statusScore = nil
     currentTask = nil
     whatMattersItems = []
@@ -278,7 +299,10 @@ final class TimelineViewModel {
     do {
       try await fetchSummaryUnchecked(for: requestedAthleteId)
     } catch {
-      if isCurrent(requestedAthleteId) { isPhaseResolved = false }
+      if isCurrent(requestedAthleteId) {
+        isPhaseResolved = false
+        hasSettledOnce = true
+      }
       throw error
     }
   }
