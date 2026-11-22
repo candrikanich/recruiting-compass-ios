@@ -52,4 +52,36 @@ struct FirstRunCopyTests {
     #expect(FirstRunCopy.helpFirstSchool.contains("Not sure yet"))
     #expect(FirstRunCopy.helpFirstSchool.contains("favorite"))
   }
+
+  // MARK: - Parent before the athlete joins (web#1540)
+
+  @Test func pendingCopyMatchesWeb() {
+    #expect(FirstRunCopy.pendingStepsHeading(athleteFirstName: "Riley") == "Next steps for Riley")
+    #expect(FirstRunCopy.pendingStepsHeading(athleteFirstName: nil) == "Next steps for your athlete")
+    #expect(
+      FirstRunCopy.pendingStepsNote(athleteFirstName: "Riley")
+        == "Riley will see these, and the school you add, when they join. They complete the steps themselves."
+    )
+    #expect(
+      FirstRunCopy.pendingStepsNote(athleteFirstName: nil)
+        == "They will see these, and the school you add, when they join. They complete the steps themselves."
+    )
+    #expect(FirstRunCopy.pendingTopSchoolLabel == "Top school so far: ")
+  }
+
+  @Test func pendingCardShowsOnlyForAParentWithNoAthleteOnceTheFamilyHasLoaded() {
+    #expect(FirstRunCopy.showsPendingAthleteCard(isParent: true, membership: .member, athleteCount: 0))
+    #expect(!FirstRunCopy.showsPendingAthleteCard(isParent: true, membership: .member, athleteCount: 1))
+    #expect(!FirstRunCopy.showsPendingAthleteCard(isParent: false, membership: .member, athleteCount: 0))
+    for status in [FamilyMembershipStatus.unknown, .none, .failed] {
+      #expect(!FirstRunCopy.showsPendingAthleteCard(isParent: true, membership: status, athleteCount: 0))
+    }
+  }
+
+  @Test func helpExplainsTheParentBeforeAthletePath() {
+    #expect(FirstRunCopy.helpParentBeforeAthlete.contains("before your athlete does"))
+    #expect(FirstRunCopy.helpParentBeforeAthlete.contains("read them but not complete them"))
+    #expect(FirstRunCopy.helpFirstSchool.contains("even before the athlete has joined"))
+    #expect(!FirstRunCopy.helpParentBeforeAthlete.contains("TRC"))
+  }
 }

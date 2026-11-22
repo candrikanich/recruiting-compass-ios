@@ -367,12 +367,12 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     XCTAssertEqual(exit, .schoolStep(athleteUserId: "athlete-7"))
   }
 
-  func testResolveExit_completedWithNoAthlete_goesToTheDashboard() async {
+  func testResolveExit_completedWithNoAthlete_goesToTheSchoolStepWithNoAthlete() async {
     mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
     mockFamilyService.stubbedFamilyMembers = [member(role: "parent")]
     viewModel.didComplete = true
     let exit = await viewModel.resolveExit()
-    XCTAssertEqual(exit, .dashboard)
+    XCTAssertEqual(exit, .schoolStep(athleteUserId: nil))
   }
 
   func testResolveExit_notCompleted_goesToTheDashboardEvenWithAnAthlete() async {
@@ -383,13 +383,13 @@ final class ParentOnboardingWizardViewModelTests: XCTestCase {
     XCTAssertEqual(exit, .dashboard)
   }
 
-  func testResolveExit_membersReadFails_goesToTheDashboard() async {
+  func testResolveExit_membersReadFails_stillGoesToTheSchoolStepButWithNoAthlete() async {
     mockFamilyService.stubbedFamilyUnit = makeFamilyUnit()
     mockFamilyService.stubbedFamilyMembers = [member(role: "player")]
     mockFamilyService.shouldSucceed = false
     viewModel.didComplete = true
     let exit = await viewModel.resolveExit()
-    XCTAssertEqual(exit, .dashboard)
+    XCTAssertEqual(exit, .schoolStep(athleteUserId: nil))
   }
 
   func testResolveExit_secondReportWhileResolving_isIgnored() async throws {

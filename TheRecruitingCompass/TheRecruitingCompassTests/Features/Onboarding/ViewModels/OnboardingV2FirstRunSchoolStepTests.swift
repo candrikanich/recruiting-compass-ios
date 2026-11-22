@@ -330,5 +330,96 @@ struct OnboardingV2ViewModelFirstRunTests {
 
     #expect(vm.searchError == "Couldn't search schools. Check your connection and try again.")
   }
+
+  // MARK: - Parent before the athlete joins (ios#492, web#1540)
+
+  @Test func aParentWithNoAthleteGetsNoRecommendationsAndDismissesNone() async {
+    let recommendations = RecordingRecommendationService()
+    let vm = makeSUT(recommendations: recommendations, role: .parent)
+    let recommendation = SchoolRecommendation(
+      catalogKey: "bgsu", name: "Bowling Green", division: nil, conference: nil,
+      state: nil, website: nil, athleticsUrl: nil, score: 1, reasons: []
+    )
+
+    await vm.loadRecommendations()
+    await vm.dismissRecommendation(recommendation)
+
+    #expect(recommendations.fetchedAthleteIds.isEmpty)
+    #expect(recommendations.dismissedAthleteIds.isEmpty)
+    #expect(vm.recommendations.isEmpty)
+  }
+
+  @Test func aSchoolAddedByAParentWithNoAthleteIsTheFamilysFavorite() async {
+    let repo = SpySchoolsRepository()
+    let vm = makeSUT(repo: repo, role: .parent)
+
+    let added = await vm.pickSchool(ohioState)
+
+    #expect(added)
+    #expect(repo.createCallCount == 1)
+    // Filed under the family, which is what the athlete reads once they join; flagged as the favorite.
+    #expect(repo.lastCreateRequest?.familyUnitId == "family-1")
+    #expect(repo.lastCreateRequest?.userId == "user-1")
+    #expect(repo.lastCreateRequest?.isFavorite == true)
+    #expect(vm.pickedSchoolName == "Ohio State University")
+  }
+
+  @Test func aParentWithNoFamilyYetWritesNothing() async {
+    let repo = SpySchoolsRepository()
+    let family = StubFamilyService()
+    family.stubbedFamilyUnit = nil
+    let vm = makeSUT(repo: repo, familyService: family, role: .parent)
+
+    let added = await vm.pickSchool(ohioState)
+
+    #expect(!added)
+    #expect(repo.createCallCount == 0)
+  }
+
+  @Test func theTeensOwnDetailsBeatWhatTheParentStagedAndAreWhatGetSaved() async {
+    let prefs = RecordingPreferenceService()
+    prefs.storedPlayerDetails = {
+      var details = PlayerDetails.default
+      details.primarySport = "Soccer"
+      details.graduationYear = 2030
+      return details
+    }()
+    let vm = OnboardingV2ViewModel(
+      onboardingService: MockOnboardingService(),
+      preferenceService: prefs,
+      authManager: makeAuth(),
+      schoolsRepository: SpySchoolsRepository(),
+      recommendationService: RecordingRecommendationService(),
+      familyService: StubFamilyService(),
+      ncaaDatabase: StubNcaaDatabase(),
+      collegeScorecardService: StubCollegeScorecardService(),
+      faviconService: SpyFaviconService()
+    )
+    vm.primarySport = "Baseball"
+    vm.graduationYear = 2028
+
+    await vm.loadExistingData()
+    let saved = await vm.saveStep1()
+
+    #expect(saved)
+    #expect(prefs.lastSavedPlayerDetails?.primarySport == "Baseball")
+    #expect(prefs.lastSavedPlayerDetails?.graduationYear == 2028)
+  }
+}
+
+final class RecordingPreferenceService: PreferenceManaging, @unchecked Sendable {
+  var storedPlayerDetails: PlayerDetails?
+  private(set) var lastSavedPlayerDetails: PlayerDetails?
+
+  func fetchPreferences<T: Codable>(category: PreferenceCategory, userId: String?) async throws -> T? {
+    category == .player ? storedPlayerDetails as? T : nil
+  }
+
+  func savePreferences<T: Codable>(category: PreferenceCategory, userId: String?, data: T) async throws -> T {
+    if category == .player { lastSavedPlayerDetails = data as? PlayerDetails }
+    return data
+  }
+
+  func deletePreferences(category: PreferenceCategory) async throws {}
 }
 }

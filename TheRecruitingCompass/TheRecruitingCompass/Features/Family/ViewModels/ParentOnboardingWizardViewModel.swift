@@ -184,22 +184,24 @@ final class ParentOnboardingWizardViewModel {
   /// Where the parent goes when the wizard closes.
   enum ExitDestination: Equatable {
     case dashboard
-    /// The first-run school step, for the connected athlete with this user id.
-    case schoolStep(athleteUserId: String)
+    /// The first-run school step. `athleteUserId` is the connected athlete, nil while none has joined: the school
+    /// is written to the family either way, and only the athlete's recommendations depend on it.
+    case schoolStep(athleteUserId: String?)
   }
 
   private var hasResolvedExit = false
 
-  /// The school step is only offered after the details were saved AND an athlete has already joined the
-  /// family; Cancel, or a failed members read, goes to the dashboard and no school is ever written.
+  /// The school step is offered once the details were saved, whether or not an athlete has joined; Cancel goes to
+  /// the dashboard and no school is ever written. A failed members read just means no athlete id, so no
+  /// recommendations, never a school filed anywhere but the family.
   /// Only the first report counts: the wizard reports both Cancel and completion, so a later one returns
   /// nil and must not finish onboarding twice or reroute a parent who already left.
   func resolveExit() async -> ExitDestination? {
     guard !hasResolvedExit else { return nil }
     hasResolvedExit = true
 
-    guard didComplete, let athlete = await connectedAthlete() else { return .dashboard }
-    return .schoolStep(athleteUserId: athlete.userId)
+    guard didComplete else { return .dashboard }
+    return .schoolStep(athleteUserId: await connectedAthlete()?.userId)
   }
 
   private func connectedAthlete() async -> FamilyMember? {

@@ -38,14 +38,13 @@ extension OnboardingGate {
     return signup == .ordinary ? .wizard : .schoolStepOnly
   }
 
-  /// Where an invited parent goes: the school step for the athlete already in the family, else the dashboard.
+  /// Where an invited parent goes: the school step, for the athlete already in the family if there is one.
   /// Nil for the wizard route, which decides its own exit.
   static func invitedParentDestination(
     for route: ParentFirstRun, members: [FamilyMember]
   ) -> ParentOnboardingWizardViewModel.ExitDestination? {
     guard route == .schoolStepOnly else { return nil }
-    guard let athlete = FirstRunCopy.connectedAthlete(in: members) else { return .dashboard }
-    return .schoolStep(athleteUserId: athlete.userId)
+    return .schoolStep(athleteUserId: FirstRunCopy.connectedAthlete(in: members)?.userId)
   }
 }
 
