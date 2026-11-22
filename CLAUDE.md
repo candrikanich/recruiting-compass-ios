@@ -72,6 +72,9 @@ Views call `SchoolsFactory.makeListViewModel()` (etc.). Do not construct `School
 - **@MainActor** = Required on all ViewModels; Services are NOT @MainActor
 - **Protocol-based DI** = All services have protocol interfaces for testing
 
+**Platform floor:** the app targets **iOS 18.0** in Swift 5 language mode. The vendored `swiftui-pro` skill assumes
+iOS 26; any API newer than iOS 18 needs an `#available` check with a fallback, and don't propose raising the target.
+
 ---
 
 ## Accessibility (WCAG AA Compliant)

@@ -17,7 +17,8 @@ When a field, data pill, section, action, template list, or option set changes o
 
 1. Locate the equivalent screen on the other platform before writing code.
 2. Apply the same change there in the same pass.
-3. Commit and push both repos in the same turn (Chris says "commit both and push both").
+3. Ship both in the same turn: a branch and PR in each repo (iOS off `main`, web off `develop`), each PR linking its
+   twin. Use a plain `git worktree add` per repo rather than `EnterWorktree`, which locks git operations to one repo.
 4. If the other platform is not editable from this session, produce a handoff spec instead - use the `web-to-ios-handoff` skill - and say explicitly that the other platform is still pending.
 
 Don't ask whether to also do the other platform. Do it, then report both.

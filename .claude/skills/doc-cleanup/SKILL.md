@@ -6,7 +6,25 @@ trigger: manual or cron
 
 # Doc Cleanup
 
-Read `.doc-cleanup-manifest.json` from the repo root. If it doesn't exist, tell the user to run `node scripts/doc-cleanup/scanner.mjs` first. Then execute the three passes below autonomously — no confirmation needed.
+Execute the setup and three passes below autonomously — no confirmation needed.
+
+## Setup
+
+1. **Regenerate the manifest every run**, even if one exists — it is gitignored and a leftover copy can be months old,
+   listing paths that are gone or have since become active docs:
+
+   ```bash
+   node scripts/doc-cleanup/scanner.mjs
+   ```
+
+   Then read `.doc-cleanup-manifest.json` from the repo root.
+
+2. **Work on a branch, never `main`** — `main` takes changes only through PRs. Branch from the current checkout so
+   the scoped staging below still applies:
+
+   ```bash
+   git switch -c "chore/doc-cleanup-$(date +%F)"
+   ```
 
 ---
 
@@ -71,9 +89,13 @@ Log each compression: `Compressed: <filename> → docs/history/<domain>.md`
 
 ## Pass 3 — Review
 
+> **Scale rule:** if `manifest.review[]` has **more than ~30 files**, do NOT read them inline — it blows the main context. Delegate: split the list into batches of ~30 and dispatch one classification subagent per batch **in a single message** (parallel). Each subagent reads + classifies its batch and returns ONLY a compact table `| path | classification | domain | summary |` (fill domain+summary for compress rows; brief reason for delete rows) — it does NOT edit or delete anything. The main thread then executes all writes/deletes itself from the returned tables. Prefer `general-purpose` subagents over `Explore` for this — read-only search agents have stalled on the 600s stream watchdog for large batches; if one stalls, retry it as `general-purpose`. Below ~30 files, just read and classify inline.
+>
+> When classifying, merge obvious design+implementation pairs into a single history entry (one feature, one entry). For undated docs, use an approximate era date in the `## YYYY-MM-DD` heading rather than the run date.
+
 For each file in `manifest.review[]`:
 
-1. Read the file
+1. Read the file (or receive its classification from a batch subagent per the scale rule above)
 2. Classify:
    - **keep** — future-looking, actively referenced, open checklists, security/audit docs, guides, launch plans, RLS policies. **When in doubt, keep.**
    - **compress** — clearly completed work with a concrete outcome → process identically to Pass 2
@@ -122,8 +144,10 @@ if [ -n "$offenders" ] || echo "$staged" | grep -q 'SupabaseConfig.generated.swi
 fi
 ```
 
-**3. Commit** only after the gate passes:
+**3. Commit** only after the gate passes, then open a PR against `main`:
 
 ```bash
 git commit -m "chore: doc cleanup run YYYY-MM-DD"
+git push -u origin HEAD
+gh pr create --base main --title "chore: doc cleanup run YYYY-MM-DD" --body "<the COMPLETED_WORK.md entry>"
 ```
