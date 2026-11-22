@@ -64,6 +64,23 @@ interaction). A class belongs there only if its failure would block a release.
 A smoke test that hits `XCTSkip` (e.g. "Login failed") still reports green —
 read the skip count before trusting a pass.
 
+## First-run E2E (`FirstRunE2ETests`)
+
+Runs a real signup through first-run for a parent (picks a school, skips, relaunches), an adult player and a
+minor, and asserts the family, school (`is_favorite`) and `onboarding_complete` through a service-role client
+(`E2EAdminClient`: loopback only, key from `E2E_SUPABASE_SERVICE_ROLE_KEY`, never defaulted).
+
+Signup and the school search go through the web API, so it needs the web dev server (pointed at the throwaway
+stack, ports 4632x) and its College Scorecard key, and `TEST_RUNNER_E2E_API_BASE_URL` set to it:
+
+```bash
+TEST_RUNNER_E2E_API_BASE_URL=http://localhost:3613 \
+  scripts/e2e/nightly-local.sh --only-testing TheRecruitingCompassUITests/FirstRunE2ETests
+```
+
+Not covered: an invited parent. The invite link opens the app only through a universal link, which a simulator
+cannot receive for a local host.
+
 ## Why local only (and how it's enforced)
 
 The web repo's `.env` points at the **production** Supabase project, and a
