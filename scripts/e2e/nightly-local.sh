@@ -428,6 +428,7 @@ run_attempt() {
   # the prefix, and E2ETestEnvironment reads E2E_SUPABASE_URL / _ANON_KEY.
   TEST_RUNNER_E2E_SUPABASE_URL="$SUPABASE_URL" \
   TEST_RUNNER_E2E_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+  TEST_RUNNER_E2E_SUPABASE_SERVICE_ROLE_KEY="$SUPABASE_SERVICE_ROLE_KEY" \
   xcodebuild test-without-building \
     -project "$IOS_DIR/TheRecruitingCompass/TheRecruitingCompass.xcodeproj" \
     -scheme TheRecruitingCompass \
