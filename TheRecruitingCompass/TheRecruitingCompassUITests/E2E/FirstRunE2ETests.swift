@@ -42,7 +42,7 @@ final class FirstRunE2ETests: XCTestCase {
 
     pickFirstRunSchool()
     tapFirstRunFinish()
-    try requireDashboard("after picking a school")
+    requireDashboard("after picking a school")
 
     let userId = try await admin.userId(email: parent.email)
     let familyId = try await admin.familyUnitId(userId: userId)
@@ -54,7 +54,7 @@ final class FirstRunE2ETests: XCTestCase {
 
     launchFresh()
     app.loginAsParent(email: parent.email, password: parent.password)
-    try requireDashboard("after relaunch and login")
+    requireDashboard("after relaunch and login")
     XCTAssertFalse(app.descendants(matching: .any)["onboardingStepTwo"].exists, "First-run is not shown again")
   }
 
@@ -65,7 +65,7 @@ final class FirstRunE2ETests: XCTestCase {
     completeParentWizard(athleteFirstName: "Skipschool")
 
     tapFirstRunFinish()
-    try requireDashboard("after skipping the school step")
+    requireDashboard("after skipping the school step")
 
     let userId = try await admin.userId(email: parent.email)
     let familyId = try await admin.familyUnitId(userId: userId)
@@ -76,7 +76,7 @@ final class FirstRunE2ETests: XCTestCase {
 
     launchFresh()
     app.loginAsParent(email: parent.email, password: parent.password)
-    try requireDashboard("after relaunch and login")
+    requireDashboard("after relaunch and login")
     XCTAssertFalse(app.descendants(matching: .any)["onboardingStepTwo"].exists, "First-run is not shown again")
   }
 
@@ -87,12 +87,12 @@ final class FirstRunE2ETests: XCTestCase {
     let player = TestUserData.uniquePlayer()
     signUpPlayer(player, birthYear: Calendar.current.component(.year, from: .now) - 19)
     finishPlayerOnboarding(picking: true)
-    try requireDashboard("after player onboarding")
+    requireDashboard("after player onboarding")
 
     let userId = try await admin.userId(email: player.email)
     let memberships = try await admin.memberships(userId: userId)
     XCTAssertEqual(memberships.map(\.role), ["player"], "The player owns a family as a player")
-    let schools = try await admin.schools(familyUnitId: memberships[0].familyUnitId)
+    let schools = try await admin.schools(familyUnitId: try XCTUnwrap(memberships.first).familyUnitId)
     XCTAssertEqual(schools.map(\.name), [expectedSchool])
     XCTAssertEqual(schools.first?.isFavorite, true, "The player's picked school is starred")
     let completed = try await admin.onboardingComplete(userId: userId)
@@ -106,18 +106,43 @@ final class FirstRunE2ETests: XCTestCase {
     let minor = TestUserData.uniquePlayer()
     signUpPlayer(minor, birthYear: nil)
     finishPlayerOnboarding(picking: false)
-    try requireDashboard("after the minor's onboarding")
-
-    let banner = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'parent or guardian'")).firstMatch
-    require(banner, "the dashboard's parent or guardian banner for a minor with no guardian")
+    requireDashboard("after the minor's onboarding")
 
     let userId = try await admin.userId(email: minor.email)
     let memberships = try await admin.memberships(userId: userId)
     XCTAssertEqual(memberships.map(\.role), ["player"])
-    let schools = try await admin.schools(familyUnitId: memberships[0].familyUnitId)
+    let schools = try await admin.schools(familyUnitId: try XCTUnwrap(memberships.first).familyUnitId)
     XCTAssertTrue(schools.isEmpty, "Skipping adds no school")
     let completed = try await admin.onboardingComplete(userId: userId)
     XCTAssertTrue(completed)
+    // Only the minor signup endpoint leaves the account guardian-locked: the server refuses a coach message from
+    // a minor with no confirmed guardian before it looks at the school, and an adult account never gets a 403.
+    let status = try await coachMessageStatus(email: minor.email, password: minor.password, userId: userId)
+    XCTAssertEqual(status, 403, "A minor with no confirmed guardian cannot message coaches")
+  }
+
+  /// Signs in over REST and posts a coach message with an unknown school; the response status is all that matters.
+  private func coachMessageStatus(email: String, password: String, userId: String) async throws -> Int {
+    let base = try XCTUnwrap(URL(string: E2ETestEnvironment.supabaseURL))
+    var login = URLRequest(url: base.appending(path: "auth/v1/token").appending(queryItems: [
+      URLQueryItem(name: "grant_type", value: "password")]))
+    login.httpMethod = "POST"
+    login.setValue(E2ETestEnvironment.supabaseAnonKey, forHTTPHeaderField: "apikey")
+    login.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    login.httpBody = try JSONSerialization.data(withJSONObject: ["email": email, "password": password])
+    let (loginData, _) = try await URLSession.shared.data(for: login)
+    let token = try XCTUnwrap(
+      (try JSONSerialization.jsonObject(with: loginData) as? [String: Any])?["access_token"] as? String)
+
+    let apiBase = try XCTUnwrap(URL(string: ProcessInfo.processInfo.environment["E2E_API_BASE_URL"] ?? ""))
+    var request = URLRequest(url: apiBase.appending(path: "api/athlete/messages"))
+    request.httpMethod = "POST"
+    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    request.httpBody = try JSONSerialization.data(withJSONObject: [
+      "athleteUserId": userId, "schoolId": "00000000-0000-0000-0000-000000000000", "body": "hello"])
+    let (_, response) = try await URLSession.shared.data(for: request)
+    return (response as? HTTPURLResponse)?.statusCode ?? -1
   }
 
   // MARK: - Driving the app
@@ -301,7 +326,7 @@ final class FirstRunE2ETests: XCTestCase {
     finish.tap()
   }
 
-  private func requireDashboard(_ moment: String) throws {
+  private func requireDashboard(_ moment: String) {
     app.dismissSavePasswordPrompt(timeout: 2)
     let dashboard = app.navigationBars["Dashboard"]
     require(dashboard, "the dashboard \(moment)", timeout: 30)
