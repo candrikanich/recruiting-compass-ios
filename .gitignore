@@ -79,3 +79,6 @@ fastlane/test_output/
 Makefile.local
 # scripts/run-ios-tests.sh DerivedData and logs
 .build/
+
+# harness-eval skill run outputs (local audit reports)
+.harness-eval/
