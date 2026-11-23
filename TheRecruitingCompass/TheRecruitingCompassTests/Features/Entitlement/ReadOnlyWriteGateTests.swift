@@ -120,6 +120,77 @@ final class WriteGateTests: XCTestCase {
     }
   }
 
+  /// Web (web#1234) copies these strings word for word.
+  func testNoticeCopy_isPinnedWordForWord() {
+    XCTAssertEqual(WriteGate.noticeTitle, "Read-only plan")
+    XCTAssertEqual(
+      WriteGate.subscriptionMessage,
+      "Your plan is read-only right now. Renew your subscription to add or change anything."
+    )
+    XCTAssertEqual(WriteGate.viewPlanButton, "View plan")
+    XCTAssertEqual(WriteGate.closeButton, "Close")
+  }
+
+  func testMapping_followsCannotWriteWhileBlockingFollowsIsReadOnly() {
+    let gate = WriteGate()
+    gate.isReadOnly = { false }
+    gate.cannotWrite = { true }
+    XCTAssertFalse(gate.blocksWrite())
+    XCTAssertEqual(gate.subscriptionMessage(for: rlsDenied), subscriptionMessage)
+    XCTAssertEqual(gate.subscriptionMessage(for: httpError(status: 403)), subscriptionMessage)
+    XCTAssertNil(gate.subscriptionMessage(for: httpError(status: 500)))
+
+    gate.isReadOnly = { true }
+    gate.cannotWrite = { false }
+    XCTAssertTrue(gate.blocksWrite())
+    XCTAssertNil(gate.subscriptionMessage(for: rlsDenied))
+  }
+
+  func testAttach_failedPlanLoad_mapsButNeverBlocks() async {
+    struct Boom: Error {}
+    let service = MockEntitlementService()
+    service.error = Boom()
+    let store = EntitlementStore(service: service)
+    await store.load(familyUnitId: "fam-1")
+    let gate = WriteGate()
+    gate.attach(to: store)
+    XCTAssertFalse(gate.blocksWrite())
+    XCTAssertEqual(gate.subscriptionMessage(for: rlsDenied), subscriptionMessage)
+  }
+
+  func testAttach_planStillLoading_mapsButNeverBlocks() {
+    let gate = WriteGate()
+    gate.attach(to: EntitlementStore(service: MockEntitlementService()))
+    XCTAssertFalse(gate.blocksWrite())
+    XCTAssertEqual(gate.subscriptionMessage(for: rlsDenied), subscriptionMessage)
+  }
+
+  func testAttach_writablePlan_neverBlocksOrMaps() async {
+    let service = MockEntitlementService()
+    service.subscription = FamilySubscription(
+      familyUnitId: "fam-1", status: .active, source: "test", trialEndsAt: nil, currentPeriodEnd: nil
+    )
+    let store = EntitlementStore(service: service)
+    await store.load(familyUnitId: "fam-1")
+    let gate = WriteGate()
+    gate.attach(to: store)
+    XCTAssertFalse(gate.blocksWrite())
+    XCTAssertNil(gate.subscriptionMessage(for: rlsDenied))
+  }
+
+  func testAttach_readOnlyPlan_blocksAndMaps() async {
+    let service = MockEntitlementService()
+    service.subscription = FamilySubscription(
+      familyUnitId: "fam-1", status: .readOnly, source: "test", trialEndsAt: nil, currentPeriodEnd: nil
+    )
+    let store = EntitlementStore(service: service)
+    await store.load(familyUnitId: "fam-1")
+    let gate = WriteGate()
+    gate.attach(to: store)
+    XCTAssertTrue(gate.blocksWrite())
+    XCTAssertEqual(gate.subscriptionMessage(for: rlsDenied), subscriptionMessage)
+  }
+
   func testSubscriptionCopy_followsTheVoiceGuide() {
     XCTAssertFalse(subscriptionMessage.contains("TRC"))
     XCTAssertFalse(subscriptionMessage.lowercased().contains("permission"))
@@ -322,6 +393,59 @@ final class ReadOnlyEventsViewModelTests: XCTestCase {
     XCTAssertFalse(open.writeGate.isShowingNotice)
     holder.append(contentsOf: [blocked, open])
   }
+
+  func testCanStartDeleteEvent_readOnlyBlocksWritableAllows() {
+    let blocked = EventsListViewModel(eventsService: service, authManager: auth, cache: InMemoryCache())
+    blocked.writeGate.isReadOnly = { true }
+    XCTAssertFalse(blocked.canStartDeleteEvent())
+    XCTAssertTrue(blocked.writeGate.isShowingNotice)
+
+    let open = EventsListViewModel(eventsService: service, authManager: auth, cache: InMemoryCache())
+    open.writeGate.isReadOnly = { false }
+    XCTAssertTrue(open.canStartDeleteEvent())
+    XCTAssertFalse(open.writeGate.isShowingNotice)
+    holder.append(contentsOf: [blocked, open])
+  }
+
+  func testDeleteEvent_readOnly_makesNoCallAndKeepsTheRow() async {
+    let vm = EventsListViewModel(eventsService: service, authManager: auth, cache: InMemoryCache())
+    vm.events = [.mock(id: "e1")]
+    vm.writeGate.isReadOnly = { true }
+    await vm.deleteEvent(id: "e1")
+    XCTAssertEqual(service.deleteEventCallCount, 0)
+    XCTAssertEqual(vm.events.map(\.id), ["e1"])
+    XCTAssertTrue(vm.writeGate.isShowingNotice)
+    holder.append(vm)
+  }
+
+  func testDeleteEvent_writable_removesTheRow() async {
+    let vm = EventsListViewModel(eventsService: service, authManager: auth, cache: InMemoryCache())
+    vm.events = [.mock(id: "e1")]
+    vm.writeGate.isReadOnly = { false }
+    await vm.deleteEvent(id: "e1")
+    XCTAssertEqual(service.deleteEventCallCount, 1)
+    XCTAssertTrue(vm.events.isEmpty)
+    holder.append(vm)
+  }
+
+  /// The plan has not loaded (or failed to load), so nothing blocks the write; the server then refuses it.
+  func testCreateEvent_planNotKnown_refusedByServer_showsSubscriptionMessage() async {
+    let vm = makeCreate(readOnly: false)
+    vm.writeGate.isReadOnly = { false }
+    vm.writeGate.cannotWrite = { true }
+    service.createEventError = rlsDenied
+    _ = await vm.createEvent()
+    XCTAssertEqual(service.createEventCallCount, 1)
+    XCTAssertEqual(vm.errorMessage, subscriptionMessage)
+  }
+
+  func testCreateEvent_planKnownWritable_refusedByServer_keepsPermissionMessage() async {
+    let vm = makeCreate(readOnly: false)
+    vm.writeGate.cannotWrite = { false }
+    service.createEventError = rlsDenied
+    _ = await vm.createEvent()
+    XCTAssertTrue(vm.errorMessage?.contains("permission") == true)
+  }
 }
 
 // MARK: - Offers
@@ -463,6 +587,7 @@ final class ReadOnlyOffersViewModelTests: XCTestCase {
     XCTAssertEqual(service.deleteOfferCallCount, 0)
     XCTAssertEqual(vm.allOffers.count, 1)
     XCTAssertFalse(vm.showDeleteConfirmation)
+    XCTAssertNil(vm.offerToDelete)
   }
 
   func testDeleteOffer_refusedOnReadOnlyPlan_showsSubscriptionMessage() async {

@@ -263,6 +263,7 @@ struct EventsListView: View {
     .accessibilityLabel(rowAccessibilityLabel(event))
     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
       Button(role: .destructive) {
+        guard viewModel.canStartDeleteEvent() else { return }
         hapticLightTrigger += 1
         eventToDelete = event
       } label: {

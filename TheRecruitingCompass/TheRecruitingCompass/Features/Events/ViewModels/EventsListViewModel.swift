@@ -291,7 +291,14 @@ final class EventsListViewModel {
     dateRangeFilter = .all
   }
 
+  /// False, with the subscription notice showing, when a read-only plan means an event cannot be deleted. A refused
+  /// delete removes no rows and returns no error, so without this the row would vanish and reappear on refresh.
+  func canStartDeleteEvent() -> Bool {
+    !writeGate.blocksWrite()
+  }
+
   func deleteEvent(id: String) async {
+    guard !writeGate.blocksWrite() else { return }
     do {
       try await eventsService.deleteEvent(id: id)
       events.removeAll { $0.id == id }

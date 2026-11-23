@@ -16,10 +16,10 @@ private struct WriteGatedModifier: ViewModifier {
     Color.clear
       .allowsHitTesting(false)
       .accessibilityHidden(true)
-      .onAppear { gate.isReadOnly = { [entitlementStore] in entitlementStore.isReadOnly } }
+      .onAppear { gate.attach(to: entitlementStore) }
       .alert(WriteGate.noticeTitle, isPresented: $gate.isShowingNotice) {
-        Button("View plan") { isShowingPlan = true }
-        Button("Close", role: .cancel) {}
+        Button(WriteGate.viewPlanButton) { isShowingPlan = true }
+        Button(WriteGate.closeButton, role: .cancel) {}
       } message: {
         Text(WriteGate.subscriptionMessage)
       }
