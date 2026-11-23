@@ -30,6 +30,7 @@ final class SchoolsRepositoryImpl: SchoolsRepository, Sendable {
       .value
 
     logger.info("School created: \(result.id)")
+    RecordAnalytics.schoolAdded(division: result.division)
     return result
   }
 

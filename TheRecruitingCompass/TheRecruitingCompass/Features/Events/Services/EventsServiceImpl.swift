@@ -222,6 +222,7 @@ final class EventsServiceImpl: EventsManaging, Sendable {
         .execute()
         .value
       logger.info("School created: \(result.id)")
+      RecordAnalytics.schoolAdded(division: nil)
       return result
     } catch {
       logger.error("createSchool failed: \(error.localizedDescription)")
