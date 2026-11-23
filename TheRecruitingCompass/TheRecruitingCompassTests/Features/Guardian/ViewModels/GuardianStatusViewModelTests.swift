@@ -78,6 +78,21 @@ final class GuardianStatusViewModelTests: XCTestCase {
     XCTAssertTrue(sut.hasLoaded, "A failed lookup fails open so the verify prompt is never lost")
   }
 
+  func testHasLoadedStaysFalseWhenLookupThrowsURLCancelled() async {
+    mockGuardianService.shouldThrowFetchStatusError = true
+    mockGuardianService.mockErrorToThrow = URLError(.cancelled)
+    await sut.refresh()
+    XCTAssertFalse(sut.hasLoaded, "A cancelled lookup is not an answer; the task re-runs on return")
+  }
+
+  func testHasLoadedStaysFalseWhenTaskIsCancelled() async {
+    mockGuardianService.shouldThrowFetchStatusError = true
+    let task = Task { await sut.refresh() }
+    task.cancel()
+    await task.value
+    XCTAssertFalse(sut.hasLoaded)
+  }
+
   func testHasLoadedTrueWhenThereIsNoSession() async {
     mockAuthManager.session = nil
     await sut.refresh()

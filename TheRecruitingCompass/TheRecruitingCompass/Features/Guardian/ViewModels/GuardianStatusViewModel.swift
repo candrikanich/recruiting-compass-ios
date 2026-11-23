@@ -36,14 +36,20 @@ final class GuardianStatusViewModel {
   }
 
   func refresh() async {
-    defer { hasLoaded = true }
-    guard let token = authManager.session?.accessToken else { return }
+    guard let token = authManager.session?.accessToken else {
+      hasLoaded = true
+      return
+    }
     isLoading = true
     defer { isLoading = false }
     do {
       status = try await guardianService.fetchStatus(accessToken: token)
+      hasLoaded = true
     } catch {
+      // A cancelled lookup (e.g. a tab switch mid-flight) is not an answer; `.task` re-runs on return.
+      if Task.isCancelled || (error as? URLError)?.code == .cancelled { return }
       logger.error("Failed to fetch guardian status: \(error.localizedDescription)")
+      hasLoaded = true
     }
   }
 

@@ -10,9 +10,11 @@ struct EmailVerificationBanner: View {
   /// The view stays in the tree either way so its verification refresh keeps running.
   var guardian: GuardianStatusViewModel?
 
+  var isShown: Bool { viewModel.isVisible(guardian: guardian) }
+
   var body: some View {
     Group {
-      if viewModel.isVisible(guardian: guardian) {
+      if isShown {
         content
       }
     }

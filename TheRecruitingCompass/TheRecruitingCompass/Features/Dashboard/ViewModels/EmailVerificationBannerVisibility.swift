@@ -14,4 +14,11 @@ enum EmailVerificationBannerVisibility {
     guard let guardian else { return true }
     return guardian.loaded && !guardian.locked
   }
+
+  /// Only athletes have a guardian lookup; for anyone else it never runs, so waiting on it would hide the prompt
+  /// forever.
+  @MainActor
+  static func guardian(for member: FamilyMember?, lookup: GuardianStatusViewModel) -> GuardianStatusViewModel? {
+    member?.isAthlete == true ? lookup : nil
+  }
 }
