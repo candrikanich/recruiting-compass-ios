@@ -29,6 +29,16 @@ enum WhatsNewCatalog {
           detail: "Parents in more than one family can now switch between them from the Dashboard."
         )
       ]
+    ),
+    WhatsNewRelease(
+      version: AppVersion(major: 1, minor: 0, patch: 6),
+      highlights: [
+        WhatsNewHighlight(
+          systemImage: "person.badge.plus",
+          title: "Start Before Your Athlete",
+          detail: "Parents can sign up first, add a school and see next steps before their athlete joins."
+        )
+      ]
     )
   ]
 }

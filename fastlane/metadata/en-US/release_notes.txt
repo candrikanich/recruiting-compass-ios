@@ -1,7 +1,8 @@
-Event times are now easier to read and edit.
+Parents can now get started before their athlete joins.
 
-• Event times show in 12-hour format, like 2:30 PM, and Edit Event has a time picker instead of a text box. Clearing a time now saves too.
+• Sign up first, add a school, and see next steps for your athlete. Anything you add is there when they join.
+• Event times show as 2:30 PM, with a time picker in Edit Event.
 • Home stat tiles have a fresh green and gold accent.
-• Clearer messages when changing your password or email, including when you've tried too many times or need to sign in again.
-• Fixed Home and Timeline sometimes showing the previous athlete's information right after you switch athletes.
-• Fixed the next-steps card on Home disappearing after a failed load.
+• Clearer messages when changing your password or email.
+• Fixes for switching between athletes or families, so Home, Timeline and your plan follow who you've selected.
+• Fixed the verify-email banner showing while guardian consent is pending.
