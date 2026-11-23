@@ -1,6 +1,6 @@
 Parents can now get started before their athlete joins.
 
-• Sign up first, add a school, and see next steps for your athlete. Anything you add is there when they join.
+• Sign up first, add a school, and see next steps for your athlete. Schools you add are there when they join.
 • Event times show as 2:30 PM, with a time picker in Edit Event.
 • Home stat tiles have a fresh green and gold accent.
 • Clearer messages when changing your password or email.
