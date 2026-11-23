@@ -1,5 +1,7 @@
-Home now shows you what to do next.
+Event times are now easier to read and edit.
 
-• New families see their next steps right at the top of Home, along with your top school once you've picked one.
-• Your status score stays hidden until you've added a coach and logged a conversation, then appears on its own, with no refresh needed.
-• Improved Voice Control support for the Timeline card on Home.
+• Event times show in 12-hour format, like 2:30 PM, and Edit Event has a time picker instead of a text box. Clearing a time now saves too.
+• Home stat tiles have a fresh green and gold accent.
+• Clearer messages when changing your password or email, including when you've tried too many times or need to sign in again.
+• Fixed Home and Timeline sometimes showing the previous athlete's information right after you switch athletes.
+• Fixed the next-steps card on Home disappearing after a failed load.
