@@ -56,6 +56,9 @@ final class EntitlementStore {
   /// cancelled load cannot clear the spinner while another load for the same family is still in flight.
   private var loadsInFlight = 0
 
+  /// The newest older failure held back while a newer load was in flight.
+  private var suppressedFailure: Outcome?
+
   private let service: any EntitlementManaging
   private let logger = Logger(subsystem: "com.chrisandrikanich.TheRecruitingCompass", category: "EntitlementStore")
 
@@ -86,6 +89,7 @@ final class EntitlementStore {
     errorMessage = nil
     isLoading = false
     loadsInFlight = 0
+    suppressedFailure = nil
     lastAppliedEpoch = loadEpoch
     didLoad = false
     loadedFamilyUnitId = nil
@@ -105,6 +109,7 @@ final class EntitlementStore {
       loadedWithoutFamily = true
       loadedFamilyUnitId = nil
       didLoad = true
+      suppressedFailure = nil
       // `lastAppliedEpoch` stays put: the family guard already drops answers for a family no longer requested, and
       // advancing it here would drop a slow answer for a family that is requested again by the time it lands.
       return
@@ -125,19 +130,38 @@ final class EntitlementStore {
     isLoading = loadsInFlight > 0
     // A view's `.task` is cancelled when the view disappears — Settings' load is cancelled the moment
     // Plan is pushed. That is not a failed load: keep whatever a concurrent load produced or will produce.
-    if case .failure(let error) = result, Self.isCancellation(error) { return }
+    if case .failure(let error) = result, Self.isCancellation(error) {
+      settleSuppressedFailure()
+      return
+    }
     // Judge by family, not by being the latest call: an earlier answer for the family now selected is valid,
     // while one for a family the user switched away from must never apply.
     guard familyUnitId == requestedFamilyUnitId, epoch > lastAppliedEpoch else { return }
+    let outcome = Outcome(familyUnitId: familyUnitId, epoch: epoch, result: result, countdownVisible: visible)
     // An older failure must not revoke a plan or flash an error while a newer load is still on its way; that
-    // load answers for itself. With nothing else running, the failure is the final word and must show.
-    if case .failure = result, epoch < loadEpoch, loadsInFlight > 0 { return }
-    lastAppliedEpoch = epoch
+    // load answers for itself. It is kept in case that load ends without an answer (see `settleSuppressedFailure`).
+    if case .failure = result, epoch < loadEpoch, loadsInFlight > 0 {
+      suppressedFailure = outcome
+      return
+    }
+    apply(outcome)
+  }
+
+  private struct Outcome {
+    let familyUnitId: String
+    let epoch: Int
+    let result: Result<FamilySubscription?, Error>
+    let countdownVisible: Bool
+  }
+
+  private func apply(_ outcome: Outcome) {
+    suppressedFailure = nil
+    lastAppliedEpoch = outcome.epoch
     didLoad = true
-    loadedFamilyUnitId = familyUnitId
+    loadedFamilyUnitId = outcome.familyUnitId
     loadedWithoutFamily = false
-    trialCountdownVisible = visible
-    switch result {
+    trialCountdownVisible = outcome.countdownVisible
+    switch outcome.result {
     case .success(let fetched):
       fetchedSubscription = fetched
       errorMessage = nil
@@ -148,6 +172,16 @@ final class EntitlementStore {
       errorMessage = String(localized: "Unable to load your plan. Please try again.")
       logger.error("Failed to load entitlement: \(error.localizedDescription)")
     }
+  }
+
+  /// A cancelled load that was the last one running leaves a suppressed older failure as the only answer there
+  /// will be; showing it beats a blank with no retry prompt. Skipped when that failure no longer matches the
+  /// requested family. Anything newer that applied has already discarded it.
+  private func settleSuppressedFailure() {
+    guard loadsInFlight == 0, let failure = suppressedFailure else { return }
+    suppressedFailure = nil
+    guard failure.familyUnitId == requestedFamilyUnitId else { return }
+    apply(failure)
   }
 
   private func fetchCountdownVisible() async -> Bool {
