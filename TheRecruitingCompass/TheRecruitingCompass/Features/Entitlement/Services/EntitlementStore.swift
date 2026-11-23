@@ -18,14 +18,23 @@ final class EntitlementStore {
   /// `true` once `load(familyUnitId:)` has completed at least once (success, no-family, or error).
   /// Lets callers distinguish "not yet loaded" from "loaded, no subscription row exists" — both
   /// leave `subscription` nil, but only the latter should render `planLabel`/`canWrite` as final.
-  var hasLoaded: Bool { didLoad && loadedFamilyUnitId == requestedFamilyUnitId }
+  var hasLoaded: Bool { didLoad && loadedFamilyUnitId == selectedFamilyUnitId }
   private var didLoad = false
   private var loadedFamilyUnitId: String?
   /// The family of the latest `load` call, set before its fetch starts.
   private var requestedFamilyUnitId: String?
 
+  /// Reads the app's selected family, so every read below follows a family switch the instant it happens rather
+  /// than when some screen next calls `load`. Without one, the latest `load`'s family stands in.
+  private let currentSelection: (@MainActor () -> String?)?
+
+  private var selectedFamilyUnitId: String? {
+    if let currentSelection { return currentSelection() }
+    return requestedFamilyUnitId
+  }
+
   var subscription: FamilySubscription? {
-    fetchedSubscription?.familyUnitId == requestedFamilyUnitId ? fetchedSubscription : nil
+    fetchedSubscription?.familyUnitId == selectedFamilyUnitId ? fetchedSubscription : nil
   }
 
   /// Server flag hiding the trial day count while trials are held. Display-only; defaults to showing
@@ -58,11 +67,15 @@ final class EntitlementStore {
   var canWrite: Bool { subscription?.canWrite() ?? false }
   var planLabel: String {
     if let subscription { return subscription.planLabel(countdownVisible: trialCountdownVisible) }
-    return loadedWithoutFamily ? PlanLabel.noFamily : PlanLabel.unavailable
+    return loadedWithoutFamily && hasLoaded ? PlanLabel.noFamily : PlanLabel.unavailable
   }
 
-  init(service: any EntitlementManaging = EntitlementServiceImpl(supabaseManager: .shared)) {
+  init(
+    service: any EntitlementManaging = EntitlementServiceImpl(supabaseManager: .shared),
+    selectedFamilyUnitId: (@MainActor () -> String?)? = nil
+  ) {
     self.service = service
+    self.currentSelection = selectedFamilyUnitId
   }
 
   /// Forgets the previous family's plan on sign-out or account switch.
@@ -92,7 +105,8 @@ final class EntitlementStore {
       loadedWithoutFamily = true
       loadedFamilyUnitId = nil
       didLoad = true
-      lastAppliedEpoch = epoch
+      // `lastAppliedEpoch` stays put: the family guard already drops answers for a family no longer requested, and
+      // advancing it here would drop a slow answer for a family that is requested again by the time it lands.
       return
     }
     isLoading = true
@@ -115,6 +129,9 @@ final class EntitlementStore {
     // Judge by family, not by being the latest call: an earlier answer for the family now selected is valid,
     // while one for a family the user switched away from must never apply.
     guard familyUnitId == requestedFamilyUnitId, epoch > lastAppliedEpoch else { return }
+    // An older failure must not revoke a plan or flash an error while a newer load is still on its way; that
+    // load answers for itself. With nothing else running, the failure is the final word and must show.
+    if case .failure = result, epoch < loadEpoch, loadsInFlight > 0 { return }
     lastAppliedEpoch = epoch
     didLoad = true
     loadedFamilyUnitId = familyUnitId

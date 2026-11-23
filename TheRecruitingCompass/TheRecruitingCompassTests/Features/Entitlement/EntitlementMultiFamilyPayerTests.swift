@@ -217,4 +217,157 @@ final class EntitlementMultiFamilyPayerTests: XCTestCase {
     XCTAssertEqual(store.subscription?.familyUnitId, "family-b")
     XCTAssertNil(store.errorMessage)
   }
+
+  // MARK: - Following the selected family (#617)
+
+  /// Stands in for `FamilyManager.familyUnitId`, which changes without anyone calling `load`.
+  private final class Selection {
+    var familyUnitId: String?
+    init(_ familyUnitId: String?) { self.familyUnitId = familyUnitId }
+  }
+
+  private func makeFollowingStore(selecting selection: Selection) -> EntitlementStore {
+    let mock = MockEntitlementService()
+    mock.subscriptionsByFamilyId = ["family-a": seatedActive, "family-b": unseatedReadOnly]
+    return EntitlementStore(service: mock, selectedFamilyUnitId: { selection.familyUnitId })
+  }
+
+  func test_aSwitchWithNoLoadYetNeverReadsAsTheFamilyJustLeft() async {
+    let selection = Selection("family-a")
+    let store = makeFollowingStore(selecting: selection)
+    await store.load(familyUnitId: "family-a")
+    XCTAssertTrue(store.canWrite)
+
+    selection.familyUnitId = "family-b"
+
+    XCTAssertNil(store.subscription, "family A's row must not stand in for B before anything has loaded B")
+    XCTAssertFalse(store.canWrite)
+    XCTAssertFalse(store.hasLoaded)
+    XCTAssertEqual(store.planLabel, PlanLabel.unavailable)
+    await store.load(familyUnitId: "family-b")
+    XCTAssertEqual(store.planLabel, "Read-only — subscription needed")
+  }
+
+  func test_leavingTheLastFamilyWithNoLoadYetNeverReadsAsTheFamilyJustLeft() async {
+    let selection = Selection("family-a")
+    let store = makeFollowingStore(selecting: selection)
+    await store.load(familyUnitId: "family-a")
+
+    selection.familyUnitId = nil
+
+    XCTAssertFalse(store.canWrite)
+    XCTAssertFalse(store.hasLoaded)
+  }
+
+  func test_loadedStateReturnsWhenTheSelectionComesBackToTheLoadedFamily() async {
+    let selection = Selection("family-a")
+    let store = makeFollowingStore(selecting: selection)
+    await store.load(familyUnitId: "family-a")
+    selection.familyUnitId = "family-b"
+    selection.familyUnitId = "family-a"
+
+    XCTAssertTrue(store.canWrite)
+    XCTAssertTrue(store.hasLoaded)
+  }
+
+  func test_aNoFamilyLoadThenTheSameFamilyAgainStillTakesTheSlowEarlierAnswer() async {
+    let (store, mock) = makeStore()
+    let gate = AsyncGate(blockedEntries: 1)
+    mock.fetchGateByFamily = { _ in await gate.wait() }
+    mock.errorsByCallIndex[1] = CancellationError()
+    let slow = Task { await store.load(familyUnitId: "family-a") }
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered)
+    await store.load(familyUnitId: nil)
+    await store.load(familyUnitId: "family-a")
+    XCTAssertFalse(store.hasLoaded, "the cancelled reload applied nothing and the slow load is still running")
+
+    gate.open()
+    await slow.value
+
+    XCTAssertTrue(store.hasLoaded, "the store stays stranded unloaded with nothing in flight")
+    XCTAssertFalse(store.isLoading)
+    XCTAssertEqual(store.subscription?.familyUnitId, "family-a")
+    XCTAssertTrue(store.canWrite)
+  }
+
+  func test_aNoFamilyLoadStillDropsASlowAnswerWhileNoFamilyIsTheLatestRequest() async {
+    let (store, mock) = makeStore()
+    let gate = AsyncGate()
+    mock.fetchGateByFamily = { _ in await gate.wait() }
+    let slow = Task { await store.load(familyUnitId: "family-a") }
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered)
+    await store.load(familyUnitId: nil)
+
+    gate.open()
+    await slow.value
+
+    XCTAssertNil(store.subscription)
+    XCTAssertFalse(store.canWrite)
+    XCTAssertEqual(store.planLabel, PlanLabel.noFamily)
+  }
+
+  func test_anOlderFailureWhileANewerLoadIsInFlightNeitherFlashesNorRevokesAPayingFamily() async {
+    let (store, mock) = makeStore()
+    await store.load(familyUnitId: "family-a")
+    XCTAssertTrue(store.canWrite)
+    let first = AsyncGate(blockedEntries: 1)
+    let second = AsyncGate()
+    mock.fetchGateByFamily = { _ in
+      if await first.enteredCount == 0 { await first.wait() } else { await second.wait() }
+    }
+    mock.errorsByCallIndex[1] = URLError(.timedOut)
+    let older = Task { await store.load(familyUnitId: "family-a") }
+    let enteredFirst = await first.untilEntered()
+    XCTAssertTrue(enteredFirst)
+    let newer = Task { await store.load(familyUnitId: "family-a") }
+    let enteredSecond = await second.untilEntered()
+    XCTAssertTrue(enteredSecond)
+
+    first.open()
+    await older.value
+
+    XCTAssertNil(store.errorMessage, "an older failure flashed the error while the newer load is still running")
+    XCTAssertTrue(store.canWrite, "an older failure revoked a paying family's write access")
+    XCTAssertTrue(store.isLoading)
+    second.open()
+    await newer.value
+    XCTAssertTrue(store.canWrite)
+    XCTAssertNil(store.errorMessage)
+  }
+
+  func test_anOlderFailureWithNothingNewerInFlightStillSurfaces() async {
+    let (store, mock) = makeStore()
+    let gate = AsyncGate(blockedEntries: 1)
+    mock.fetchGateByFamily = { _ in await gate.wait() }
+    mock.errorsByCallIndex[0] = URLError(.timedOut)
+    mock.errorsByCallIndex[1] = CancellationError()
+    let older = Task { await store.load(familyUnitId: "family-a") }
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered)
+    await store.load(familyUnitId: "family-a")
+
+    gate.open()
+    await older.value
+
+    XCTAssertNotNil(store.errorMessage, "the only answer that landed is a failure; hiding it leaves a silent blank")
+    XCTAssertFalse(store.isLoading)
+  }
+
+  func test_noFamilyLabelDoesNotLingerOverTheNextFamilyWhileItLoads() async {
+    let (store, mock) = makeStore()
+    await store.load(familyUnitId: nil)
+    XCTAssertEqual(store.planLabel, PlanLabel.noFamily)
+    let gate = AsyncGate()
+    mock.fetchGateByFamily = { _ in await gate.wait() }
+
+    let joining = Task { await store.load(familyUnitId: "family-a") }
+    let entered = await gate.untilEntered()
+    XCTAssertTrue(entered)
+
+    XCTAssertEqual(store.planLabel, PlanLabel.unavailable)
+    gate.open()
+    await joining.value
+  }
 }

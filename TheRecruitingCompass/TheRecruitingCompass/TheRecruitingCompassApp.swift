@@ -19,7 +19,7 @@ struct TheRecruitingCompassApp: App {
   @State private var onboardingManager = OnboardingManager()
   @State private var networkMonitor = NetworkMonitor()
   @State private var nuxProgressManager = NuxProgressManager.shared
-  @State private var entitlementStore = EntitlementStore()
+  @State private var entitlementStore = EntitlementStore(selectedFamilyUnitId: { FamilyManager.shared.familyUnitId })
   @State private var appUpdateManager = AppUpdateManager()
   @State private var featureFlagStore = FeatureFlagStore()
   @State private var showResetPassword = false
@@ -179,6 +179,11 @@ struct TheRecruitingCompassApp: App {
       .onChange(of: authManager.user?.id) { previousUserId, _ in
         guard previousUserId != nil else { return }
         resetUserScopedState()
+      }
+      // The store already reads as "not loaded" for a family it hasn't fetched; this makes it fetch.
+      .onChange(of: familyManager.familyUnitId) { _, selected in
+        guard authManager.isAuthenticated else { return }
+        Task { await entitlementStore.load(familyUnitId: selected) }
       }
       .onChange(of: authManager.isCheckingSession) { _, isChecking in
         if !isChecking, !authManager.isAuthenticated, pendingResetPasswordFromDeepLink {
