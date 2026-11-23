@@ -371,22 +371,10 @@ final class EntitlementMultiFamilyPayerTests: XCTestCase {
     await joining.value
   }
 
-  /// Hands the Nth gated fetch (0-based) its own gate, so a test controls each fetch independently.
-  private func gateEachCall(_ mock: MockEntitlementService, _ gates: [AsyncGate]) {
-    mock.fetchGateByFamily = { _ in
-      for gate in gates {
-        if await gate.enteredCount == 0 {
-          await gate.wait()
-          return
-        }
-      }
-    }
-  }
-
   func test_aFetchFromBeforeResetDoesNotClearTheNewSessionsSpinner() async {
     let (store, mock) = makeStore()
     let gates = [AsyncGate(), AsyncGate()]
-    gateEachCall(mock, gates)
+    mock.gateEachCall(gates)
     let stale = Task { await store.load(familyUnitId: "family-a") }
     let e0 = await gates[0].untilEntered()
     XCTAssertTrue(e0)
@@ -408,7 +396,7 @@ final class EntitlementMultiFamilyPayerTests: XCTestCase {
   func test_aFetchFromBeforeResetDoesNotLetAnOlderFailureFlash() async {
     let (store, mock) = makeStore()
     let gates = [AsyncGate(), AsyncGate(), AsyncGate()]
-    gateEachCall(mock, gates)
+    mock.gateEachCall(gates)
     mock.errorsByCallIndex[1] = URLError(.timedOut)
     let stale = Task { await store.load(familyUnitId: "family-a") }
     let e0 = await gates[0].untilEntered()
@@ -438,7 +426,7 @@ final class EntitlementMultiFamilyPayerTests: XCTestCase {
   func test_anOlderFailureThenTheNewerLoadCancelledStillShowsTheFailure() async {
     let (store, mock) = makeStore()
     let gates = [AsyncGate(), AsyncGate()]
-    gateEachCall(mock, gates)
+    mock.gateEachCall(gates)
     mock.errorsByCallIndex[0] = URLError(.timedOut)
     mock.errorsByCallIndex[1] = CancellationError()
     let older = Task { await store.load(familyUnitId: "family-a") }
@@ -464,7 +452,7 @@ final class EntitlementMultiFamilyPayerTests: XCTestCase {
   func test_theLatestFailureStillShowsWhenTheOlderLoadIsThenCancelled() async {
     let (store, mock) = makeStore()
     let gates = [AsyncGate(), AsyncGate()]
-    gateEachCall(mock, gates)
+    mock.gateEachCall(gates)
     mock.errorsByCallIndex[0] = CancellationError()
     mock.errorsByCallIndex[1] = URLError(.timedOut)
     let older = Task { await store.load(familyUnitId: "family-a") }
@@ -487,7 +475,7 @@ final class EntitlementMultiFamilyPayerTests: XCTestCase {
   func test_aSuppressedFailureForAFamilyNoLongerRequestedNeverSurfaces() async {
     let (store, mock) = makeStore()
     let gates = [AsyncGate(), AsyncGate(), AsyncGate()]
-    gateEachCall(mock, gates)
+    mock.gateEachCall(gates)
     mock.errorsByCallIndex[0] = URLError(.timedOut)
     mock.errorsByCallIndex[1] = CancellationError()
     mock.errorsByCallIndex[2] = CancellationError()
@@ -515,7 +503,7 @@ final class EntitlementMultiFamilyPayerTests: XCTestCase {
   func test_aSuppressedFailureWaitsForEveryOtherLoadToEnd() async {
     let (store, mock) = makeStore()
     let gates = [AsyncGate(), AsyncGate(), AsyncGate()]
-    gateEachCall(mock, gates)
+    mock.gateEachCall(gates)
     mock.errorsByCallIndex[0] = URLError(.timedOut)
     mock.errorsByCallIndex[1] = CancellationError()
     let first = Task { await store.load(familyUnitId: "family-a") }
