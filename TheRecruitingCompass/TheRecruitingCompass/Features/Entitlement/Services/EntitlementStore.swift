@@ -128,15 +128,17 @@ final class EntitlementStore {
     guard loadSession == session else { return }
     loadsInFlight -= 1
     isLoading = loadsInFlight > 0
-    // A view's `.task` is cancelled when the view disappears — Settings' load is cancelled the moment
-    // Plan is pushed. That is not a failed load: keep whatever a concurrent load produced or will produce.
-    if case .failure(let error) = result, Self.isCancellation(error) {
+    // A load ends without an answer when its view's `.task` is cancelled (Settings' load is cancelled the moment
+    // Plan is pushed, which is not a failed load) or when the family/epoch guard drops it: judge by family, not by
+    // being the latest call, so an earlier answer for the family now selected is valid while one for a family the
+    // user switched away from must never apply. Either way, if it was the last fetch running, a held failure has
+    // no newer answer left to wait for and settles now.
+    let cancelled: Bool
+    if case .failure(let error) = result { cancelled = Self.isCancellation(error) } else { cancelled = false }
+    guard !cancelled, familyUnitId == requestedFamilyUnitId, epoch > lastAppliedEpoch else {
       settleSuppressedFailure()
       return
     }
-    // Judge by family, not by being the latest call: an earlier answer for the family now selected is valid,
-    // while one for a family the user switched away from must never apply.
-    guard familyUnitId == requestedFamilyUnitId, epoch > lastAppliedEpoch else { return }
     let outcome = Outcome(familyUnitId: familyUnitId, epoch: epoch, result: result, countdownVisible: visible)
     // An older failure must not revoke a plan or flash an error while a newer load is still on its way; that
     // load answers for itself. It is kept in case that load ends without an answer (see `settleSuppressedFailure`).
@@ -174,9 +176,9 @@ final class EntitlementStore {
     }
   }
 
-  /// A cancelled load that was the last one running leaves a suppressed older failure as the only answer there
-  /// will be; showing it beats a blank with no retry prompt. Skipped when that failure no longer matches the
-  /// requested family. Anything newer that applied has already discarded it.
+  /// A load that ended without an answer (cancelled or dropped) and was the last one running leaves a suppressed
+  /// older failure as the only answer there will be; showing it beats a blank with no retry prompt. Discarded
+  /// instead when it no longer matches the requested family. Anything newer that applied has already discarded it.
   private func settleSuppressedFailure() {
     guard loadsInFlight == 0, let failure = suppressedFailure else { return }
     suppressedFailure = nil

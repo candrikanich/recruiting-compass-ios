@@ -34,4 +34,17 @@ final class MockEntitlementService: EntitlementManaging, @unchecked Sendable {
     if let countdownError { throw countdownError }
     return countdownVisible
   }
+
+  /// Hands the Nth gated fetch (0-based) its own gate, so a test controls each fetch independently.
+  @MainActor
+  func gateEachCall(_ gates: [AsyncGate]) {
+    fetchGateByFamily = { _ in
+      for gate in gates {
+        if await gate.enteredCount == 0 {
+          await gate.wait()
+          return
+        }
+      }
+    }
+  }
 }
