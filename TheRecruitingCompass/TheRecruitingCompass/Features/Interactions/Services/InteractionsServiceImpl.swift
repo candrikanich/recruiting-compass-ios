@@ -134,6 +134,7 @@ final class InteractionsServiceImpl: InteractionsManaging, Sendable {
         .execute()
         .value
       logger.info("Created coach: \(result.id)")
+      RecordAnalytics.coachAdded()
       return result
     } catch {
       logger.error("createCoach failed: \(error.localizedDescription)")

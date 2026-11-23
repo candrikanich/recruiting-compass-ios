@@ -60,6 +60,7 @@ final class CoachesServiceImpl: CoachesManaging, Sendable {
       .value
 
     logger.info("Coach created: \(result.id)")
+    RecordAnalytics.coachAdded()
     return result
   }
 
