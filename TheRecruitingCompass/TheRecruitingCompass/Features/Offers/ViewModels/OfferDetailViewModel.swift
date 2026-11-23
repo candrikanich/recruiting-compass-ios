@@ -25,6 +25,8 @@ final class OfferDetailViewModel {
   var isUpdating = false
   var isDeleting = false
 
+  let writeGate = WriteGate()
+
   private let offerId: String
   private let offersService: any OffersManaging
   private let authManager: any AuthManaging
@@ -142,6 +144,7 @@ final class OfferDetailViewModel {
 
   func startEditing() {
     guard let offer else { return }
+    guard !writeGate.blocksWrite() else { return }
     editData = OfferEditData(from: offer)
     isEditing = true
   }
@@ -152,6 +155,7 @@ final class OfferDetailViewModel {
   }
 
   func saveChanges() async {
+    guard !writeGate.blocksWrite() else { return }
     await ViewModelHelpers.withLoading(set: { self.isUpdating = $0 }) {
       do {
         let request = OfferUpdateRequest(from: editData)
@@ -161,7 +165,10 @@ final class OfferDetailViewModel {
         isEditing = false
         logger.info("Offer updated successfully")
       } catch {
-        handleError(error, userMessage: String(localized: "Failed to save changes"))
+        handleError(
+          error,
+          userMessage: writeGate.subscriptionMessage(for: error) ?? String(localized: "Failed to save changes")
+        )
       }
     }
   }
@@ -169,19 +176,23 @@ final class OfferDetailViewModel {
   // MARK: - Delete
 
   func confirmDelete() {
+    guard !writeGate.blocksWrite() else { return }
     activeAlert = .deleteConfirmation
   }
 
   @discardableResult
   func deleteOffer() async -> Bool {
-    await ViewModelHelpers.withLoading(set: { self.isDeleting = $0 }) {
+    guard !writeGate.blocksWrite() else { return false }
+    return await ViewModelHelpers.withLoading(set: { self.isDeleting = $0 }) {
       do {
         try await offersService.deleteOffer(id: offerId)
         await invalidateOfferCache()
         logger.info("Offer deleted successfully")
         return true
       } catch {
-        activeAlert = .deleteError(String(localized: "Failed to delete offer. Please try again."))
+        activeAlert = .deleteError(
+          writeGate.subscriptionMessage(for: error) ?? String(localized: "Failed to delete offer. Please try again.")
+        )
         logger.error("Failed to delete offer: \(error.localizedDescription)")
         return false
       }

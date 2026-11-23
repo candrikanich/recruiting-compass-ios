@@ -207,6 +207,8 @@ final class EventsListViewModel {
 
   // MARK: - Init
 
+  let writeGate = WriteGate()
+
   private let cache: (any CacheManaging)?
 
   /// TTL for cached events list (seconds).
@@ -224,6 +226,11 @@ final class EventsListViewModel {
     self.cache = cache
     let raw = UserDefaults.standard.string(forKey: eventsSortByKey)
     self._sortBy = SortOption(rawValue: raw ?? "") ?? .dateDesc
+  }
+
+  /// False, with the subscription notice showing, when a read-only plan means a new event cannot be saved.
+  func canStartCreateEvent() -> Bool {
+    !writeGate.blocksWrite()
   }
 
   /// Invalidates the cached events list so the next `loadEvents()` refetches.

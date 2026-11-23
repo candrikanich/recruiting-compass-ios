@@ -36,6 +36,8 @@ final class OffersListViewModel {
   var offerToDelete: Offer?
   var showDeleteConfirmation = false
 
+  let writeGate = WriteGate()
+
   private let offersService: any OffersManaging
   private let familyManager: FamilyManager
   private let authManager: any AuthManaging
@@ -190,8 +192,20 @@ final class OffersListViewModel {
 
   // MARK: - Create
 
+  /// Opens the add form, or closes it when open. A read-only plan shows the subscription notice instead.
+  func toggleAddForm() {
+    if !showAddForm, writeGate.blocksWrite() { return }
+    showAddForm.toggle()
+  }
+
+  func openAddForm() {
+    guard !writeGate.blocksWrite() else { return }
+    showAddForm = true
+  }
+
   func createOffer() async {
     guard formState.isValid else { return }
+    guard !writeGate.blocksWrite() else { return }
     guard let userId = targetUserId else { return }
     guard let familyUnitId = FamilyUnitID.normalized(familyUnitId) else {
       errorMessage = FamilyUnitID.MissingError.missing.errorDescription
@@ -213,19 +227,26 @@ final class OffersListViewModel {
       await invalidateOffersListCache()
     } catch {
       logger.error("Failed to create offer: \(error.localizedDescription)")
-      errorMessage = String(localized: "Failed to save offer. Please try again.")
+      errorMessage = writeGate.subscriptionMessage(for: error)
+        ?? String(localized: "Failed to save offer. Please try again.")
     }
   }
 
   // MARK: - Delete
 
   func confirmDelete(_ offer: Offer) {
+    guard !writeGate.blocksWrite() else { return }
     offerToDelete = offer
     showDeleteConfirmation = true
   }
 
   func deleteOffer() async {
     guard let offer = offerToDelete else { return }
+    guard !writeGate.blocksWrite() else {
+      offerToDelete = nil
+      showDeleteConfirmation = false
+      return
+    }
 
     defer {
       offerToDelete = nil
@@ -242,7 +263,8 @@ final class OffersListViewModel {
       logger.info("Deleted offer: \(offer.id)")
     } catch {
       logger.error("Failed to delete offer: \(error.localizedDescription)")
-      errorMessage = String(localized: "Failed to delete offer. Please try again.")
+      errorMessage = writeGate.subscriptionMessage(for: error)
+        ?? String(localized: "Failed to delete offer. Please try again.")
     }
   }
 

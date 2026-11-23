@@ -44,6 +44,8 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
   // MARK: - Error Flags
 
   var shouldThrowCreateEvent = false
+  /// Thrown by update and delete ahead of their `shouldThrow*` flags, so a test can pick the error type.
+  var writeError: Error?
   /// Takes precedence over `shouldThrowCreateEvent` so tests can throw a specific error type.
   var createEventError: Error?
   var shouldThrowFetchEvent = false
@@ -188,6 +190,7 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
     updateEventCallCount += 1
     lastUpdateEventId = id
     lastUpdateEventRequest = request
+    if let writeError { throw writeError }
     if shouldThrowUpdateEvent {
       throw NSError(
         domain: "MockEventsService",
@@ -201,6 +204,7 @@ final class MockEventsService: EventsManaging, @unchecked Sendable {
   func deleteEvent(id: String) async throws {
     deleteEventCallCount += 1
     lastDeleteEventId = id
+    if let writeError { throw writeError }
     if shouldThrowDeleteEvent {
       throw NSError(
         domain: "MockEventsService",
