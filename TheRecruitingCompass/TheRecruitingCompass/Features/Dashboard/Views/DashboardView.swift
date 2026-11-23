@@ -61,7 +61,7 @@ struct DashboardView: View {
 
         EmailVerificationBanner(
           viewModel: emailVerificationBannerViewModel,
-          guardian: familyManager.currentMember?.isAthlete == true ? guardianStatusViewModel : nil
+          guardian: EmailVerificationBannerVisibility.guardian(for: familyManager.currentMember, lookup: guardianStatusViewModel)
         )
 
         ScrollView {

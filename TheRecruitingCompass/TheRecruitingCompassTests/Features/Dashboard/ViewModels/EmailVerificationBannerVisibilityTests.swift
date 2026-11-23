@@ -109,4 +109,62 @@ final class EmailVerificationBannerVisibilityTests: XCTestCase {
     dismissed.isDismissed = true
     XCTAssertFalse(dismissed.isVisible(guardian: guardianB))
   }
+
+  // MARK: - Athlete-only guardian selection
+
+  private func member(role: String) -> FamilyMember {
+    FamilyMember(id: "m1", userId: "u1", familyUnitId: "f1", role: role, addedAt: nil, user: nil)
+  }
+
+  @MainActor
+  func testAthleteWaitsOnTheGuardianLookup() async {
+    let (_, lookup) = await makeModels(refresh: false)
+    let selected = EmailVerificationBannerVisibility.guardian(for: member(role: "player"), lookup: lookup)
+    XCTAssertTrue(selected === lookup)
+  }
+
+  @MainActor
+  func testParentCoachAndMissingMemberNeverWaitOnTheGuardianLookup() async {
+    let (_, lookup) = await makeModels(locked: true, refresh: false)
+    for current in [member(role: "parent"), member(role: "coach"), nil] {
+      XCTAssertNil(EmailVerificationBannerVisibility.guardian(for: current, lookup: lookup))
+    }
+  }
+
+  @MainActor
+  func testParentSeesVerifyPromptEvenThoughNoGuardianLookupEverRuns() async {
+    let (banner, lookup) = await makeModels(locked: true, refresh: false)
+    let selected = EmailVerificationBannerVisibility.guardian(for: member(role: "parent"), lookup: lookup)
+    XCTAssertTrue(banner.isVisible(guardian: selected))
+  }
+
+  @MainActor
+  func testBannerPassesItsGuardianLookupThrough() async {
+    let (banner, lookup) = await makeModels(locked: true)
+    XCTAssertFalse(EmailVerificationBanner(viewModel: banner, guardian: lookup).isShown)
+    XCTAssertTrue(EmailVerificationBanner(viewModel: banner, guardian: nil).isShown)
+  }
+
+  // MARK: - Cancelled lookup
+
+  @MainActor
+  func testCancelledGuardianLookupDoesNotCountAsLoaded() async {
+    let auth = MockAuthManager()
+    auth.setMockSession(Session(
+      accessToken: "t", tokenType: "bearer", expiresIn: 3600,
+      expiresAt: Int(Date().timeIntervalSince1970) + 3600, refreshToken: "r",
+      user: User(id: "u1", email: "p@example.com", emailConfirmedAt: nil, fullName: "P",
+                 createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z",
+                 role: .player, dateOfBirth: nil)))
+    auth.user = auth.session?.user
+    let service = MockGuardianService()
+    service.shouldThrowFetchStatusError = true
+    service.mockErrorToThrow = URLError(.cancelled)
+    let lookup = GuardianStatusViewModel(guardianService: service, authManager: auth)
+    let task = Task { await lookup.refresh() }
+    task.cancel()
+    await task.value
+    XCTAssertFalse(lookup.hasLoaded)
+    XCTAssertFalse(EmailVerificationBannerViewModel(authManager: auth).isVisible(guardian: lookup))
+  }
 }
