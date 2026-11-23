@@ -370,4 +370,174 @@ final class EntitlementMultiFamilyPayerTests: XCTestCase {
     gate.open()
     await joining.value
   }
+
+  /// Hands the Nth gated fetch (0-based) its own gate, so a test controls each fetch independently.
+  private func gateEachCall(_ mock: MockEntitlementService, _ gates: [AsyncGate]) {
+    mock.fetchGateByFamily = { _ in
+      for gate in gates {
+        if await gate.enteredCount == 0 {
+          await gate.wait()
+          return
+        }
+      }
+    }
+  }
+
+  func test_aFetchFromBeforeResetDoesNotClearTheNewSessionsSpinner() async {
+    let (store, mock) = makeStore()
+    let gates = [AsyncGate(), AsyncGate()]
+    gateEachCall(mock, gates)
+    let stale = Task { await store.load(familyUnitId: "family-a") }
+    let e0 = await gates[0].untilEntered()
+    XCTAssertTrue(e0)
+    store.reset()
+    let fresh = Task { await store.load(familyUnitId: "family-a") }
+    let e1 = await gates[1].untilEntered()
+    XCTAssertTrue(e1)
+
+    gates[0].open()
+    await stale.value
+
+    XCTAssertTrue(store.isLoading, "a pre-reset fetch cleared the spinner while the new session's load runs")
+    gates[1].open()
+    await fresh.value
+    XCTAssertFalse(store.isLoading)
+    XCTAssertTrue(store.canWrite)
+  }
+
+  func test_aFetchFromBeforeResetDoesNotLetAnOlderFailureFlash() async {
+    let (store, mock) = makeStore()
+    let gates = [AsyncGate(), AsyncGate(), AsyncGate()]
+    gateEachCall(mock, gates)
+    mock.errorsByCallIndex[1] = URLError(.timedOut)
+    let stale = Task { await store.load(familyUnitId: "family-a") }
+    let e0 = await gates[0].untilEntered()
+    XCTAssertTrue(e0)
+    store.reset()
+    let older = Task { await store.load(familyUnitId: "family-a") }
+    let e1 = await gates[1].untilEntered()
+    XCTAssertTrue(e1)
+    let newer = Task { await store.load(familyUnitId: "family-a") }
+    let e2 = await gates[2].untilEntered()
+    XCTAssertTrue(e2)
+
+    gates[0].open()
+    await stale.value
+    gates[1].open()
+    await older.value
+
+    XCTAssertNil(store.errorMessage, "older failure flashed while the newer load is still in flight")
+    gates[2].open()
+    await newer.value
+    XCTAssertTrue(store.canWrite)
+    XCTAssertNil(store.errorMessage)
+  }
+
+  /// Older load fails first while a newer one runs, then the newer one is cancelled (user backs out of Plan).
+  /// The PR's own invariant: "With nothing else running, the failure is the final word and must show."
+  func test_anOlderFailureThenTheNewerLoadCancelledStillShowsTheFailure() async {
+    let (store, mock) = makeStore()
+    let gates = [AsyncGate(), AsyncGate()]
+    gateEachCall(mock, gates)
+    mock.errorsByCallIndex[0] = URLError(.timedOut)
+    mock.errorsByCallIndex[1] = CancellationError()
+    let older = Task { await store.load(familyUnitId: "family-a") }
+    let e0 = await gates[0].untilEntered()
+    XCTAssertTrue(e0)
+    let newer = Task { await store.load(familyUnitId: "family-a") }
+    let e1 = await gates[1].untilEntered()
+    XCTAssertTrue(e1)
+
+    gates[0].open()
+    await older.value
+    gates[1].open()
+    await newer.value
+
+    XCTAssertFalse(store.isLoading)
+    XCTAssertTrue(
+      store.errorMessage != nil || store.hasLoaded,
+      "nothing in flight, no error, not loaded: a silent blank with no retry prompt"
+    )
+  }
+
+  /// The latest load fails while an older one for the same family is still running and later is cancelled.
+  func test_theLatestFailureStillShowsWhenTheOlderLoadIsThenCancelled() async {
+    let (store, mock) = makeStore()
+    let gates = [AsyncGate(), AsyncGate()]
+    gateEachCall(mock, gates)
+    mock.errorsByCallIndex[0] = CancellationError()
+    mock.errorsByCallIndex[1] = URLError(.timedOut)
+    let older = Task { await store.load(familyUnitId: "family-a") }
+    let e0 = await gates[0].untilEntered()
+    XCTAssertTrue(e0)
+    let newer = Task { await store.load(familyUnitId: "family-a") }
+    let e1 = await gates[1].untilEntered()
+    XCTAssertTrue(e1)
+
+    gates[1].open()
+    await newer.value
+    XCTAssertNotNil(store.errorMessage, "the latest load's failure waited on an older load instead of showing")
+    gates[0].open()
+    await older.value
+
+    XCTAssertFalse(store.isLoading)
+    XCTAssertNotNil(store.errorMessage, "the latest load's failure never surfaced")
+  }
+
+  func test_aSuppressedFailureForAFamilyNoLongerRequestedNeverSurfaces() async {
+    let (store, mock) = makeStore()
+    let gates = [AsyncGate(), AsyncGate(), AsyncGate()]
+    gateEachCall(mock, gates)
+    mock.errorsByCallIndex[0] = URLError(.timedOut)
+    mock.errorsByCallIndex[1] = CancellationError()
+    mock.errorsByCallIndex[2] = CancellationError()
+    let first = Task { await store.load(familyUnitId: "family-a") }
+    let e0 = await gates[0].untilEntered()
+    XCTAssertTrue(e0)
+    let second = Task { await store.load(familyUnitId: "family-a") }
+    let e1 = await gates[1].untilEntered()
+    XCTAssertTrue(e1)
+    gates[0].open()
+    await first.value
+    let toB = Task { await store.load(familyUnitId: "family-b") }
+    let e2 = await gates[2].untilEntered()
+    XCTAssertTrue(e2)
+
+    gates[1].open()
+    await second.value
+    gates[2].open()
+    await toB.value
+
+    XCTAssertNil(store.errorMessage, "family A's held-back failure surfaced for B")
+    XCTAssertFalse(store.canWrite)
+  }
+
+  func test_aSuppressedFailureWaitsForEveryOtherLoadToEnd() async {
+    let (store, mock) = makeStore()
+    let gates = [AsyncGate(), AsyncGate(), AsyncGate()]
+    gateEachCall(mock, gates)
+    mock.errorsByCallIndex[0] = URLError(.timedOut)
+    mock.errorsByCallIndex[1] = CancellationError()
+    let first = Task { await store.load(familyUnitId: "family-a") }
+    let e0 = await gates[0].untilEntered()
+    XCTAssertTrue(e0)
+    let second = Task { await store.load(familyUnitId: "family-a") }
+    let e1 = await gates[1].untilEntered()
+    XCTAssertTrue(e1)
+    let third = Task { await store.load(familyUnitId: "family-a") }
+    let e2 = await gates[2].untilEntered()
+    XCTAssertTrue(e2)
+    gates[0].open()
+    await first.value
+
+    gates[1].open()
+    await second.value
+
+    XCTAssertNil(store.errorMessage, "the held-back failure surfaced while the newest load is still running")
+    XCTAssertTrue(store.isLoading)
+    gates[2].open()
+    await third.value
+    XCTAssertTrue(store.canWrite)
+    XCTAssertNil(store.errorMessage)
+  }
 }
