@@ -102,7 +102,7 @@ final class FirstRunE2ETests: XCTestCase {
   // MARK: - New minor
 
   @MainActor
-  func testNewMinorSkippingGuardianLandsOnDashboardWithInviteParentBanner() async throws {
+  func testNewMinorSkippingGuardianLandsOnDashboardWithGuardianLock() async throws {
     let minor = TestUserData.uniquePlayer()
     signUpPlayer(minor, birthYear: nil)
     finishPlayerOnboarding(picking: false)
@@ -115,8 +115,9 @@ final class FirstRunE2ETests: XCTestCase {
     XCTAssertTrue(schools.isEmpty, "Skipping adds no school")
     let completed = try await admin.onboardingComplete(userId: userId)
     XCTAssertTrue(completed)
-    // Only the minor signup endpoint leaves the account guardian-locked: the server refuses a coach message from
-    // a minor with no confirmed guardian before it looks at the school, and an adult account never gets a 403.
+    // Pins that a minor date of birth yields the guardian lock: the server refuses a coach message from a minor with
+    // no confirmed guardian before it looks at the school. The lock comes from the date of birth, so this cannot tell
+    // the minor signup endpoint from the adult one; testNewMinorNamingGuardianCreatesGuardianClaim covers that.
     let status = try await coachMessageStatus(email: minor.email, password: minor.password, userId: userId)
     XCTAssertEqual(status, 403, "A minor with no confirmed guardian cannot message coaches")
   }
