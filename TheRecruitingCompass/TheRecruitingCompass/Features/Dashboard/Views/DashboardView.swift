@@ -59,7 +59,10 @@ struct DashboardView: View {
           GuardianPendingBanner(viewModel: guardianStatusViewModel)
         }
 
-        EmailVerificationBanner(viewModel: emailVerificationBannerViewModel)
+        EmailVerificationBanner(
+          viewModel: emailVerificationBannerViewModel,
+          guardian: familyManager.currentMember?.isAthlete == true ? guardianStatusViewModel : nil
+        )
 
         ScrollView {
           if sizeClass == .regular {

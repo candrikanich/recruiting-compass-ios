@@ -6,10 +6,13 @@ import SwiftUI
 /// unlike `GuardianPendingBanner` which deliberately can't be dismissed.
 struct EmailVerificationBanner: View {
   @Bindable var viewModel: EmailVerificationBannerViewModel
+  /// The athlete's guardian lookup; the banner yields to the guardian banner while consent is pending or loading.
+  /// The view stays in the tree either way so its verification refresh keeps running.
+  var guardian: GuardianStatusViewModel?
 
   var body: some View {
     Group {
-      if !viewModel.isDismissed && !viewModel.isVerified {
+      if viewModel.isVisible(guardian: guardian) {
         content
       }
     }

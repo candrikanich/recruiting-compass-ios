@@ -16,6 +16,9 @@ final class GuardianStatusViewModel {
 
   var status: GuardianStatus?
   var isLoading = false
+  /// True once a lookup has finished, whether it succeeded or failed. Lets the verify-email banner wait for the
+  /// answer instead of flashing before the guardian banner.
+  private(set) var hasLoaded = false
   var isResending = false
   var resendMessage: String?
 
@@ -33,6 +36,7 @@ final class GuardianStatusViewModel {
   }
 
   func refresh() async {
+    defer { hasLoaded = true }
     guard let token = authManager.session?.accessToken else { return }
     isLoading = true
     defer { isLoading = false }

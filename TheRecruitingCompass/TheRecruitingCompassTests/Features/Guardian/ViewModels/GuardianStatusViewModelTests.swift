@@ -63,6 +63,27 @@ final class GuardianStatusViewModelTests: XCTestCase {
     XCTAssertFalse(sut.isPending, "A failed status check must never fabricate a lock")
   }
 
+  func testHasLoadedFalseBeforeRefresh() {
+    XCTAssertFalse(sut.hasLoaded)
+  }
+
+  func testHasLoadedTrueAfterSuccessfulRefresh() async {
+    await sut.refresh()
+    XCTAssertTrue(sut.hasLoaded)
+  }
+
+  func testHasLoadedTrueAfterFailedRefresh() async {
+    mockGuardianService.shouldThrowFetchStatusError = true
+    await sut.refresh()
+    XCTAssertTrue(sut.hasLoaded, "A failed lookup fails open so the verify prompt is never lost")
+  }
+
+  func testHasLoadedTrueWhenThereIsNoSession() async {
+    mockAuthManager.session = nil
+    await sut.refresh()
+    XCTAssertTrue(sut.hasLoaded)
+  }
+
   func testResendCallsServiceAndSetsMessage() async {
     await sut.resend()
     XCTAssertEqual(mockGuardianService.resendCallCount, 1)

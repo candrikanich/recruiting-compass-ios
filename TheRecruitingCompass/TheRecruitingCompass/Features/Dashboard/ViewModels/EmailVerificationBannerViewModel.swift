@@ -29,6 +29,15 @@ final class EmailVerificationBannerViewModel {
 
   var isVerified: Bool { authManager.user?.emailConfirmedAt != nil }
 
+  /// `guardian` is the athlete's guardian lookup, or nil for members who have none (never held back).
+  func isVisible(guardian: GuardianStatusViewModel?) -> Bool {
+    EmailVerificationBannerVisibility.isVisible(
+      isVerified: isVerified,
+      isDismissed: isDismissed,
+      guardian: guardian.map { (loaded: $0.hasLoaded, locked: $0.isPending) }
+    )
+  }
+
   init(
     emailVerificationService: (any EmailVerificationManaging)? = nil,
     authManager: (any AuthManaging)? = nil
