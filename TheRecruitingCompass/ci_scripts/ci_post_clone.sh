@@ -5,7 +5,8 @@
 #
 # Set in App Store Connect → Xcode Cloud → workflow → Environment (mark the keys Secret):
 #   SUPABASE_ANON_KEY, API_BASE_URL, POSTHOG_API_KEY
-# Optional: TURNSTILE_SITE_KEY (the build phase has a default), SENTRY_DSN (crash reporting;
+# Optional: REVENUECAT_API_KEY (the public appl_ SDK key; empty = the paywall has nothing to sell),
+# TURNSTILE_SITE_KEY (the build phase has a default), SENTRY_DSN (crash reporting;
 # empty = disabled), SENTRY_AUTH_TOKEN (dSYM upload in ci_post_xcodebuild.sh).
 #
 # SUPABASE_URL is deliberately not written here: project.pbxproj pins it (production) at the
@@ -39,6 +40,11 @@ OUT="$CI_PRIMARY_REPOSITORY_PATH/TheRecruitingCompass/Release.xcconfig"
   echo "SUPABASE_ANON_KEY = $SUPABASE_ANON_KEY"
   echo "API_BASE_URL = $(xcconfig_url "$API_BASE_URL")"
   echo "POSTHOG_API_KEY = $POSTHOG_API_KEY"
+  if [ -n "${REVENUECAT_API_KEY:-}" ]; then
+    echo "REVENUECAT_API_KEY = $REVENUECAT_API_KEY"
+  else
+    echo "warning: REVENUECAT_API_KEY not set — this build cannot sell subscriptions." >&2
+  fi
   if [ -n "${TURNSTILE_SITE_KEY:-}" ]; then
     echo "TURNSTILE_SITE_KEY = $TURNSTILE_SITE_KEY"
   fi

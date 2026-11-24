@@ -34,7 +34,7 @@ This document describes environment configuration and where to set it for develo
 
 App Store Connect rejects builds made with a beta Xcode or beta SDK. The dev Mac runs a beta macOS and a beta Xcode, so **App Store builds are archived in Xcode Cloud** on a release Xcode.
 
-- `TheRecruitingCompass/ci_scripts/ci_post_clone.sh` writes `Release.xcconfig` from workflow environment variables: `SUPABASE_ANON_KEY`, `API_BASE_URL`, `POSTHOG_API_KEY`, and optionally `TURNSTILE_SITE_KEY`. Store them as **Secret** in the workflow's Environment settings. The script fails the build if a required variable is missing.
+- `TheRecruitingCompass/ci_scripts/ci_post_clone.sh` writes `Release.xcconfig` from workflow environment variables: `SUPABASE_ANON_KEY`, `API_BASE_URL`, `POSTHOG_API_KEY`, and optionally `REVENUECAT_API_KEY` and `TURNSTILE_SITE_KEY`. Store them as **Secret** in the workflow's Environment settings. The script fails the build if a required variable is missing.
 - `SUPABASE_URL` is **not** a workflow variable. `project.pbxproj` pins it to the production project at the project level (Debug and Release), which overrides any xcconfig value. So `SUPABASE_ANON_KEY` must be the **production** project's key, or auth breaks.
 - **Key format.** Use the production project's `sb_publishable_...` key (Supabase dashboard -> Project Settings -> API Keys). The variable keeps its `SUPABASE_ANON_KEY` name. Nothing in the app inspects the key's shape: it flows `Release.xcconfig` -> "Generate config" build phase -> `SupabaseConfig.anonKey` -> `SupabaseClient(supabaseKey:)`. supabase-swift 2.55.3 recognizes the `sb_` format (it omits the key as a Bearer token for Edge Functions). Auth, PostgREST, Storage and Realtime send it as `apikey` (and, before sign-in, also as `Authorization: Bearer`, which the gateway accepts); once signed in, they use the user's session token. Never roll or disable a legacy key as part of switching a build; that is tracked in web#1524 and web#1485.
 - **Verify an Xcode Cloud build.** The build log prints `Wrote Release.xcconfig (anon key length N, ...)`. A `sb_publishable_` key is 46 characters; a legacy JWT is about 200. Check that length in the archive build's `ci_post_clone` log.
@@ -120,3 +120,13 @@ When the app is installed, iOS opens it instead of Safari. The app presents `Inv
 - [CLAUDE.md](../CLAUDE.md) — Setup steps, architecture, testing
 - [README.md](../README.md) — Quick start
 - [docs/CODE_PATTERNS.md](CODE_PATTERNS.md) — Keychain usage examples, security checklist
+
+### Purchases: RevenueCat and StoreKit
+
+The paywall (ios#541) sells the `trc_access` subscriptions through the RevenueCat SDK.
+
+- `REVENUECAT_API_KEY` is RevenueCat's **public** SDK key for the App Store app (starts with `appl_`). Release builds read it from `Release.xcconfig` through `Info-Release.plist` (`RevenueCatAPIKey`), the same path as `SENTRY_DSN`. Debug builds read the `REVENUECAT_API_KEY` environment variable of a local scheme. With no key the SDK is never configured and the paywall shows "Plans aren't available right now".
+- The app's RevenueCat customer is always the signed-in Supabase `auth.uid()` (lowercase). `BillingSession` logs in before any purchase or restore and logs out on sign-out (web#1751).
+- **Local StoreKit testing (Train 8):** `TheRecruitingCompass/Config/TRCSubscriptions.storekit` holds the four launch products (`trc_players_1` and `trc_players_2`, monthly and annual). In Xcode choose Product > Scheme > Edit Scheme > Run > Options > StoreKit Configuration and pick it, using a local scheme. Set `REVENUECAT_API_KEY` in that scheme to the RevenueCat **Test Store** key, or an `appl_` key to exercise the real offering. Real App Store sandbox verification waits on the Paid Apps Agreement (ios#545, Train 9).
+- The `paywall` key in `app_config.ios_disabled_features` hides every purchase surface (Plan actions, the paywall itself) without a release.
+- Account deletion must delete the RevenueCat customer before this ships (web#1899).

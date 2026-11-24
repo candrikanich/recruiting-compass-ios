@@ -9,6 +9,11 @@ struct PlanView: View {
 
   @Environment(EntitlementStore.self) private var entitlementStore
   @Environment(FamilyManager.self) private var familyManager
+  @Environment(AuthManager.self) private var authManager
+  @Environment(FeatureFlagStore.self) private var flags: FeatureFlagStore?
+  @Environment(BillingSession.self) private var billing: BillingSession?
+  @State private var holdsSubscription = false
+  @State private var isShowingPaywall = false
 
   var body: some View {
     List {
@@ -42,11 +47,49 @@ struct PlanView: View {
       } footer: {
         Text(Self.footerCopy)
       }
+
+      if let billing, !planActions.isEmpty {
+        Section {
+          ForEach(planActions, id: \.self) { action in
+            Button(Self.title(for: action)) { perform(action, billing: billing) }
+              .frame(minHeight: 44, alignment: .leading)
+          }
+        }
+      }
     }
     .navigationTitle("Plan")
     .navigationBarTitleDisplayMode(.inline)
     .task {
       await loadPlan()
+    }
+    .task(id: entitlementStore.subscription) {
+      holdsSubscription = await billing?.currentProductId(as: authManager.user?.id) != nil
+    }
+    .sheet(isPresented: $isShowingPaywall) {
+      if let billing { PaywallView(session: billing) }
+    }
+  }
+
+  private var planActions: [PlanAction] {
+    PaywallAccess.actions(
+      subscription: entitlementStore.subscription, flags: flags, holdsSubscription: holdsSubscription
+    )
+  }
+
+  static func title(for action: PlanAction) -> String {
+    switch action {
+    case .seePlans: String(localized: "See plans")
+    case .changePlan: String(localized: "Change plan")
+    case .manageSubscription: String(localized: "Manage subscription")
+    }
+  }
+
+  private func perform(_ action: PlanAction, billing: BillingSession) {
+    switch action {
+    case .seePlans, .changePlan:
+      isShowingPaywall = true
+    case .manageSubscription:
+      Task { try? await billing.purchases.presentManageSubscriptions() }
     }
   }
 
@@ -65,5 +108,6 @@ struct PlanView: View {
     PlanView()
       .environment(EntitlementStore())
       .environment(FamilyManager.shared)
+      .environment(AuthManager.shared)
   }
 }

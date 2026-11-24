@@ -22,6 +22,7 @@ struct TheRecruitingCompassApp: App {
   @State private var entitlementStore = EntitlementStore(selectedFamilyUnitId: { FamilyManager.shared.familyUnitId })
   @State private var appUpdateManager = AppUpdateManager()
   @State private var featureFlagStore = FeatureFlagStore()
+  @State private var billingSession = BillingSession(purchases: RevenueCatPurchases())
   @State private var showResetPassword = false
   @State private var showBiometricLock = false
   @State private var pendingResetPasswordFromDeepLink = false
@@ -33,6 +34,7 @@ struct TheRecruitingCompassApp: App {
   init() {
     CrashReporting.start()
     Analytics.setup()
+    RevenueCatConfig.configure()
     BrandFont.configureNavigationBarAppearance()
     if LaunchEnvironment.disablesAnimations(arguments: ProcessInfo.processInfo.arguments) {
       UIView.setAnimationsEnabled(false)
@@ -134,6 +136,10 @@ struct TheRecruitingCompassApp: App {
           TurnstileChallengeOverlay()
         }
       }
+      // The SDK customer must be the signed-in user before any purchase, and detached on sign-out (web#1751).
+      .task(id: authManager.user?.id) {
+        await billingSession.sync(userId: authManager.user?.id)
+      }
       .task {
         async let flags: Void = featureFlagStore.refresh()
         await appUpdateManager.check()
@@ -218,6 +224,7 @@ struct TheRecruitingCompassApp: App {
       .environment(entitlementStore)
       .environment(appUpdateManager)
       .environment(featureFlagStore)
+      .environment(billingSession)
     }
   }
 
