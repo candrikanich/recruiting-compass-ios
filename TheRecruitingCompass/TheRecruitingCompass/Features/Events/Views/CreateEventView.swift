@@ -39,6 +39,7 @@ struct CreateEventView: View {
     }
     .navigationTitle("Add New Event")
     .navigationBarTitleDisplayMode(.inline)
+    .writeGated(by: viewModel.writeGate)
     .navigationBarBackButtonHidden(true)
     .toolbar {
       ToolbarItem(placement: .topBarLeading) {

@@ -30,6 +30,7 @@ struct OfferDetailView: View {
     }
     .navigationTitle("Offer Details")
     .navigationBarTitleDisplayMode(.inline)
+    .writeGated(by: viewModel.writeGate)
     .toolbar(.hidden, for: .tabBar)
     .refreshable {
       await viewModel.loadOffer()

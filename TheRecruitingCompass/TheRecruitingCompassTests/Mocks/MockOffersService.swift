@@ -14,6 +14,8 @@ final class MockOffersService: OffersManaging, @unchecked Sendable {
   var shouldThrowCreateError = false
   var shouldThrowUpdateError = false
   var shouldThrowDeleteError = false
+  /// Thrown by create, update and delete ahead of the `shouldThrow*` flags, so a test can pick the error type.
+  var writeError: Error?
 
   var fetchOffersCallCount = 0
   var fetchOffersByFamilyCallCount = 0
@@ -73,6 +75,7 @@ final class MockOffersService: OffersManaging, @unchecked Sendable {
   func createOffer(_ request: OfferCreateRequest) async throws -> Offer {
     createOfferCallCount += 1
     lastCreateRequest = request
+    if let writeError { throw writeError }
     if shouldThrowCreateError {
       throw NSError(domain: "MockError", code: 2, userInfo: [NSLocalizedDescriptionKey: "Create failed"])
     }
@@ -83,6 +86,7 @@ final class MockOffersService: OffersManaging, @unchecked Sendable {
     updateOfferCallCount += 1
     lastUpdateId = id
     lastUpdateRequest = data
+    if let writeError { throw writeError }
     if shouldThrowUpdateError {
       throw NSError(domain: "MockError", code: 6, userInfo: [NSLocalizedDescriptionKey: "Update failed"])
     }
@@ -92,6 +96,7 @@ final class MockOffersService: OffersManaging, @unchecked Sendable {
   func deleteOffer(id: String) async throws {
     deleteOfferCallCount += 1
     lastDeletedOfferId = id
+    if let writeError { throw writeError }
     if shouldThrowDeleteError {
       throw NSError(domain: "MockError", code: 3, userInfo: [NSLocalizedDescriptionKey: "Delete failed"])
     }

@@ -42,6 +42,8 @@ final class CreateEventViewModel {
 
   // MARK: - Dependencies
 
+  let writeGate = WriteGate()
+
   private let eventsService: any EventsManaging
   private let userId: String
   private let familyUnitId: String
@@ -229,6 +231,7 @@ final class CreateEventViewModel {
 
   func createEvent() async -> String? {
     guard !isLoading, !isSaving else { return nil }
+    guard !writeGate.blocksWrite() else { return nil }
     guard validateForm() else { return nil }
     guard let familyUnitId = resolvedFamilyUnitId else {
       errorMessage = Self.familyNotLoadedMessage
@@ -262,6 +265,7 @@ final class CreateEventViewModel {
   }
 
   private func createEventErrorMessage(for error: Error) -> String {
+    if let subscriptionMessage = writeGate.subscriptionMessage(for: error) { return subscriptionMessage }
     if isPermissionDenied(error) {
       return String(localized: "You don't have permission to add events for this athlete.")
     }

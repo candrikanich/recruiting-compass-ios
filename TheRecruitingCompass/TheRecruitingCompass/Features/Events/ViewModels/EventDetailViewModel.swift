@@ -73,6 +73,8 @@ final class EventDetailViewModel {
 
   // MARK: - Dependencies
 
+  let writeGate = WriteGate()
+
   private let eventsService: any EventsManaging
   private let familyManager: FamilyManager
   private let authManager: any AuthManaging
@@ -244,10 +246,17 @@ final class EventDetailViewModel {
     }
   }
 
+  /// Surfaces a failed event write; on a read-only plan a permission failure explains the subscription instead.
+  private func reportWriteFailure(_ error: Error, fallback: String) {
+    let message = writeGate.subscriptionMessage(for: error) ?? fallback
+    ViewModelHelpers.handleError(error, userMessage: message, logger: logger) { self.errorMessage = $0 }
+  }
+
   // MARK: - Mark as Attended
 
   func markAsAttended() async {
     guard event?.attended != true else { return }
+    guard !writeGate.blocksWrite() else { return }
     await ViewModelHelpers.withLoading(set: { self.isSaving = $0 }) {
       do {
         let request = EventUpdateRequest(attended: true)
@@ -259,7 +268,7 @@ final class EventDetailViewModel {
         logger.info("Event marked as attended: \(self.eventId)")
         await invalidateEventsListCache()
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: String(localized: "Failed to update event. Please try again."), logger: logger) { self.errorMessage = $0 }
+        reportWriteFailure(error, fallback: String(localized: "Failed to update event. Please try again."))
         hapticErrorTrigger += 1
       }
     }
@@ -269,11 +278,13 @@ final class EventDetailViewModel {
 
   func openEditForm() {
     guard let event else { return }
+    guard !writeGate.blocksWrite() else { return }
     editData = EditEventData.from(event)
     showEditSheet = true
   }
 
   func updateEvent() async {
+    guard !writeGate.blocksWrite() else { return }
     await ViewModelHelpers.withLoading(set: { self.isSaving = $0 }) {
       do {
         let request = editData.toUpdateRequest()
@@ -285,7 +296,7 @@ final class EventDetailViewModel {
         logger.info("Event updated: \(self.eventId)")
         await invalidateEventsListCache()
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: String(localized: "Failed to update event. Please try again."), logger: logger) { self.errorMessage = $0 }
+        reportWriteFailure(error, fallback: String(localized: "Failed to update event. Please try again."))
         hapticErrorTrigger += 1
       }
     }
@@ -294,11 +305,13 @@ final class EventDetailViewModel {
   // MARK: - Delete Event
 
   func confirmDelete() {
+    guard !writeGate.blocksWrite() else { return }
     hapticWarningTrigger += 1
     showDeleteConfirmation = true
   }
 
   func deleteEvent() async {
+    guard !writeGate.blocksWrite() else { return }
     await ViewModelHelpers.withLoading(set: { self.isDeleting = $0 }) {
       do {
         try await eventsService.deleteEvent(id: eventId)
@@ -307,7 +320,7 @@ final class EventDetailViewModel {
         logger.info("Event deleted: \(self.eventId)")
         await invalidateEventsListCache()
       } catch {
-        ViewModelHelpers.handleError(error, userMessage: String(localized: "Failed to delete event. Please try again."), logger: logger) { self.errorMessage = $0 }
+        reportWriteFailure(error, fallback: String(localized: "Failed to delete event. Please try again."))
         hapticErrorTrigger += 1
       }
     }

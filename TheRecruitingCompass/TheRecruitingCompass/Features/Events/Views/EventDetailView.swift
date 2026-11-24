@@ -49,6 +49,7 @@ struct EventDetailView: View {
     }
     .navigationTitle(viewModel.event?.name ?? "Event")
     .navigationBarTitleDisplayMode(.inline)
+    .writeGated(by: viewModel.writeGate)
     .toolbar { toolbarMenu }
     .toolbar(.hidden, for: .tabBar)
     .task { await viewModel.loadAll() }

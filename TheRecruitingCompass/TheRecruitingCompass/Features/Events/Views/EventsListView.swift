@@ -40,6 +40,7 @@ struct EventsListView: View {
     }
     .navigationTitle("Events")
     .navigationBarTitleDisplayMode(.inline)
+    .writeGated(by: viewModel.writeGate)
     .searchable(text: $viewModel.searchText, prompt: "Search events...")
     .toolbar {
       ToolbarItem(placement: .topBarTrailing) {
@@ -109,6 +110,7 @@ struct EventsListView: View {
   /// Resolves the target user id once, here, and freezes it into the sheet's
   /// item so the presented form survives auth/family republishes mid-edit.
   private func presentCreateEvent() {
+    guard viewModel.canStartCreateEvent() else { return }
     guard let userId = viewModel.targetUserId,
           let familyUnitId = viewModel.familyUnitId else {
       // Family data may still be loading (see the familyUnitId onChange
@@ -261,6 +263,7 @@ struct EventsListView: View {
     .accessibilityLabel(rowAccessibilityLabel(event))
     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
       Button(role: .destructive) {
+        guard viewModel.canStartDeleteEvent() else { return }
         hapticLightTrigger += 1
         eventToDelete = event
       } label: {

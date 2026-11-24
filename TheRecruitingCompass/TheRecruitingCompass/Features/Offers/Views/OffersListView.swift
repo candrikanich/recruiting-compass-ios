@@ -11,7 +11,7 @@ struct OffersListView: View {
         OfferEmptyState(
           isFilteredEmpty: false,
           onClearFilters: nil,
-          onAddOffer: { withAnimation { viewModel.showAddForm = true } }
+          onAddOffer: { withAnimation { viewModel.openAddForm() } }
         )
       } else {
         offersListContent
@@ -19,6 +19,7 @@ struct OffersListView: View {
     }
     .navigationTitle("Offers")
     .navigationBarTitleDisplayMode(.inline)
+    .writeGated(by: viewModel.writeGate)
     .searchable(
       text: $viewModel.filters.schoolSearch,
       prompt: "Search by school..."
@@ -73,7 +74,7 @@ struct OffersListView: View {
         }
 
         Button {
-          withAnimation { viewModel.showAddForm.toggle() }
+          withAnimation { viewModel.toggleAddForm() }
         } label: {
           Image(systemName: "plus")
             .frame(minWidth: 44, minHeight: 44)
