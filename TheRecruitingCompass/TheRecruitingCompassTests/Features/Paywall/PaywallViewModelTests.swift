@@ -53,7 +53,7 @@ final class PaywallViewModelTests: XCTestCase {
     flagService.disabledKeys = disabled
     let flags = FeatureFlagStore(service: flagService, defaults: UserDefaults(suiteName: "PaywallVM-\(UUID())")!)
     await flags.refresh()
-    let session = BillingSession(purchases: purchases)
+    let session = BillingSession(purchases: purchases, role: { [unowned self] in signedInRole })
     let sleeps = SleepLog()
     let model = PaywallViewModel(
       session: session, entitlements: store, flags: flags,

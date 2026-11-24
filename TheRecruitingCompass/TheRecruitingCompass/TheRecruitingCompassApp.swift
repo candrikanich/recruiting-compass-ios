@@ -12,6 +12,11 @@ import UserNotifications
 import os
 import PostHog
 
+private struct BillingSyncKey: Equatable {
+  let userId: String?
+  let role: UserRole?
+}
+
 struct TheRecruitingCompassApp: App {
   @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
   @State private var authManager = AuthManager.shared
@@ -22,7 +27,9 @@ struct TheRecruitingCompassApp: App {
   @State private var entitlementStore = EntitlementStore(selectedFamilyUnitId: { FamilyManager.shared.familyUnitId })
   @State private var appUpdateManager = AppUpdateManager()
   @State private var featureFlagStore = FeatureFlagStore()
-  @State private var billingSession = BillingSession(purchases: RevenueCatPurchases())
+  @State private var billingSession = BillingSession(
+    purchases: RevenueCatPurchases(), role: { AuthManager.shared.user?.role }
+  )
   @State private var showResetPassword = false
   @State private var showBiometricLock = false
   @State private var pendingResetPasswordFromDeepLink = false
@@ -137,7 +144,8 @@ struct TheRecruitingCompassApp: App {
         }
       }
       // The SDK customer must be the signed-in user before any purchase, and detached on sign-out (web#1751).
-      .task(id: authManager.user?.id) {
+      // Re-runs when the role loads or the account changes: only a parent is ever sent to the SDK.
+      .task(id: BillingSyncKey(userId: authManager.user?.id, role: authManager.user?.role)) {
         await billingSession.sync(userId: authManager.user?.id)
       }
       .task {

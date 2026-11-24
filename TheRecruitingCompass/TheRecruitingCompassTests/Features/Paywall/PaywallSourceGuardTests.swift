@@ -66,4 +66,36 @@ final class PaywallSourceGuardTests: XCTestCase {
       }
     }
   }
+
+  private static func source(_ relativePath: String) -> String {
+    let url = sourceRoot.appendingPathComponent("Features").appendingPathComponent(relativePath)
+    return (try? String(contentsOf: url, encoding: .utf8)).map(strippingComments(from:)) ?? ""
+  }
+
+  /// The write-gate alert must read the role-aware text, not the parent-only constant.
+  func test_writeGateNoticeIsRoleAware() {
+    let modifier = Self.source("Entitlement/Views/WriteGatedModifier.swift")
+    XCTAssertTrue(modifier.contains("gate.noticeMessage"), "the notice must come from the gate's role-aware text")
+    XCTAssertFalse(modifier.contains("WriteGate.subscriptionMessage"), "the parent-only text must not be hard-wired")
+  }
+
+  /// A frame or content shape outside a borderless `Button` can grow its layout box without growing the tap area,
+  /// so Terms, Privacy and Restore keep both inside the label.
+  func test_legalAndRestoreTapAreasLiveInsideTheButtonLabel() {
+    let view = Self.source("Paywall/Views/PaywallView.swift")
+    for marker in ["func legalButton", "Task { await model.restore() }"] {
+      guard let start = view.range(of: marker)?.lowerBound else {
+        XCTFail("PaywallView no longer has \(marker)")
+        continue
+      }
+      let body = String(view[start...].prefix(260))
+      guard let label = body.range(of: "label:") else {
+        XCTFail("\(marker) is not a label-style Button")
+        continue
+      }
+      let afterLabel = body[label.upperBound...]
+      XCTAssertTrue(afterLabel.contains(".frame(minHeight: 44)"), "\(marker): 44pt frame outside the label")
+      XCTAssertTrue(afterLabel.contains(".contentShape(Rectangle())"), "\(marker): contentShape outside the label")
+    }
+  }
 }

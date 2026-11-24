@@ -38,11 +38,18 @@ enum RevenueCatConfig {
 
 actor RevenueCatPurchases: PurchasesProviding {
   private var packagesById: [String: Package] = [:]
+  /// Whether `RevenueCatConfig.configure()` found a key and set the SDK up. Injectable so a test can cover both
+  /// answers without a real key; the app always uses the SDK's own answer.
+  private let sdkIsConfigured: @Sendable () -> Bool
 
-  nonisolated var isConfigured: Bool { Purchases.isConfigured }
+  init(sdkIsConfigured: @escaping @Sendable () -> Bool = { Purchases.isConfigured }) {
+    self.sdkIsConfigured = sdkIsConfigured
+  }
+
+  nonisolated var isConfigured: Bool { sdkIsConfigured() }
 
   private func purchases() throws -> Purchases {
-    guard Purchases.isConfigured else { throw PurchasesError.notConfigured }
+    guard sdkIsConfigured() else { throw PurchasesError.notConfigured }
     return Purchases.shared
   }
 

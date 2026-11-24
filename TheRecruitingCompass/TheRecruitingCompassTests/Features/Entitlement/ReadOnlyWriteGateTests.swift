@@ -88,6 +88,7 @@ final class WriteGateTests: XCTestCase {
   func testBlocksWrite_readOnly_blocksAndShowsNotice() {
     let gate = WriteGate()
     gate.isReadOnly = { true }
+    gate.role = { .parent }
     XCTAssertTrue(gate.blocksWrite())
     XCTAssertTrue(gate.isShowingNotice)
   }
@@ -95,6 +96,7 @@ final class WriteGateTests: XCTestCase {
   func testBlocksWrite_writable_allowsAndStaysQuiet() {
     let gate = WriteGate()
     gate.isReadOnly = { false }
+    gate.role = { .parent }
     XCTAssertFalse(gate.blocksWrite())
     XCTAssertFalse(gate.isShowingNotice)
   }
@@ -115,6 +117,7 @@ final class WriteGateTests: XCTestCase {
     for testCase in cases {
       let gate = WriteGate()
       gate.isReadOnly = { testCase.readOnly }
+      gate.role = { .parent }
       let message = gate.subscriptionMessage(for: testCase.error)
       XCTAssertEqual(message, testCase.expectsSubscription ? subscriptionMessage : nil, "\(testCase)")
     }
@@ -134,6 +137,7 @@ final class WriteGateTests: XCTestCase {
   func testMapping_followsCannotWriteWhileBlockingFollowsIsReadOnly() {
     let gate = WriteGate()
     gate.isReadOnly = { false }
+    gate.role = { .parent }
     gate.cannotWrite = { true }
     XCTAssertFalse(gate.blocksWrite())
     XCTAssertEqual(gate.subscriptionMessage(for: rlsDenied), subscriptionMessage)
@@ -141,6 +145,7 @@ final class WriteGateTests: XCTestCase {
     XCTAssertNil(gate.subscriptionMessage(for: httpError(status: 500)))
 
     gate.isReadOnly = { true }
+    gate.role = { .parent }
     gate.cannotWrite = { false }
     XCTAssertTrue(gate.blocksWrite())
     XCTAssertNil(gate.subscriptionMessage(for: rlsDenied))
@@ -153,14 +158,14 @@ final class WriteGateTests: XCTestCase {
     let store = EntitlementStore(service: service)
     await store.load(familyUnitId: "fam-1")
     let gate = WriteGate()
-    gate.attach(to: store)
+    gate.attach(to: store, role: { .parent })
     XCTAssertFalse(gate.blocksWrite())
     XCTAssertEqual(gate.subscriptionMessage(for: rlsDenied), subscriptionMessage)
   }
 
   func testAttach_planStillLoading_mapsButNeverBlocks() {
     let gate = WriteGate()
-    gate.attach(to: EntitlementStore(service: MockEntitlementService()))
+    gate.attach(to: EntitlementStore(service: MockEntitlementService()), role: { .parent })
     XCTAssertFalse(gate.blocksWrite())
     XCTAssertEqual(gate.subscriptionMessage(for: rlsDenied), subscriptionMessage)
   }
@@ -173,7 +178,7 @@ final class WriteGateTests: XCTestCase {
     let store = EntitlementStore(service: service)
     await store.load(familyUnitId: "fam-1")
     let gate = WriteGate()
-    gate.attach(to: store)
+    gate.attach(to: store, role: { .parent })
     XCTAssertFalse(gate.blocksWrite())
     XCTAssertNil(gate.subscriptionMessage(for: rlsDenied))
   }
@@ -186,7 +191,7 @@ final class WriteGateTests: XCTestCase {
     let store = EntitlementStore(service: service)
     await store.load(familyUnitId: "fam-1")
     let gate = WriteGate()
-    gate.attach(to: store)
+    gate.attach(to: store, role: { .parent })
     XCTAssertTrue(gate.blocksWrite())
     XCTAssertEqual(gate.subscriptionMessage(for: rlsDenied), subscriptionMessage)
   }
@@ -195,6 +200,53 @@ final class WriteGateTests: XCTestCase {
     XCTAssertFalse(subscriptionMessage.contains("TRC"))
     XCTAssertFalse(subscriptionMessage.lowercased().contains("permission"))
     XCTAssertFalse(WriteGate.noticeTitle.contains("TRC"))
+  }
+
+  // MARK: Role-aware notice (parents only buy, Chris 2026-11-24)
+
+  /// Every member of the role set: only a parent is told to renew; an athlete and a missing role are not.
+  func testNotice_onlyAParentIsToldToRenew() {
+    let expected: [(role: UserRole?, message: String)] = [
+      (.parent, subscriptionMessage),
+      (.player, WriteGate.askAParentMessage),
+      (nil, WriteGate.askAParentMessage)
+    ]
+    for testCase in expected {
+      let gate = WriteGate()
+      gate.isReadOnly = { true }
+      gate.role = { testCase.role }
+      XCTAssertEqual(gate.noticeMessage, testCase.message, "\(String(describing: testCase.role))")
+      XCTAssertEqual(gate.subscriptionMessage(for: rlsDenied), testCase.message, "\(String(describing: testCase.role))")
+      XCTAssertEqual(gate.subscriptionMessage(for: httpError(status: 403)), testCase.message)
+    }
+  }
+
+  func testNotice_followsTheRoleAtTheMomentOfUse() {
+    var role: UserRole? = .parent
+    let gate = WriteGate()
+    gate.isReadOnly = { true }
+    gate.role = { role }
+    XCTAssertEqual(gate.noticeMessage, subscriptionMessage)
+    role = .player
+    XCTAssertEqual(gate.noticeMessage, WriteGate.askAParentMessage)
+  }
+
+  func testAttach_wiresTheRoleIntoTheNotice() {
+    let gate = WriteGate()
+    gate.attach(to: EntitlementStore(service: MockEntitlementService()), role: { .player })
+    XCTAssertEqual(gate.subscriptionMessage(for: rlsDenied), WriteGate.askAParentMessage)
+  }
+
+  func testAthleteNotice_isPinnedAndHasNoRenewPriceOrPressure() {
+    XCTAssertEqual(
+      WriteGate.askAParentMessage,
+      "Your plan is read-only right now. A parent can choose a plan for your family."
+    )
+    XCTAssertTrue(WriteGate.askAParentMessage.contains(PaywallAccess.askAParentCopy))
+    let copy = WriteGate.askAParentMessage.lowercased()
+    for word in ["renew", "subscri", "$", "pay", "hurry", "limited", "expire", "trc"] {
+      XCTAssertFalse(copy.contains(word), word)
+    }
   }
 }
 
@@ -228,6 +280,7 @@ final class ReadOnlyEventsViewModelTests: XCTestCase {
   private func makeCreate(readOnly: Bool) -> CreateEventViewModel {
     let vm = CreateEventViewModel(eventsService: service, userId: "test-user-id", familyUnitId: "fam-1")
     vm.writeGate.isReadOnly = { readOnly }
+    vm.writeGate.role = { .parent }
     vm.formData.type = .showcase
     vm.formData.name = "Test Event"
     vm.formData.startDate = Date(timeIntervalSince1970: 1_780_000_000)
@@ -247,6 +300,7 @@ final class ReadOnlyEventsViewModelTests: XCTestCase {
     )
     await vm.loadAll()
     vm.writeGate.isReadOnly = { readOnly }
+    vm.writeGate.role = { .parent }
     holder.append(vm)
     return vm
   }
@@ -275,6 +329,7 @@ final class ReadOnlyEventsViewModelTests: XCTestCase {
     service.createEventError = rlsDenied
     var calls = 0
     vm.writeGate.isReadOnly = { calls += 1; return calls > 1 }
+    vm.writeGate.role = { .parent }
     _ = await vm.createEvent()
     XCTAssertEqual(vm.errorMessage, subscriptionMessage)
   }
@@ -292,6 +347,7 @@ final class ReadOnlyEventsViewModelTests: XCTestCase {
     service.createEventError = URLError(.notConnectedToInternet)
     var calls = 0
     vm.writeGate.isReadOnly = { calls += 1; return calls > 1 }
+    vm.writeGate.role = { .parent }
     _ = await vm.createEvent()
     XCTAssertNotEqual(vm.errorMessage, subscriptionMessage)
     XCTAssertNotNil(vm.errorMessage)
@@ -317,6 +373,7 @@ final class ReadOnlyEventsViewModelTests: XCTestCase {
     let vm = await makeDetail(readOnly: false)
     vm.openEditForm()
     vm.writeGate.isReadOnly = { true }
+    vm.writeGate.role = { .parent }
     await vm.updateEvent()
     XCTAssertEqual(service.updateEventCallCount, 0)
     XCTAssertTrue(vm.writeGate.isShowingNotice)
@@ -335,6 +392,7 @@ final class ReadOnlyEventsViewModelTests: XCTestCase {
       var calls = 0
       // Writable when the write is attempted, read-only by the time it fails (plan lapsed meanwhile).
       vm.writeGate.isReadOnly = { calls += 1; return flips && calls > 1 }
+      vm.writeGate.role = { .parent }
       await vm.updateEvent()
       XCTAssertEqual(
         vm.errorMessage == subscriptionMessage, testCase.expectsSubscription, "\(testCase)"
@@ -375,6 +433,7 @@ final class ReadOnlyEventsViewModelTests: XCTestCase {
     service.writeError = httpError(status: 403)
     var calls = 0
     vm.writeGate.isReadOnly = { calls += 1; return calls > 1 }
+    vm.writeGate.role = { .parent }
     await vm.deleteEvent()
     XCTAssertEqual(vm.errorMessage, subscriptionMessage)
   }
@@ -384,11 +443,13 @@ final class ReadOnlyEventsViewModelTests: XCTestCase {
   func testCanStartCreateEvent_readOnlyBlocksWritableAllows() {
     let blocked = EventsListViewModel(eventsService: service, authManager: auth, cache: InMemoryCache())
     blocked.writeGate.isReadOnly = { true }
+    blocked.writeGate.role = { .parent }
     XCTAssertFalse(blocked.canStartCreateEvent())
     XCTAssertTrue(blocked.writeGate.isShowingNotice)
 
     let open = EventsListViewModel(eventsService: service, authManager: auth, cache: InMemoryCache())
     open.writeGate.isReadOnly = { false }
+    open.writeGate.role = { .parent }
     XCTAssertTrue(open.canStartCreateEvent())
     XCTAssertFalse(open.writeGate.isShowingNotice)
     holder.append(contentsOf: [blocked, open])
@@ -397,11 +458,13 @@ final class ReadOnlyEventsViewModelTests: XCTestCase {
   func testCanStartDeleteEvent_readOnlyBlocksWritableAllows() {
     let blocked = EventsListViewModel(eventsService: service, authManager: auth, cache: InMemoryCache())
     blocked.writeGate.isReadOnly = { true }
+    blocked.writeGate.role = { .parent }
     XCTAssertFalse(blocked.canStartDeleteEvent())
     XCTAssertTrue(blocked.writeGate.isShowingNotice)
 
     let open = EventsListViewModel(eventsService: service, authManager: auth, cache: InMemoryCache())
     open.writeGate.isReadOnly = { false }
+    open.writeGate.role = { .parent }
     XCTAssertTrue(open.canStartDeleteEvent())
     XCTAssertFalse(open.writeGate.isShowingNotice)
     holder.append(contentsOf: [blocked, open])
@@ -411,6 +474,7 @@ final class ReadOnlyEventsViewModelTests: XCTestCase {
     let vm = EventsListViewModel(eventsService: service, authManager: auth, cache: InMemoryCache())
     vm.events = [.mock(id: "e1")]
     vm.writeGate.isReadOnly = { true }
+    vm.writeGate.role = { .parent }
     await vm.deleteEvent(id: "e1")
     XCTAssertEqual(service.deleteEventCallCount, 0)
     XCTAssertEqual(vm.events.map(\.id), ["e1"])
@@ -422,6 +486,7 @@ final class ReadOnlyEventsViewModelTests: XCTestCase {
     let vm = EventsListViewModel(eventsService: service, authManager: auth, cache: InMemoryCache())
     vm.events = [.mock(id: "e1")]
     vm.writeGate.isReadOnly = { false }
+    vm.writeGate.role = { .parent }
     await vm.deleteEvent(id: "e1")
     XCTAssertEqual(service.deleteEventCallCount, 1)
     XCTAssertTrue(vm.events.isEmpty)
@@ -432,6 +497,7 @@ final class ReadOnlyEventsViewModelTests: XCTestCase {
   func testCreateEvent_planNotKnown_refusedByServer_showsSubscriptionMessage() async {
     let vm = makeCreate(readOnly: false)
     vm.writeGate.isReadOnly = { false }
+    vm.writeGate.role = { .parent }
     vm.writeGate.cannotWrite = { true }
     service.createEventError = rlsDenied
     _ = await vm.createEvent()
@@ -485,6 +551,7 @@ final class ReadOnlyOffersViewModelTests: XCTestCase {
       offersService: service, familyManager: familyManager, authManager: auth, cache: InMemoryCache()
     )
     vm.writeGate.isReadOnly = { readOnly }
+    vm.writeGate.role = { .parent }
     holder.append(vm)
     return vm
   }
@@ -495,6 +562,7 @@ final class ReadOnlyOffersViewModelTests: XCTestCase {
     )
     vm.offer = makeTestOffer(id: "offer-1")
     vm.writeGate.isReadOnly = { readOnly }
+    vm.writeGate.role = { .parent }
     holder.append(vm)
     return vm
   }
@@ -521,6 +589,7 @@ final class ReadOnlyOffersViewModelTests: XCTestCase {
     let vm = makeList(readOnly: false)
     vm.toggleAddForm()
     vm.writeGate.isReadOnly = { true }
+    vm.writeGate.role = { .parent }
     vm.toggleAddForm()
     XCTAssertFalse(vm.showAddForm)
   }
@@ -563,6 +632,7 @@ final class ReadOnlyOffersViewModelTests: XCTestCase {
       service.writeError = testCase.error
       var calls = 0
       vm.writeGate.isReadOnly = { calls += 1; return testCase.readOnly && calls > 1 }
+      vm.writeGate.role = { .parent }
       await vm.createOffer()
       XCTAssertEqual(vm.errorMessage == subscriptionMessage, testCase.expectsSubscription, "\(testCase)")
       XCTAssertNotNil(vm.errorMessage, "\(testCase)")
@@ -583,6 +653,7 @@ final class ReadOnlyOffersViewModelTests: XCTestCase {
     vm.allOffers = [offer]
     vm.confirmDelete(offer)
     vm.writeGate.isReadOnly = { true }
+    vm.writeGate.role = { .parent }
     await vm.deleteOffer()
     XCTAssertEqual(service.deleteOfferCallCount, 0)
     XCTAssertEqual(vm.allOffers.count, 1)
@@ -598,6 +669,7 @@ final class ReadOnlyOffersViewModelTests: XCTestCase {
     service.writeError = rlsDenied
     var calls = 0
     vm.writeGate.isReadOnly = { calls += 1; return calls > 1 }
+    vm.writeGate.role = { .parent }
     await vm.deleteOffer()
     XCTAssertEqual(vm.errorMessage, subscriptionMessage)
   }
@@ -631,6 +703,7 @@ final class ReadOnlyOffersViewModelTests: XCTestCase {
     let vm = makeDetail(readOnly: false)
     vm.startEditing()
     vm.writeGate.isReadOnly = { true }
+    vm.writeGate.role = { .parent }
     await vm.saveChanges()
     XCTAssertEqual(service.updateOfferCallCount, 0)
     XCTAssertTrue(vm.writeGate.isShowingNotice)
@@ -647,6 +720,7 @@ final class ReadOnlyOffersViewModelTests: XCTestCase {
       service.writeError = testCase.error
       var calls = 0
       vm.writeGate.isReadOnly = { calls += 1; return testCase.readOnly && calls > 1 }
+      vm.writeGate.role = { .parent }
       await vm.saveChanges()
       guard case .error(let message) = vm.activeAlert else { return XCTFail("no error alert for \(testCase)") }
       XCTAssertEqual(message == subscriptionMessage, testCase.expectsSubscription, "\(testCase)")
@@ -678,6 +752,7 @@ final class ReadOnlyOffersViewModelTests: XCTestCase {
     service.writeError = httpError(status: 403)
     var calls = 0
     vm.writeGate.isReadOnly = { calls += 1; return calls > 1 }
+    vm.writeGate.role = { .parent }
     _ = await vm.deleteOffer()
     guard case .deleteError(let message) = vm.activeAlert else { return XCTFail("no delete alert") }
     XCTAssertEqual(message, subscriptionMessage)

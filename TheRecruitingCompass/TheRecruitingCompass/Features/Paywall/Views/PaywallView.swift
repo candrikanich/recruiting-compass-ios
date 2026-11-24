@@ -115,19 +115,28 @@ struct PaywallView: View {
         }
         .font(.brand(.footnote))
 
-        Button("Restore purchases") { Task { await model.restore() } }
-          .font(.brand(.subheadline))
-          .disabled(model.busy != nil)
-          .frame(minHeight: 44)
+        Button {
+          Task { await model.restore() }
+        } label: {
+          Text("Restore purchases")
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .font(.brand(.subheadline))
+        .disabled(model.busy != nil)
       }
       .padding()
     }
   }
 
   private func legalButton(_ title: LocalizedStringKey, _ document: LegalDocument) -> some View {
-    Button(title) { presentedLegal = document }
-      .frame(minHeight: 44)
-      .contentShape(Rectangle())
+    Button {
+      presentedLegal = document
+    } label: {
+      Text(title)
+        .frame(minHeight: 44)
+        .contentShape(Rectangle())
+    }
   }
 
   private func subscribeButton(_ model: PaywallViewModel) -> some View {
