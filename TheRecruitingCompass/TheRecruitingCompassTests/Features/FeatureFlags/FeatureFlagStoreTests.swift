@@ -158,7 +158,7 @@ final class FeatureFlagStoreTests: XCTestCase {
   func test_keyRawValuesArePermanent() {
     XCTAssertEqual(
       Set(FeatureKey.allCases.map(\.rawValue)),
-      ["inbound_drafts", "guardian_claim", "family_invites", "athlete_messages"]
+      ["inbound_drafts", "guardian_claim", "family_invites", "athlete_messages", "paywall"]
     )
   }
 }
