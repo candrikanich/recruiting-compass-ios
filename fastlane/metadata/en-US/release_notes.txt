@@ -1,5 +1,9 @@
-Home now shows you what to do next.
+Parents can now get started before their athlete joins.
 
-• New families see their next steps right at the top of Home, along with your top school once you've picked one.
-• Your status score stays hidden until you've added a coach and logged a conversation, then appears on its own, with no refresh needed.
-• Improved Voice Control support for the Timeline card on Home.
+• Sign up first, add a school, and see next steps for your athlete. Schools you add are there when they join.
+• Event times show as 2:30 PM, with a time picker in Edit Event.
+• Home stat tiles have a fresh green and gold accent.
+• Clearer messages when changing your password or email.
+• Clearer message on Events and Offers when your plan is read-only, with a link to your plan.
+• Fixes for switching between athletes or families, so Home, Timeline and your plan follow who you've selected.
+• Fixed the verify-email banner showing while guardian consent is pending.
