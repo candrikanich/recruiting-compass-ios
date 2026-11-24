@@ -5,8 +5,16 @@ import Foundation
 enum PaywallAccess {
   /// Founding and complimentary families never see a paywall; neither does a plan this build cannot read (`unknown`)
   /// or one that has not loaded. The `paywall` kill switch hides it for everyone without a release.
-  static func isAvailable(subscription: FamilySubscription?, flags: FeatureFlagStore?) -> Bool {
-    guard flags.isEnabled(.paywall), let subscription else { return false }
+  ///
+  /// Only a parent can buy (Chris, 2026-11-24): an athlete is often a minor. A missing role is treated as not a
+  /// parent. With no SDK key (`isConfigured` false) there is nothing to sell, so the surface is hidden too.
+  static func isAvailable(
+    subscription: FamilySubscription?,
+    flags: FeatureFlagStore?,
+    role: UserRole?,
+    isConfigured: Bool
+  ) -> Bool {
+    guard isConfigured, role == .parent, flags.isEnabled(.paywall), let subscription else { return false }
     switch subscription.status {
     case .trialing, .readOnly, .active:
       return true
@@ -20,9 +28,13 @@ enum PaywallAccess {
   static func actions(
     subscription: FamilySubscription?,
     flags: FeatureFlagStore?,
+    role: UserRole?,
+    isConfigured: Bool,
     holdsSubscription: Bool
   ) -> [PlanAction] {
-    guard isAvailable(subscription: subscription, flags: flags), let subscription else { return [] }
+    guard isAvailable(subscription: subscription, flags: flags, role: role, isConfigured: isConfigured),
+      let subscription
+    else { return [] }
     switch subscription.status {
     case .trialing, .readOnly:
       return [.seePlans]
@@ -32,6 +44,16 @@ enum PaywallAccess {
       return []
     }
   }
+}
+
+extension PaywallAccess {
+  /// An athlete whose family needs a plan is pointed to a parent instead of a purchase entry point.
+  static func showsAskAParentNote(subscription: FamilySubscription?, role: UserRole?) -> Bool {
+    guard role == .player, let subscription else { return false }
+    return subscription.status == .trialing || subscription.status == .readOnly
+  }
+
+  static let askAParentCopy = String(localized: "A parent can choose a plan for your family.")
 }
 
 enum PlanAction: Equatable {

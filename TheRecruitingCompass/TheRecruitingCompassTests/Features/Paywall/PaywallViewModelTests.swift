@@ -9,12 +9,15 @@ final class PaywallViewModelTests: XCTestCase {
   private let family = "fam-1"
   /// What the auth layer reports right now; a test changes it to simulate an account switch.
   private var signedInUserId: String?
+  private var signedInRole: UserRole? = .parent
 
   private struct Rig {
     let model: PaywallViewModel
     let purchases: FakePurchases
     let entitlements: MockEntitlementService
     let store: EntitlementStore
+    let flagStore: FeatureFlagStore
+    let flagService: MockFeatureFlagService
     let sleeps: SleepLog
   }
 
@@ -41,6 +44,7 @@ final class PaywallViewModelTests: XCTestCase {
     purchases.packages = FakePurchases.launchOffering
     configure(purchases)
     signedInUserId = uid
+    signedInRole = .parent
     let entitlements = MockEntitlementService()
     entitlements.subscription = subscription(status)
     let store = EntitlementStore(service: entitlements)
@@ -53,14 +57,19 @@ final class PaywallViewModelTests: XCTestCase {
     let sleeps = SleepLog()
     let model = PaywallViewModel(
       session: session, entitlements: store, flags: flags,
-      userId: { [unowned self] in signedInUserId }, familyUnitId: { [family] in family },
+      userId: { [unowned self] in signedInUserId },
+      role: { [unowned self] in signedInRole },
+      familyUnitId: { [family] in family },
       pollAttempts: pollAttempts, pollInterval: .zero,
       sleep: { _ in
         sleeps.count += 1
         sleeps.onSleep?()
       }
     )
-    return Rig(model: model, purchases: purchases, entitlements: entitlements, store: store, sleeps: sleeps)
+    return Rig(
+      model: model, purchases: purchases, entitlements: entitlements, store: store,
+      flagStore: flags, flagService: flagService, sleeps: sleeps
+    )
   }
 
   // MARK: Who sees it
@@ -86,7 +95,20 @@ final class PaywallViewModelTests: XCTestCase {
     XCTAssertTrue(rig.purchases.purchasedPackageIds.isEmpty)
   }
 
-  func test_aFamilyThatBecomesFoundingMidSessionCannotBuy() async {
+  func test_killSwitchFlippedAfterLoadingStopsPurchaseAndRestore() async {
+    let rig = await rig()
+    await rig.model.load()
+    XCTAssertTrue(rig.model.canPurchase)
+    rig.flagService.disabledKeys = ["paywall"]
+    await rig.flagStore.refresh()
+    XCTAssertFalse(rig.model.canPurchase)
+    await rig.model.purchase()
+    await rig.model.restore()
+    XCTAssertTrue(rig.purchases.purchasedPackageIds.isEmpty)
+    XCTAssertEqual(rig.purchases.restoreCount, 0)
+  }
+
+  func test_aFamilyThatBecomesFoundingMidSessionCannotBuyOrRestore() async {
     let rig = await rig()
     await rig.model.load()
     XCTAssertTrue(rig.model.canPurchase)
@@ -94,7 +116,56 @@ final class PaywallViewModelTests: XCTestCase {
     await rig.store.load(familyUnitId: family)
     XCTAssertFalse(rig.model.canPurchase)
     await rig.model.purchase()
+    await rig.model.restore()
     XCTAssertTrue(rig.purchases.purchasedPackageIds.isEmpty)
+    XCTAssertEqual(rig.purchases.restoreCount, 0)
+  }
+
+  // MARK: Parents only
+
+  func test_athleteCannotLoadBuyOrRestore() async {
+    let rig = await rig()
+    signedInRole = .player
+    await rig.model.load()
+    XCTAssertEqual(rig.model.phase, .unavailable)
+    XCTAssertEqual(rig.purchases.availablePackagesCount, 0)
+    await rig.model.purchase()
+    await rig.model.restore()
+    XCTAssertTrue(rig.purchases.purchasedPackageIds.isEmpty)
+    XCTAssertEqual(rig.purchases.restoreCount, 0)
+  }
+
+  func test_roleChangingToAthleteAfterLoadingStopsPurchaseAndRestore() async {
+    let rig = await rig()
+    await rig.model.load()
+    XCTAssertTrue(rig.model.canPurchase)
+    signedInRole = .player
+    XCTAssertFalse(rig.model.canPurchase)
+    await rig.model.purchase()
+    await rig.model.restore()
+    XCTAssertTrue(rig.purchases.purchasedPackageIds.isEmpty)
+    XCTAssertEqual(rig.purchases.restoreCount, 0)
+  }
+
+  func test_parentIsUnaffected() async {
+    let rig = await rig()
+    await rig.model.load()
+    XCTAssertEqual(rig.model.phase, .ready)
+    XCTAssertTrue(rig.model.canPurchase)
+  }
+
+  // MARK: No SDK key
+
+  func test_withoutAnSDKKeyNothingLoadsOrSells() async {
+    let rig = await rig { $0.isConfigured = false }
+    await rig.model.load()
+    XCTAssertEqual(rig.model.phase, .unavailable)
+    XCTAssertFalse(rig.model.isAvailable)
+    XCTAssertEqual(rig.purchases.availablePackagesCount, 0)
+    await rig.model.purchase()
+    await rig.model.restore()
+    XCTAssertTrue(rig.purchases.purchasedPackageIds.isEmpty)
+    XCTAssertEqual(rig.purchases.restoreCount, 0)
   }
 
   // MARK: Loading and choosing

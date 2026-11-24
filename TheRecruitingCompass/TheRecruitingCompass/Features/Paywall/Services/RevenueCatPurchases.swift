@@ -39,6 +39,8 @@ enum RevenueCatConfig {
 actor RevenueCatPurchases: PurchasesProviding {
   private var packagesById: [String: Package] = [:]
 
+  nonisolated var isConfigured: Bool { Purchases.isConfigured }
+
   private func purchases() throws -> Purchases {
     guard Purchases.isConfigured else { throw PurchasesError.notConfigured }
     return Purchases.shared

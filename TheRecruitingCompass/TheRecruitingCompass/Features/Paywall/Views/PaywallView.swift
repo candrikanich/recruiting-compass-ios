@@ -43,6 +43,7 @@ struct PaywallView: View {
       entitlements: entitlementStore,
       flags: flags,
       userId: { authManager.user?.id },
+      role: { authManager.user?.role },
       familyUnitId: { familyManager.familyUnitId }
     )
   }
@@ -57,7 +58,7 @@ struct PaywallView: View {
       ContentUnavailableView {
         Label("Plans aren't available right now", systemImage: "creditcard")
       } description: {
-        Text("Check your connection and try again in a moment.")
+        Text(model.isAvailable ? "Check your connection and try again in a moment." : "Please check back soon.")
       } actions: {
         if model.isAvailable {
           Button("Try again") { Task { await model.load() } }
@@ -109,8 +110,8 @@ struct PaywallView: View {
         }
 
         HStack(spacing: 16) {
-          Button("Terms of Service") { presentedLegal = .termsOfService }
-          Button("Privacy Policy") { presentedLegal = .privacyPolicy }
+          legalButton("Terms of Service", .termsOfService)
+          legalButton("Privacy Policy", .privacyPolicy)
         }
         .font(.brand(.footnote))
 
@@ -121,6 +122,12 @@ struct PaywallView: View {
       }
       .padding()
     }
+  }
+
+  private func legalButton(_ title: LocalizedStringKey, _ document: LegalDocument) -> some View {
+    Button(title) { presentedLegal = document }
+      .frame(minHeight: 44)
+      .contentShape(Rectangle())
   }
 
   private func subscribeButton(_ model: PaywallViewModel) -> some View {

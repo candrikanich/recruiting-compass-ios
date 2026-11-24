@@ -40,6 +40,7 @@ final class PaywallViewModel {
   private let entitlements: EntitlementStore
   private let flags: FeatureFlagStore?
   private let userId: () -> String?
+  private let role: () -> UserRole?
   private let familyUnitId: () -> String?
   private let pollAttempts: Int
   private let pollInterval: Duration
@@ -50,6 +51,7 @@ final class PaywallViewModel {
     entitlements: EntitlementStore,
     flags: FeatureFlagStore?,
     userId: @escaping () -> String?,
+    role: @escaping () -> UserRole?,
     familyUnitId: @escaping () -> String?,
     pollAttempts: Int = 6,
     pollInterval: Duration = .seconds(2),
@@ -59,6 +61,7 @@ final class PaywallViewModel {
     self.entitlements = entitlements
     self.flags = flags
     self.userId = userId
+    self.role = role
     self.familyUnitId = familyUnitId
     self.pollAttempts = pollAttempts
     self.pollInterval = pollInterval
@@ -67,7 +70,10 @@ final class PaywallViewModel {
 
   /// Re-read on every action: the family can switch, and the kill switch can flip, while the screen is open.
   var isAvailable: Bool {
-    PaywallAccess.isAvailable(subscription: entitlements.subscription, flags: flags)
+    PaywallAccess.isAvailable(
+      subscription: entitlements.subscription, flags: flags, role: role(),
+      isConfigured: session.purchases.isConfigured
+    )
   }
 
   /// Tiers for the chosen billing period, smallest first.

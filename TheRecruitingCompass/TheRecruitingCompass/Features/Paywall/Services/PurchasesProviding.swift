@@ -2,6 +2,8 @@ import Foundation
 
 /// The purchase SDK as the paywall needs it. The app uses `RevenueCatPurchases`; tests use a fake.
 protocol PurchasesProviding: Sendable {
+  /// False when no SDK key was built in: there is nothing to sell, so every purchase surface stays hidden.
+  var isConfigured: Bool { get }
   /// Attaches the SDK's customer to the signed-in user. Must finish before any purchase or restore.
   func logIn(appUserId: String) async throws
   func logOut() async throws

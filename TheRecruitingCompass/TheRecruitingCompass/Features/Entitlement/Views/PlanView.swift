@@ -48,6 +48,14 @@ struct PlanView: View {
         Text(Self.footerCopy)
       }
 
+      if PaywallAccess.showsAskAParentNote(subscription: entitlementStore.subscription, role: authManager.user?.role) {
+        Section {
+          Text(PaywallAccess.askAParentCopy)
+            .font(.brand(.subheadline))
+            .foregroundStyle(.secondary)
+        }
+      }
+
       if let billing, !planActions.isEmpty {
         Section {
           ForEach(planActions, id: \.self) { action in
@@ -72,7 +80,8 @@ struct PlanView: View {
 
   private var planActions: [PlanAction] {
     PaywallAccess.actions(
-      subscription: entitlementStore.subscription, flags: flags, holdsSubscription: holdsSubscription
+      subscription: entitlementStore.subscription, flags: flags, role: authManager.user?.role,
+      isConfigured: billing?.purchases.isConfigured ?? false, holdsSubscription: holdsSubscription
     )
   }
 
