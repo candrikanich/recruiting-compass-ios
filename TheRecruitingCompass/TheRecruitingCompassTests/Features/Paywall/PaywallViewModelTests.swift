@@ -7,6 +7,8 @@ final class PaywallViewModelTests: XCTestCase {
 
   private let uid = "3f2b8c1e-9a4d-4e6f-8b1a-5c7d9e0f1a2b"
   private let family = "fam-1"
+  /// What the auth layer reports right now; a test changes it to simulate an account switch.
+  private var signedInUserId: String?
 
   private struct Rig {
     let model: PaywallViewModel
@@ -38,6 +40,7 @@ final class PaywallViewModelTests: XCTestCase {
     let purchases = FakePurchases()
     purchases.packages = FakePurchases.launchOffering
     configure(purchases)
+    signedInUserId = uid
     let entitlements = MockEntitlementService()
     entitlements.subscription = subscription(status)
     let store = EntitlementStore(service: entitlements)
@@ -50,7 +53,7 @@ final class PaywallViewModelTests: XCTestCase {
     let sleeps = SleepLog()
     let model = PaywallViewModel(
       session: session, entitlements: store, flags: flags,
-      userId: { [uid] in uid }, familyUnitId: { [family] in family },
+      userId: { [unowned self] in signedInUserId }, familyUnitId: { [family] in family },
       pollAttempts: pollAttempts, pollInterval: .zero,
       sleep: { _ in
         sleeps.count += 1
@@ -159,6 +162,16 @@ final class PaywallViewModelTests: XCTestCase {
     await rig.model.restore()
     XCTAssertTrue(rig.purchases.purchasedPackageIds.isEmpty)
     XCTAssertEqual(rig.purchases.restoreCount, 0)
+  }
+
+  func test_anAccountSwitchAfterLoadingLocksPurchasesUntilTheNewLoginFinishes() async {
+    let rig = await rig()
+    await rig.model.load()
+    XCTAssertTrue(rig.model.canPurchase)
+    signedInUserId = "bbbbbbbb-0000-0000-0000-000000000002"
+    XCTAssertFalse(rig.model.canPurchase)
+    await rig.model.purchase()
+    XCTAssertTrue(rig.purchases.purchasedPackageIds.isEmpty)
   }
 
   func test_logsInWithTheLowercasedAuthUidBeforeLoadingPlans() async {
