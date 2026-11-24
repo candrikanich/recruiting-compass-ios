@@ -79,23 +79,34 @@ final class PaywallSourceGuardTests: XCTestCase {
     XCTAssertFalse(modifier.contains("WriteGate.subscriptionMessage"), "the parent-only text must not be hard-wired")
   }
 
+  /// The text between the braces of the first `{ ... }` in `text`, or nil when the braces do not close.
+  private static func firstBracedBlock(in text: Substring) -> Substring? {
+    guard let open = text.firstIndex(of: "{") else { return nil }
+    var depth = 0
+    var index = open
+    while index < text.endIndex {
+      if text[index] == "{" { depth += 1 }
+      if text[index] == "}" { depth -= 1 }
+      if depth == 0 { return text[text.index(after: open)..<index] }
+      index = text.index(after: index)
+    }
+    return nil
+  }
+
   /// A frame or content shape outside a borderless `Button` can grow its layout box without growing the tap area,
-  /// so Terms, Privacy and Restore keep both inside the label.
+  /// so Terms, Privacy and Restore keep both inside the label closure.
   func test_legalAndRestoreTapAreasLiveInsideTheButtonLabel() {
     let view = Self.source("Paywall/Views/PaywallView.swift")
     for marker in ["func legalButton", "Task { await model.restore() }"] {
-      guard let start = view.range(of: marker)?.lowerBound else {
-        XCTFail("PaywallView no longer has \(marker)")
-        continue
-      }
-      let body = String(view[start...].prefix(260))
-      guard let label = body.range(of: "label:") else {
+      guard let start = view.range(of: marker)?.lowerBound,
+        let label = view[start...].range(of: "label:"),
+        let labelBody = Self.firstBracedBlock(in: view[label.upperBound...])
+      else {
         XCTFail("\(marker) is not a label-style Button")
         continue
       }
-      let afterLabel = body[label.upperBound...]
-      XCTAssertTrue(afterLabel.contains(".frame(minHeight: 44)"), "\(marker): 44pt frame outside the label")
-      XCTAssertTrue(afterLabel.contains(".contentShape(Rectangle())"), "\(marker): contentShape outside the label")
+      XCTAssertTrue(labelBody.contains(".frame(minHeight: 44)"), "\(marker): 44pt frame outside the label")
+      XCTAssertTrue(labelBody.contains(".contentShape(Rectangle())"), "\(marker): contentShape outside the label")
     }
   }
 }
