@@ -57,10 +57,11 @@ final class RevenueCatConfigTests: XCTestCase {
     XCTAssertEqual(key(["RevenueCatAPIKey": "appl_info"], env), "appl_info")
   }
 
-  /// The real SDK: nothing in the app or the test host's launch has started it, and the real adapter reports the
-  /// build's key (absent in the test target), never the SDK's state.
-  func test_theDefaultAdapterReportsTheBuildsKey_andLaunchLeavesTheSDKStopped() {
+  /// The real adapter reports the build's key (absent in the test target), never the SDK's state, and asking
+  /// for it does not start the real SDK. It cannot prove the launch is clean (a mutant that starts the SDK in
+  /// `App.init` survived it); that is pinned by `PaywallSourceGuardTests.test_onlyTheAdapterStartsTheSDK_...`.
+  func test_theDefaultAdapterReportsTheBuildsKey_andAskingDoesNotStartTheSDK() {
     XCTAssertEqual(RevenueCatPurchases().hasAPIKey, RevenueCatConfig.apiKey() != nil)
-    XCTAssertFalse(PurchasesLifecycle.live.isStarted(), "the app must not start RevenueCat at launch")
+    XCTAssertFalse(PurchasesLifecycle.live.isStarted())
   }
 }
