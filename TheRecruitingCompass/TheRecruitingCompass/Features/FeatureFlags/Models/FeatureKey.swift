@@ -7,4 +7,6 @@ enum FeatureKey: String, CaseIterable, Sendable {
   case guardianClaim = "guardian_claim"
   case familyInvites = "family_invites"
   case athleteMessages = "athlete_messages"
+  /// Hides every purchase surface. Builds before the paywall ignore the key, so it is safe to set early.
+  case paywall = "paywall"
 }

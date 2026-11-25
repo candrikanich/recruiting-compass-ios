@@ -19,6 +19,10 @@
 	     Empty = crash reporting disabled. Release-only so Debug builds never report. -->
 	<key>SentryDSN</key>
 	<string>$(SENTRY_DSN)</string>
+	<!-- RevenueCat public SDK key from the REVENUECAT_API_KEY build setting (Release.xcconfig / Xcode Cloud env).
+	     Empty = purchases disabled. -->
+	<key>RevenueCatAPIKey</key>
+	<string>$(REVENUECAT_API_KEY)</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Barlow-Regular.ttf</string>

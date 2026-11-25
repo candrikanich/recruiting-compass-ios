@@ -12,6 +12,11 @@ import UserNotifications
 import os
 import PostHog
 
+private struct BillingSyncKey: Equatable {
+  let userId: String?
+  let role: UserRole?
+}
+
 struct TheRecruitingCompassApp: App {
   @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
   @State private var authManager = AuthManager.shared
@@ -21,7 +26,8 @@ struct TheRecruitingCompassApp: App {
   @State private var nuxProgressManager = NuxProgressManager.shared
   @State private var entitlementStore = EntitlementStore(selectedFamilyUnitId: { FamilyManager.shared.familyUnitId })
   @State private var appUpdateManager = AppUpdateManager()
-  @State private var featureFlagStore = FeatureFlagStore()
+  @State private var featureFlagStore: FeatureFlagStore
+  @State private var billingSession: BillingSession
   @State private var showResetPassword = false
   @State private var showBiometricLock = false
   @State private var pendingResetPasswordFromDeepLink = false
@@ -33,6 +39,17 @@ struct TheRecruitingCompassApp: App {
   init() {
     CrashReporting.start()
     Analytics.setup()
+    // RevenueCat stays stopped until a parent signs in (BillingSession): nothing reaches it at launch.
+    let flags = FeatureFlagStore()
+    _featureFlagStore = State(initialValue: flags)
+    _billingSession = State(initialValue: BillingSession(
+      purchases: RevenueCatPurchases(),
+      isPaywallEnabled: {
+        await flags.waitForInitialState()
+        return flags.isEnabled(.paywall)
+      },
+      role: { AuthManager.shared.user?.role }
+    ))
     BrandFont.configureNavigationBarAppearance()
     if LaunchEnvironment.disablesAnimations(arguments: ProcessInfo.processInfo.arguments) {
       UIView.setAnimationsEnabled(false)
@@ -134,6 +151,11 @@ struct TheRecruitingCompassApp: App {
           TurnstileChallengeOverlay()
         }
       }
+      // The SDK customer must be the signed-in user before any purchase, and detached on sign-out (web#1751).
+      // Re-runs when the role loads or the account changes: only a parent is ever sent to the SDK.
+      .task(id: BillingSyncKey(userId: authManager.user?.id, role: authManager.user?.role)) {
+        await billingSession.sync(userId: authManager.user?.id)
+      }
       .task {
         async let flags: Void = featureFlagStore.refresh()
         await appUpdateManager.check()
@@ -218,6 +240,7 @@ struct TheRecruitingCompassApp: App {
       .environment(entitlementStore)
       .environment(appUpdateManager)
       .environment(featureFlagStore)
+      .environment(billingSession)
     }
   }
 

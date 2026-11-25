@@ -11,6 +11,7 @@
 		98AA1B602F3C1746000E4755 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 98AA1B5F2F3C1746000E4755 /* Supabase */; };
 		98C72ABF3047649C005939FA /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D62F90000100000001 /* PostHog */; };
 		A1B2C3D92F90000100000001 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3D82F90000100000001 /* Sentry */; };
+		A1B2C3DA2F90000100000001 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = A1B2C3DB2F90000100000001 /* RevenueCat */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +64,7 @@
 				98C72ABF3047649C005939FA /* PostHog in Frameworks */,
 				A1B2C3D92F90000100000001 /* Sentry in Frameworks */,
 				988EFDDF2F3549A1009C60F5 /* Supabase in Frameworks */,
+				A1B2C3DA2F90000100000001 /* RevenueCat in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -193,6 +195,7 @@
 				988EFDDE2F3549A1009C60F5 /* Supabase */,
 				A1B2C3D62F90000100000001 /* PostHog */,
 				A1B2C3D82F90000100000001 /* Sentry */,
+				A1B2C3DB2F90000100000001 /* RevenueCat */,
 			);
 			productName = TheRecruitingCompass;
 			productReference = 988EFDAA2F35489B009C60F5 /* myCompass.app */;
@@ -276,6 +279,7 @@
 				988EFDDD2F3549A1009C60F5 /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				A1B2C3D42F90000100000001 /* XCRemoteSwiftPackageReference "posthog-ios" */,
 				A1B2C3D72F90000100000001 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
+				A1B2C3DC2F90000100000001 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 988EFDAB2F35489B009C60F5 /* Products */;
@@ -729,6 +733,14 @@
 				minimumVersion = 9.35.0;
 			};
 		};
+		A1B2C3DC2F90000100000001 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 5.102.3;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -751,6 +763,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A1B2C3D72F90000100000001 /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
 			productName = Sentry;
+		};
+		A1B2C3DB2F90000100000001 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1B2C3DC2F90000100000001 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCat;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

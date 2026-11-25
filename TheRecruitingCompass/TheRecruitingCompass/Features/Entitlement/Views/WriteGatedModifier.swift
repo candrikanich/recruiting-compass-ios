@@ -3,6 +3,7 @@ import SwiftUI
 /// Wires a screen's `WriteGate` to the app's entitlement store and presents the notice with a way to the Plan screen.
 private struct WriteGatedModifier: ViewModifier {
   @Environment(EntitlementStore.self) private var entitlementStore
+  @Environment(AuthManager.self) private var authManager
   @Bindable var gate: WriteGate
   @State private var isShowingPlan = false
 
@@ -16,12 +17,12 @@ private struct WriteGatedModifier: ViewModifier {
     Color.clear
       .allowsHitTesting(false)
       .accessibilityHidden(true)
-      .onAppear { gate.attach(to: entitlementStore) }
+      .onAppear { gate.attach(to: entitlementStore, role: { [authManager] in authManager.user?.role }) }
       .alert(WriteGate.noticeTitle, isPresented: $gate.isShowingNotice) {
         Button(WriteGate.viewPlanButton) { isShowingPlan = true }
         Button(WriteGate.closeButton, role: .cancel) {}
       } message: {
-        Text(WriteGate.subscriptionMessage)
+        Text(gate.noticeMessage)
       }
       .sheet(isPresented: $isShowingPlan) {
         NavigationStack {
