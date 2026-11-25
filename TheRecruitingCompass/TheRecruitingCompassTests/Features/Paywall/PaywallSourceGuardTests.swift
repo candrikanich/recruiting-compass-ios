@@ -72,6 +72,13 @@ final class PaywallSourceGuardTests: XCTestCase {
     return (try? String(contentsOf: url, encoding: .utf8)).map(strippingComments(from:)) ?? ""
   }
 
+  /// Comment-free source with every whitespace character removed, so a reformat cannot hide or fake a match.
+  private static func compactSource(atRoot fileName: String) -> String {
+    let url = sourceRoot.appendingPathComponent(fileName)
+    let code = (try? String(contentsOf: url, encoding: .utf8)).map(strippingComments(from:)) ?? ""
+    return code.filter { !$0.isWhitespace }
+  }
+
   /// The write-gate alert must read the role-aware text, not the parent-only constant.
   func test_writeGateNoticeIsRoleAware() {
     let modifier = Self.source("Entitlement/Views/WriteGatedModifier.swift")
@@ -79,15 +86,52 @@ final class PaywallSourceGuardTests: XCTestCase {
     XCTAssertFalse(modifier.contains("WriteGate.subscriptionMessage"), "the parent-only text must not be hard-wired")
   }
 
-  /// The text between the braces of the first `{ ... }` in `text`, or nil when the braces do not close.
-  private static func firstBracedBlock(in text: Substring) -> Substring? {
-    guard let open = text.firstIndex(of: "{") else { return nil }
+  /// The write gate must be told the signed-in user's role; a fixed role would tell every athlete to renew.
+  func test_writeGateGetsTheSignedInRole() {
+    let modifier = Self.source("Entitlement/Views/WriteGatedModifier.swift").filter { !$0.isWhitespace }
+    guard let attach = modifier.range(of: "gate.attach("),
+      let arguments = Self.firstBracedBlock(in: modifier[attach.lowerBound...], open: "(", close: ")")
+    else { return XCTFail("the write gate is never attached") }
+    let readsSignedInRole = "role:\\{(\\[authManager\\]in)?authManager\\.user\\?\\.role\\}$"
+    XCTAssertNotNil(
+      arguments.range(of: readsSignedInRole, options: .regularExpression),
+      "the write gate must read the signed-in role, got \(arguments)"
+    )
+  }
+
+  /// Only a parent may become a RevenueCat customer, so the app must hand billing the signed-in role and re-sync
+  /// when that role loads, not just when the user id changes.
+  func test_appBillingSessionReadsTheSignedInRoleAndResyncsOnIt() {
+    let app = Self.compactSource(atRoot: "TheRecruitingCompassApp.swift")
+    if let start = app.range(of: "BillingSession("),
+      let arguments = Self.firstBracedBlock(in: app[start.lowerBound...], open: "(", close: ")") {
+      XCTAssertTrue(
+        arguments.hasSuffix("role:{AuthManager.shared.user?.role}"),
+        "billing must read the signed-in role, got \(arguments)"
+      )
+    } else {
+      XCTFail("the app never creates a BillingSession")
+    }
+
+    guard let sync = app.range(of: "billingSession.sync("),
+      let task = app[..<sync.lowerBound].range(of: ".task(id:", options: .backwards),
+      let key = Self.firstBracedBlock(in: app[task.lowerBound...], open: "(", close: ")")
+    else { return XCTFail("billing is not synced from a .task(id:)") }
+    XCTAssertTrue(key.contains("userId:authManager.user?.id"), "billing must re-sync when the account changes")
+    XCTAssertTrue(key.contains("role:authManager.user?.role"), "billing must re-sync when the role loads, got \(key)")
+  }
+
+  /// The text between the first `open` and its matching `close` in `text`, or nil when they do not balance.
+  private static func firstBracedBlock(
+    in text: Substring, open: Character = "{", close: Character = "}"
+  ) -> Substring? {
+    guard let start = text.firstIndex(of: open) else { return nil }
     var depth = 0
-    var index = open
+    var index = start
     while index < text.endIndex {
-      if text[index] == "{" { depth += 1 }
-      if text[index] == "}" { depth -= 1 }
-      if depth == 0 { return text[text.index(after: open)..<index] }
+      if text[index] == open { depth += 1 }
+      if text[index] == close { depth -= 1 }
+      if depth == 0 { return text[text.index(after: start)..<index] }
       index = text.index(after: index)
     }
     return nil
