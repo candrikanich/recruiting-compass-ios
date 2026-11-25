@@ -7,7 +7,7 @@ struct FakePurchasesFailure: Error, LocalizedError {
 
 /// Records every call the paywall makes to the purchase SDK. Single-threaded: tests drive it from the main actor.
 final class FakePurchases: PurchasesProviding, @unchecked Sendable {
-  var isConfigured = true
+  var hasAPIKey = true
   private(set) var logInCalls: [String] = []
   private(set) var logOutCount = 0
   private(set) var availablePackagesCount = 0

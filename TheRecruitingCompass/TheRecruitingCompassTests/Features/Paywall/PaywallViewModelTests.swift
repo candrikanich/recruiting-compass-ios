@@ -53,7 +53,9 @@ final class PaywallViewModelTests: XCTestCase {
     flagService.disabledKeys = disabled
     let flags = FeatureFlagStore(service: flagService, defaults: UserDefaults(suiteName: "PaywallVM-\(UUID())")!)
     await flags.refresh()
-    let session = BillingSession(purchases: purchases, role: { [unowned self] in signedInRole })
+    let session = BillingSession(
+      purchases: purchases, isPaywallEnabled: { flags.isEnabled(.paywall) }, role: { [unowned self] in signedInRole }
+    )
     let sleeps = SleepLog()
     let model = PaywallViewModel(
       session: session, entitlements: store, flags: flags,
@@ -157,7 +159,7 @@ final class PaywallViewModelTests: XCTestCase {
   // MARK: No SDK key
 
   func test_withoutAnSDKKeyNothingLoadsOrSells() async {
-    let rig = await rig { $0.isConfigured = false }
+    let rig = await rig { $0.hasAPIKey = false }
     await rig.model.load()
     XCTAssertEqual(rig.model.phase, .unavailable)
     XCTAssertFalse(rig.model.isAvailable)

@@ -121,6 +121,41 @@ final class PaywallSourceGuardTests: XCTestCase {
     XCTAssertTrue(key.contains("role:authManager.user?.role"), "billing must re-sync when the role loads, got \(key)")
   }
 
+  /// Starting the SDK contacts RevenueCat. Only the adapter may do it, once, already identified as the user, so no
+  /// anonymous customer exists; a second call site (say, back in `App.init`) would send every install's IP.
+  func test_onlyTheAdapterStartsTheSDK_andOnlyAsAnIdentifiedUser() {
+    var callers: [String] = []
+    if let walker = FileManager.default.enumerator(at: Self.sourceRoot, includingPropertiesForKeys: nil) {
+      for case let url as URL in walker where url.pathExtension == "swift" {
+        guard let text = try? String(contentsOf: url, encoding: .utf8) else { continue }
+        let code = Self.strippingComments(from: text).filter { !$0.isWhitespace }
+        if code.contains("Purchases.configure(") || code.contains("Configuration.Builder(") {
+          callers.append(url.lastPathComponent)
+        }
+      }
+    }
+    XCTAssertEqual(callers, ["RevenueCatPurchases.swift"], "only the adapter may start the SDK")
+
+    let adapter = Self.source("Paywall/Services/RevenueCatPurchases.swift").filter { !$0.isWhitespace }
+    XCTAssertEqual(adapter.components(separatedBy: "Purchases.configure(").count - 1, 1)
+    XCTAssertTrue(
+      adapter.contains("Purchases.configure(withAPIKey:apiKey,appUserID:appUserId)"),
+      "the SDK must start identified as the signed-in user, never anonymous"
+    )
+  }
+
+  /// The kill switch must be read, after the cold-launch flag refresh, before the SDK can start.
+  func test_appBillingSessionWaitsForAndReadsThePaywallKillSwitch() {
+    let app = Self.compactSource(atRoot: "TheRecruitingCompassApp.swift")
+    guard let start = app.range(of: "BillingSession("),
+      let arguments = Self.firstBracedBlock(in: app[start.lowerBound...], open: "(", close: ")")
+    else { return XCTFail("the app never creates a BillingSession") }
+    XCTAssertTrue(arguments.contains("isPaywallEnabled:{"), "billing must be told the kill switch, got \(arguments)")
+    XCTAssertTrue(arguments.contains("awaitflags.waitForInitialState()"), "the kill switch must be resolved first")
+    XCTAssertTrue(arguments.contains("returnflags.isEnabled(.paywall)"), "billing must read the paywall switch")
+    XCTAssertTrue(app.contains("_featureFlagStore=State(initialValue:flags)"), "billing must read the app's own store")
+  }
+
   /// The text between the first `open` and its matching `close` in `text`, or nil when they do not balance.
   private static func firstBracedBlock(
     in text: Substring, open: Character = "{", close: Character = "}"

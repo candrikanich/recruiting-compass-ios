@@ -9,7 +9,7 @@ final class BillingSessionTests: XCTestCase {
 
   func test_logsInWithTheLowercasedSupabaseUserIdAndNothingElse() async {
     let fake = FakePurchases()
-    let session = BillingSession(purchases: fake, role: { .parent })
+    let session = BillingSession(purchases: fake, isPaywallEnabled: { true }, role: { .parent })
     await session.sync(userId: uid.uppercased())
     XCTAssertEqual(fake.logInCalls, [uid])
     XCTAssertTrue(session.isIdentified(as: uid))
@@ -20,7 +20,7 @@ final class BillingSessionTests: XCTestCase {
     let fake = FakePurchases()
     let gate = AsyncGate()
     fake.logInGate = { _ in await gate.wait() }
-    let session = BillingSession(purchases: fake, role: { .parent })
+    let session = BillingSession(purchases: fake, isPaywallEnabled: { true }, role: { .parent })
     let pending = Task { await session.sync(userId: uid) }
     let entered = await gate.untilEntered()
     XCTAssertTrue(entered)
@@ -34,7 +34,7 @@ final class BillingSessionTests: XCTestCase {
     let fake = FakePurchases()
     let gate = AsyncGate(blockedEntries: 1)
     fake.logInGate = { _ in await gate.wait() }
-    let session = BillingSession(purchases: fake, role: { .parent })
+    let session = BillingSession(purchases: fake, isPaywallEnabled: { true }, role: { .parent })
     let first = Task { await session.sync(userId: "aaaaaaaa-0000-0000-0000-000000000001") }
     let entered = await gate.untilEntered()
     XCTAssertTrue(entered)
@@ -48,7 +48,7 @@ final class BillingSessionTests: XCTestCase {
   func test_aFailedLoginLeavesPurchasesLocked_andEnsureIdentifiedRetries() async {
     let fake = FakePurchases()
     fake.logInError = FakePurchasesFailure()
-    let session = BillingSession(purchases: fake, role: { .parent })
+    let session = BillingSession(purchases: fake, isPaywallEnabled: { true }, role: { .parent })
     await session.sync(userId: uid)
     XCTAssertFalse(session.isIdentified(as: uid))
     fake.logInError = nil
@@ -59,7 +59,7 @@ final class BillingSessionTests: XCTestCase {
 
   func test_signOutDetachesTheCustomerAndLocksPurchases() async {
     let fake = FakePurchases()
-    let session = BillingSession(purchases: fake, role: { .parent })
+    let session = BillingSession(purchases: fake, isPaywallEnabled: { true }, role: { .parent })
     await session.sync(userId: uid)
     await session.sync(userId: nil)
     XCTAssertEqual(fake.logOutCount, 1)
@@ -68,7 +68,7 @@ final class BillingSessionTests: XCTestCase {
   }
 
   func test_noUserIsNeverIdentified() async {
-    let session = BillingSession(purchases: FakePurchases(), role: { .parent })
+    let session = BillingSession(purchases: FakePurchases(), isPaywallEnabled: { true }, role: { .parent })
     XCTAssertFalse(session.isIdentified(as: nil))
     let identified = await session.ensureIdentified(as: nil)
     XCTAssertFalse(identified)
@@ -78,7 +78,7 @@ final class BillingSessionTests: XCTestCase {
     let fake = FakePurchases()
     fake.currentProduct = "trc_players_1_annual"
     fake.logInError = FakePurchasesFailure()
-    let session = BillingSession(purchases: fake, role: { .parent })
+    let session = BillingSession(purchases: fake, isPaywallEnabled: { true }, role: { .parent })
     let whileLocked = await session.currentProductId(as: uid)
     XCTAssertNil(whileLocked)
     fake.logInError = nil
@@ -91,7 +91,7 @@ final class BillingSessionTests: XCTestCase {
   func test_anAthleteIsNeverLoggedIn_everyNonParentRole() async {
     for role in [UserRole.player, nil] {
       let fake = FakePurchases()
-      let session = BillingSession(purchases: fake, role: { role })
+      let session = BillingSession(purchases: fake, isPaywallEnabled: { true }, role: { role })
       await session.sync(userId: uid)
       XCTAssertEqual(fake.logInCalls, [], "\(String(describing: role))")
       XCTAssertNil(session.identifiedUserId)
@@ -102,7 +102,7 @@ final class BillingSessionTests: XCTestCase {
   func test_anAthleteNeverReachesTheSDK_throughEnsureIdentifiedOrCurrentProduct() async {
     let fake = FakePurchases()
     fake.currentProduct = "trc_players_1_annual"
-    let session = BillingSession(purchases: fake, role: { .player })
+    let session = BillingSession(purchases: fake, isPaywallEnabled: { true }, role: { .player })
     let identified = await session.ensureIdentified(as: uid)
     let product = await session.currentProductId(as: uid)
     XCTAssertFalse(identified)
@@ -113,7 +113,7 @@ final class BillingSessionTests: XCTestCase {
 
   func test_aParentIsStillLoggedIn() async {
     let fake = FakePurchases()
-    let session = BillingSession(purchases: fake, role: { .parent })
+    let session = BillingSession(purchases: fake, isPaywallEnabled: { true }, role: { .parent })
     await session.sync(userId: uid)
     XCTAssertEqual(fake.logInCalls, [uid])
   }
@@ -122,7 +122,7 @@ final class BillingSessionTests: XCTestCase {
   func test_anAthleteSigningInAfterAParentDetachesTheParentsCustomer() async {
     let fake = FakePurchases()
     var role: UserRole? = .parent
-    let session = BillingSession(purchases: fake, role: { role })
+    let session = BillingSession(purchases: fake, isPaywallEnabled: { true }, role: { role })
     await session.sync(userId: uid)
     XCTAssertTrue(session.isIdentified(as: uid))
     role = .player
@@ -136,12 +136,43 @@ final class BillingSessionTests: XCTestCase {
   func test_aRoleThatLoadsLaterIsLoggedInThen() async {
     let fake = FakePurchases()
     var role: UserRole?
-    let session = BillingSession(purchases: fake, role: { role })
+    let session = BillingSession(purchases: fake, isPaywallEnabled: { true }, role: { role })
     await session.sync(userId: uid)
     XCTAssertEqual(fake.logInCalls, [])
     role = .parent
     await session.sync(userId: uid)
     XCTAssertEqual(fake.logInCalls, [uid])
     XCTAssertTrue(session.isIdentified(as: uid))
+  }
+
+  // MARK: Nothing to sell, or switched off: the SDK is never reached (ios#541 round 5)
+
+  /// All four combinations of key and kill switch: only "has a key, switch on" may log a parent in.
+  func test_aParentIsLoggedInOnlyWithAKeyAndTheKillSwitchOff() async {
+    for hasKey in [true, false] {
+      for paywallEnabled in [true, false] {
+        let fake = FakePurchases()
+        fake.hasAPIKey = hasKey
+        let session = BillingSession(purchases: fake, isPaywallEnabled: { paywallEnabled }, role: { .parent })
+        await session.sync(userId: uid)
+        let ensured = await session.ensureIdentified(as: uid)
+        let expected = hasKey && paywallEnabled
+        let label = "key \(hasKey), paywall \(paywallEnabled)"
+        XCTAssertEqual(fake.logInCalls.isEmpty, !expected, label)
+        XCTAssertEqual(ensured, expected, label)
+        XCTAssertEqual(session.isIdentified(as: uid), expected, label)
+      }
+    }
+  }
+
+  func test_aKillSwitchFlippedAfterLoginKeepsTheNextSyncFromReachingTheSDKAsAParent() async {
+    let fake = FakePurchases()
+    var enabled = true
+    let session = BillingSession(purchases: fake, isPaywallEnabled: { enabled }, role: { .parent })
+    await session.sync(userId: uid)
+    enabled = false
+    await session.sync(userId: uid)
+    XCTAssertEqual(fake.logInCalls, [uid])
+    XCTAssertFalse(session.isIdentified(as: uid))
   }
 }

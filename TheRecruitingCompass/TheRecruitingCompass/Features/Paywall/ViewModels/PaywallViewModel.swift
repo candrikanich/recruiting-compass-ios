@@ -72,7 +72,7 @@ final class PaywallViewModel {
   var isAvailable: Bool {
     PaywallAccess.isAvailable(
       subscription: entitlements.subscription, flags: flags, role: role(),
-      isConfigured: session.purchases.isConfigured
+      isConfigured: session.purchases.hasAPIKey
     )
   }
 

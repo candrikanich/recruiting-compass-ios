@@ -81,7 +81,7 @@ struct PlanView: View {
   private var planActions: [PlanAction] {
     PaywallAccess.actions(
       subscription: entitlementStore.subscription, flags: flags, role: authManager.user?.role,
-      isConfigured: billing?.purchases.isConfigured ?? false, holdsSubscription: holdsSubscription
+      isConfigured: billing?.purchases.hasAPIKey ?? false, holdsSubscription: holdsSubscription
     )
   }
 

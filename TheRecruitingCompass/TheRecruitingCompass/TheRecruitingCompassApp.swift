@@ -26,10 +26,8 @@ struct TheRecruitingCompassApp: App {
   @State private var nuxProgressManager = NuxProgressManager.shared
   @State private var entitlementStore = EntitlementStore(selectedFamilyUnitId: { FamilyManager.shared.familyUnitId })
   @State private var appUpdateManager = AppUpdateManager()
-  @State private var featureFlagStore = FeatureFlagStore()
-  @State private var billingSession = BillingSession(
-    purchases: RevenueCatPurchases(), role: { AuthManager.shared.user?.role }
-  )
+  @State private var featureFlagStore: FeatureFlagStore
+  @State private var billingSession: BillingSession
   @State private var showResetPassword = false
   @State private var showBiometricLock = false
   @State private var pendingResetPasswordFromDeepLink = false
@@ -41,7 +39,17 @@ struct TheRecruitingCompassApp: App {
   init() {
     CrashReporting.start()
     Analytics.setup()
-    RevenueCatConfig.configure()
+    // RevenueCat stays stopped until a parent signs in (BillingSession): nothing reaches it at launch.
+    let flags = FeatureFlagStore()
+    _featureFlagStore = State(initialValue: flags)
+    _billingSession = State(initialValue: BillingSession(
+      purchases: RevenueCatPurchases(),
+      isPaywallEnabled: {
+        await flags.waitForInitialState()
+        return flags.isEnabled(.paywall)
+      },
+      role: { AuthManager.shared.user?.role }
+    ))
     BrandFont.configureNavigationBarAppearance()
     if LaunchEnvironment.disablesAnimations(arguments: ProcessInfo.processInfo.arguments) {
       UIView.setAnimationsEnabled(false)
